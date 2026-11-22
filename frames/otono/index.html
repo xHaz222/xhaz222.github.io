@@ -31,8 +31,8 @@ canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
 <script>
 const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s);
 const clean = s => String(s || '').replace(/[<>]/g, '').slice(0, 40);
-if (Q.get('t')) $('#tt').textContent = clean(Q.get('t'));
-if (Q.has('s')) $('#ts').textContent = clean(Q.get('s'));
+$('#tt').textContent = clean(Q.get('t')); $('#ts').textContent = clean(Q.get('s'));
+if (!Q.get('t') && !Q.get('s')) $('.title').remove();
 const cv = $('#c'), x = cv.getContext('2d'); let W, H, P = [];
 const rnd = (a, b) => a + Math.random() * (b - a);
 function size() { const d = Math.min(devicePixelRatio || 1, 1.5); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); init(); }

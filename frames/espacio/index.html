@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Espacio xat · xatframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Espacio xat — xatframe libre para tu sala (autor: xHaz 1004002)
+   Link: ?t=Título&s=Subtítulo&p=violeta|azul|rosa */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--n1:#6b3fa0;--n2:#1f6f8b;--n3:#a33a7a}
+html,body{width:100%;height:100%;overflow:hidden;background:#05040d;color:#eef0ff;font-family:'Outfit',system-ui,sans-serif;user-select:none;-webkit-user-select:none}
+.space{position:fixed;inset:0;background:radial-gradient(120% 90% at 50% 120%,#170f33,transparent 60%),linear-gradient(180deg,#04030a 0%,#0a0820 60%,#120c2c 100%)}
+.neb{position:fixed;inset:-10%;filter:blur(80px);opacity:.42}
+.neb i{position:absolute;border-radius:50%;animation:nb 50s ease-in-out infinite alternate}
+.neb i:nth-child(1){width:50vw;height:34vw;left:-6%;top:12%;background:var(--n1)}
+.neb i:nth-child(2){width:40vw;height:30vw;right:-4%;top:46%;background:var(--n2);animation-duration:64s}
+.neb i:nth-child(3){width:28vw;height:22vw;left:38%;top:-6%;background:var(--n3);opacity:.6;animation-duration:72s}
+@keyframes nb{to{transform:translate(4vw,3vh) scale(1.1)}}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+.xat{position:fixed;right:6vw;top:22vh;width:min(26vw,420px);animation:fl 12s ease-in-out infinite;filter:drop-shadow(0 0 40px rgba(120,180,255,.35))}
+.xat img{width:100%;display:block}
+@keyframes fl{50%{transform:translateY(-14px) rotate(-3deg)}}
+.orbit{position:fixed;right:calc(6vw + min(13vw,210px));top:calc(22vh + min(6.7vw,108px));width:0;height:0;animation:or 22s linear infinite}
+.orbit i{position:absolute;left:min(19vw,300px);top:-7px;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffffff,#b9c3d9 70%);box-shadow:0 0 12px rgba(200,215,255,.6)}
+@keyframes or{to{transform:rotate(360deg)}}
+.small{position:fixed;left:6vw;top:30vh;width:min(7vw,110px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 32% 30%,#ffd7a8,#d9785a 45%,#5a2340 80%);box-shadow:inset -12px -10px 24px rgba(0,0,0,.5),0 0 30px rgba(217,120,90,.25);animation:fl 16s ease-in-out infinite}
+.title{position:fixed;left:3vw;bottom:5vh}
+.title b{display:block;font-weight:300;font-size:clamp(26px,3.2vw,50px);letter-spacing:.03em;line-height:1}
+.title span{display:block;margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:clamp(10px,.8vw,12px);letter-spacing:.22em;text-transform:uppercase;color:#a9b2e0}
+@media (max-width:640px){.xat{width:44vw;top:auto;bottom:26vh;right:4vw}.orbit{display:none}.small{width:60px;top:auto;bottom:30vh}}
+</style>
+</head>
+<body>
+<div class="space"></div><div class="neb"><i></i><i></i><i></i></div>
+<canvas id="c"></canvas>
+<div class="small"></div>
+<div class="xat" id="xat"><img src="https://xat.com/content/web/R00261/img/xatplanet.svg" alt="" onerror="document.getElementById('xat').remove();document.querySelector('.orbit').remove()"></div>
+<div class="orbit"><i></i></div>
+<div class="title"><b id="tt"></b><span id="ts"></span></div>
+<script>
+const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s), clean = s => String(s || '').replace(/[<>]/g, '').slice(0, 40);
+const PAL = { violeta: ['#6b3fa0', '#1f6f8b', '#a33a7a'], azul: ['#2a4fa8', '#1f8b8b', '#4a3fa0'], rosa: ['#a33a7a', '#6b3fa0', '#d9785a'] };
+const pl = PAL[Q.get('p')] || PAL.violeta;['--n1', '--n2', '--n3'].forEach((k, i) => document.documentElement.style.setProperty(k, pl[i]));
+$('#tt').textContent = clean(Q.get('t')); $('#ts').textContent = clean(Q.get('s')); if (!Q.get('t') && !Q.get('s')) $('.title').remove();
+const cv = $('#c'), x = cv.getContext('2d'); let W, H, S = [], M = [];
+function size() { const d = Math.min(devicePixelRatio || 1, 1.5); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); S = Array.from({ length: Math.round(Math.min(380, W * H / 4000)) }, () => ({ x: Math.random() * W, y: Math.random() * H, z: Math.random(), p: Math.random() * 6.28, c: Math.random() < .15 ? (Math.random() < .5 ? '#ffd9b0' : '#b9d4ff') : '#ffffff' })); }
+function meteor(x0, y0, up) { const a = up ? -Math.PI / 2 + (Math.random() - .5) * .8 : Math.PI * (.15 + Math.random() * .2); M.push({ x: x0, y: y0, vx: Math.cos(a) * 9, vy: Math.sin(a) * 9, t: 0 }); }
+let next = 4000;
+(function loop(t) {
+  t = t || 0; x.clearRect(0, 0, W, H);
+  for (const s of S) { s.p += .01 + s.z * .02; s.x -= .02 + s.z * .08; if (s.x < -2) s.x = W + 2; const a = (.35 + s.z * .65) * (.6 + .4 * Math.sin(s.p)); x.globalAlpha = a; x.fillStyle = s.c; x.beginPath(); x.arc(s.x, s.y, .4 + s.z * 1.3, 0, 6.283); x.fill(); }
+  if (t > next) { meteor(Math.random() * W * .7, Math.random() * H * .3, false); next = t + 5000 + Math.random() * 7000; }
+  for (let i = M.length - 1; i >= 0; i--) { const m = M[i]; m.t++; m.x += m.vx; m.y += m.vy; const k = 1 - m.t / 70; if (k <= 0) { M.splice(i, 1); continue; } const g = x.createLinearGradient(m.x, m.y, m.x - m.vx * 10, m.y - m.vy * 10); g.addColorStop(0, `rgba(255,255,255,${k})`); g.addColorStop(1, 'rgba(255,255,255,0)'); x.globalAlpha = 1; x.strokeStyle = g; x.lineWidth = 2; x.beginPath(); x.moveTo(m.x, m.y); x.lineTo(m.x - m.vx * 10, m.y - m.vy * 10); x.stroke(); }
+  x.globalAlpha = 1; requestAnimationFrame(loop);
+})();
+/* abajo (zona clickeable): toca y sale una estrella fugaz */
+addEventListener('pointerdown', e => meteor(e.clientX, e.clientY, true));
+addEventListener('resize', size); size();
+</script>
+</body>
+</html>

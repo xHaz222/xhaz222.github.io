@@ -28,28 +28,35 @@ canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
 .egg .top{transition:transform .6s cubic-bezier(.3,1.6,.5,1);transform-origin:20% 60%}
 .egg.open .top{transform:translate(-6px,-26px) rotate(-30deg)}
 .tag{max-width:100%;font-size:clamp(10px,.8vw,12px);font-weight:600;background:rgba(255,255,255,.9);color:#3f4a45;padding:2px 9px;border-radius:999px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card{position:fixed;right:2vw;top:38vh;max-width:24vw;opacity:0;transform:translateY(20px) scale(.85);pointer-events:none;transition:all .45s cubic-bezier(.2,1.4,.4,1);display:flex;align-items:center;gap:12px;padding:12px 18px 12px 12px;border-radius:18px;background:rgba(255,255,255,.88);backdrop-filter:blur(8px);color:#3f4a45;box-shadow:0 14px 40px rgba(60,80,70,.18),inset 0 0 0 1px rgba(160,190,175,.6)}
+.card{position:fixed;right:2vw;top:38vh;max-width:min(30vw,380px);opacity:0;transform:translateY(20px) scale(.85);pointer-events:none;transition:all .45s cubic-bezier(.2,1.4,.4,1);display:flex;align-items:center;gap:12px;padding:12px 18px 12px 12px;border-radius:18px;background:rgba(255,255,255,.88);backdrop-filter:blur(8px);color:#3f4a45;box-shadow:0 14px 40px rgba(60,80,70,.18),inset 0 0 0 1px rgba(160,190,175,.6)}
 .card.on{opacity:1;transform:none}
 .card img,.card .ini{width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid #b7d3c4;background:#fff;flex:none}
 .card .ini{display:grid;place-items:center;font-size:24px;font-weight:600;color:#7aa892}
 .card b{display:block;font-weight:600;font-size:19px}
 .card span{font-family:'JetBrains Mono',monospace;font-size:12px;color:#8a9e92}
 @media (max-width:640px){.flowers{bottom:24vh;width:90px}.card{right:50%;top:auto;bottom:calc(min(24vh,190px) + 10px);max-width:90vw;transform:translate(50%,20px) scale(.85)}.card.on{transform:translate(50%,0)}.title{top:auto;bottom:calc(min(24vh,190px) + 90px)}}
+.pw{display:flex;align-items:center;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(120,90,50,.25)}
+.pw img{width:30px;height:30px;image-rendering:auto;flex:none}
+.pw small{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;opacity:.75}
+.pw b{display:block;font-family:'Outfit',sans-serif;font-weight:600;font-size:16px;text-transform:capitalize;line-height:1.2}
+.pw em{display:block;font-style:normal;font-family:'JetBrains Mono',monospace;font-size:11px;opacity:.85}
+.hint{position:fixed;left:50%;bottom:calc(min(24vh,190px) - 4px);transform:translateX(-50%);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.7;pointer-events:none;white-space:nowrap}
 </style>
 </head>
 <body>
 <div class="sky"></div><canvas id="c"></canvas>
 <svg class="grass" viewBox="0 0 1000 300" preserveAspectRatio="none" aria-hidden="true"><path d="M0 130C170 96 320 112 500 128S820 100 1000 118V300H0Z" fill="#cfe2cf"/><path d="M0 180C190 154 340 164 530 176S830 152 1000 168V300H0Z" fill="#b8d4bb"/></svg>
 <svg class="flowers l" id="fl" viewBox="0 0 260 260" aria-hidden="true"></svg><svg class="flowers r" id="fr" viewBox="0 0 260 260" aria-hidden="true"></svg>
-<div class="title" id="title"><b id="tt">Felices Pascuas</b><span>encontrá tu huevito</span></div>
-<div class="eggs" id="eggs"></div><div class="card" id="card"></div>
+<div class="title" id="title"><b id="tt"></b></div>
+<div class="eggs" id="eggs"></div><div class="card" id="card"></div><div class="hint" style="color:#5f7a6c">abre un huevito sorpresa</div>
 <script>
 const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const cleanNick = n => String(n || '').replace(/\([^)]*\)/g, '').trim().slice(0, 24);
 let users = (Q.get('u') || '').split(',').map(s => s.trim()).filter(s => /^[A-Za-z0-9_.\-]{1,30}$/.test(s)).slice(0, 16);
-const demo = !users.length; if (demo) users = ['Juan', 'María', 'Yeni', 'Carlos', 'Cherry', 'Laly'];
-const MSG = (Q.get('m') || '¡Felices Pascuas!').slice(0, 40); if (Q.get('t')) $('#tt').textContent = Q.get('t').replace(/[<>]/g, '').slice(0, 40);
+const demo = !users.length; if (demo) users = ['', '', '', '', ''];
+const WISH = ['alegría y dulzura', 'un nuevo comienzo', 'paz en la sala', 'muchas sonrisas', 'primavera en el corazón'];
+const MSG = (Q.get('m') || '¡Felices Pascuas!').slice(0, 40); if (Q.get('t')) $('#tt').textContent = Q.get('t').replace(/[<>]/g, '').slice(0, 40); else $('#title').remove();
 const EGG = [['#f6d6de', '#e9a9b8'], ['#d8e8f5', '#9fc3e0'], ['#fbefc6', '#ecd27f'], ['#dcefe0', '#a6d1b2'], ['#e7dcf3', '#bda6dd'], ['#fde2cf', '#f2b48c']];
 /* flores */
 const FL = ['#f3c6d2', '#fbe7a6', '#c9b8ec', '#ffffff', '#bfe0f2'];
@@ -57,21 +64,44 @@ const fl = [[50, 150], [100, 110], [150, 160], [200, 125], [80, 200], [180, 205]
 $('#fl').innerHTML = fl; $('#fr').innerHTML = fl;
 /* huevitos */
 users.forEach((u, i) => {
-  const [a, b] = EGG[i % EGG.length], e = document.createElement('button'); e.className = 'egg'; e.type = 'button'; e.dataset.u = u;
+  const [a, b] = EGG[i % EGG.length], e = document.createElement('button'); e.className = 'egg'; e.type = 'button'; e.dataset.u = u; e.dataset.i = i;
   const deco = i % 3 === 0 ? `<path d="M10 52Q30 44 50 52T90 52" stroke="${b}" stroke-width="5" fill="none"/><path d="M12 70Q30 62 50 70T88 70" stroke="#fff" stroke-width="3" fill="none" opacity=".8"/>` : i % 3 === 1 ? `<circle cx="34" cy="56" r="5" fill="${b}"/><circle cx="58" cy="48" r="4" fill="#fff"/><circle cx="62" cy="72" r="5" fill="${b}"/><circle cx="38" cy="80" r="3.5" fill="#fff"/>` : `<path d="M14 60L30 50 46 60 62 50 78 60 88 54" stroke="${b}" stroke-width="4" fill="none"/>`;
   e.innerHTML = `<svg viewBox="0 0 100 130"><defs><clipPath id="cb${i}"><rect x="0" y="62" width="100" height="70"/></clipPath><clipPath id="ct${i}"><path d="M0 0H100V58L88 64 76 56 64 64 52 56 40 64 28 56 16 64 0 58Z"/></clipPath></defs>
     <g clip-path="url(#cb${i})"><ellipse cx="50" cy="70" rx="40" ry="54" fill="${a}"/></g>
-    <g class="top" clip-path="url(#ct${i})"><ellipse cx="50" cy="70" rx="40" ry="54" fill="${a}"/>${deco}</g></svg><span class="tag">${esc(u)}</span>`;
+    <g class="top" clip-path="url(#ct${i})"><ellipse cx="50" cy="70" rx="40" ry="54" fill="${a}"/>${deco}</g></svg>${u ? `<span class="tag">${esc(u)}</span>` : ''}`;
   $('#eggs').appendChild(e);
 });
 const info = {};
-function lookup(u) { if (demo) return Promise.resolve({ nick: u }); if (info[u]) return Promise.resolve(info[u]); return fetch('https://xat.com/web_gear/chat/profile2.php?n=' + encodeURIComponent(u)).then(r => r.json()).then(j => { const m = (j && j.Err && j.Err.Media) || {}; const av = String(m.avatar || '').split('#')[0]; return (info[u] = m.id ? { nick: cleanNick(m.nick) || m.Name || u, avatar: /^https:\/\//.test(av) ? av : '', id: m.id } : { nick: u }); }).catch(() => ({ nick: u })); }
+function lookup(u, i) { if (demo) return Promise.resolve({ nick: WISH[i % WISH.length], wish: true }); if (info[u]) return Promise.resolve(info[u]); return fetch('https://xat.com/web_gear/chat/profile2.php?n=' + encodeURIComponent(u)).then(r => r.json()).then(j => { const m = (j && j.Err && j.Err.Media) || {}; const av = String(m.avatar || '').split('#')[0]; return (info[u] = m.id ? { nick: cleanNick(m.nick) || m.Name || u, avatar: /^https:\/\//.test(av) ? av : '', id: m.id } : { nick: u }); }).catch(() => ({ nick: u })); }
 if (!demo) users.forEach(u => lookup(u).then(d => { const t = document.querySelector(`.egg[data-u="${u}"] .tag`); if (t && d.nick) t.textContent = d.nick; }));
+
+/* powers de xat en vivo (lista oficial): cada regalo trae uno al azar y uno es el power más nuevo */
+let PW = null, JACK = -1; const PICK = {};
+function powers() {
+  return PW || (PW = Promise.all([fetch('https://xat.com/json/powers.php').then(r => r.json()), fetch('https://xat.com/web_gear/chat/pow2.php').then(r => r.json())]).then(([p, a]) => {
+    const topsh = (a.find(x => x[0] === 'topsh') || [])[1] || {}, last = ((a.find(x => x[0] === 'last') || [])[1] || {}).id, sm = {};
+    for (const [code, id] of Object.entries(topsh)) (sm[id] = sm[id] || []).push(code);
+    const list = Object.entries(p).map(([id, v]) => ({ id: +id, s: v.s, d: String(v.d1 || '').slice(0, 60), x: v.x, sm: (sm[id] || []).slice(0, 3) })).filter(v => v.s && /^[a-z0-9]+$/.test(v.s) && v.sm.length);
+    return { list, last: list.find(v => v.id == last) || list[list.length - 1] };
+  }).catch(() => null));
+}
+function powerFor(i, n) {
+  return powers().then(P => {
+    if (!P || !P.list.length) return null;
+    if (JACK < 0) JACK = Math.random() * n | 0;
+    if (!PICK[i]) { if (i === JACK) PICK[i] = Object.assign({ jack: true }, P.last); else { const used = new Set(Object.values(PICK).map(v => v.id)); let v; do { v = P.list[Math.random() * P.list.length | 0]; } while (used.has(v.id) && used.size < P.list.length - 1); PICK[i] = v; } }
+    return PICK[i];
+  });
+}
+function powerHTML(pw) {
+  if (!pw) return '';
+  return `<div class="pw"><img src="https://xat.com/images/smw/${pw.s}.png" alt="" onerror="this.style.display='none'"><div><small>${pw.jack ? '★ ¡Premio mayor! El power más nuevo' : 'Tu power de la suerte'}</small><b>${pw.s}</b><em>${pw.sm.map(c => '(' + c + ')').join(' ')}</em></div></div>`;
+}
 let hideT, AC;
 function chime() { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); const t = AC.currentTime;[784, 988, 1175].forEach((f, i) => { const o = AC.createOscillator(), g = AC.createGain(); o.type = 'sine'; o.frequency.value = f; g.gain.setValueAtTime(0.0001, t + i * .08); g.gain.exponentialRampToValueAtTime(.07, t + i * .08 + .01); g.gain.exponentialRampToValueAtTime(0.0001, t + i * .08 + .5); o.connect(g); g.connect(AC.destination); o.start(t + i * .08); o.stop(t + i * .08 + .55); }); } catch (e) { } }
 $('#eggs').addEventListener('click', ev => {
   const g = ev.target.closest('.egg'); if (!g) return; document.querySelectorAll('.egg.open').forEach(o => o !== g && o.classList.remove('open')); g.classList.add('open'); chime(); burst(g);
-  lookup(g.dataset.u).then(d => { const c = $('#card'); const ini = esc((d.nick || '?')[0].toUpperCase()); c.innerHTML = (d.avatar ? `<img src="${esc(d.avatar)}" alt="" onerror="this.outerHTML='<div class=ini>${ini}</div>'">` : `<div class="ini">${ini}</div>`) + `<div><b>${esc(MSG)}</b><span>${esc(d.nick)}${d.id ? ' · ' + d.id : ''}</span></div>`; c.classList.add('on'); clearTimeout(hideT); hideT = setTimeout(() => { c.classList.remove('on'); g.classList.remove('open'); }, 5200); });
+  Promise.all([lookup(g.dataset.u, +g.dataset.i), powerFor(+g.dataset.i, users.length)]).then(([d, pw]) => { const c = $('#card'); const ini = esc((d.nick || '?')[0].toUpperCase()); c.innerHTML = d.wish ? `<div class="ini">✿</div><div><b>${esc(MSG)}</b><span>te deseamos ${esc(d.nick)}</span></div>` : (d.avatar ? `<img src="${esc(d.avatar)}" alt="" onerror="this.outerHTML='<div class=ini>${ini}</div>'">` : `<div class="ini">${ini}</div>`) + `<div><b>${esc(MSG)}</b><span>${esc(d.nick)}${d.id ? ' · ' + d.id : ''}</span>${powerHTML(pw)}</div>`; c.classList.add('on'); clearTimeout(hideT); hideT = setTimeout(() => { c.classList.remove('on'); g.classList.remove('open'); }, 7000); });
 });
 /* pétalos y mariposas suaves */
 const cv = $('#c'), x = cv.getContext('2d'); let W, H, P = [], C2 = [];

@@ -36,13 +36,19 @@ canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
 .gift.open .lid{transform:translate(0,-40px) rotate(-25deg)}
 .gift.open{pointer-events:auto}
 .tag{max-width:100%;font-size:clamp(10px,.85vw,12px);font-weight:600;letter-spacing:.04em;background:rgba(244,234,215,.95);color:#3b2a1a;padding:2px 9px;border-radius:999px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card{position:fixed;right:2vw;top:38vh;max-width:24vw;transform:translate(0,20px) scale(.8);opacity:0;pointer-events:none;transition:all .45s cubic-bezier(.2,1.4,.4,1);display:flex;align-items:center;gap:12px;padding:12px 18px 12px 12px;border-radius:18px;background:linear-gradient(160deg,#f7f0e1,#e8dcc2);color:#2b1f14;box-shadow:0 14px 40px rgba(0,0,0,.45),inset 0 0 0 1px #d6b06a,inset 0 0 0 5px #f7f0e1,inset 0 0 0 6px rgba(168,129,62,.6)}
+.card{position:fixed;right:2vw;top:38vh;max-width:min(30vw,380px);transform:translate(0,20px) scale(.8);opacity:0;pointer-events:none;transition:all .45s cubic-bezier(.2,1.4,.4,1);display:flex;align-items:center;gap:12px;padding:12px 18px 12px 12px;border-radius:18px;background:linear-gradient(160deg,#f7f0e1,#e8dcc2);color:#2b1f14;box-shadow:0 14px 40px rgba(0,0,0,.45),inset 0 0 0 1px #d6b06a,inset 0 0 0 5px #f7f0e1,inset 0 0 0 6px rgba(168,129,62,.6)}
 .card.on{opacity:1;transform:none}
 .card img,.card .ini{width:58px;height:58px;border-radius:50%;object-fit:cover;border:2px solid #a8813e;background:#fff;flex:none}
 .card .ini{display:grid;place-items:center;font-family:'Outfit',sans-serif;font-size:26px;font-weight:600;color:#7a1f2e}
 .card b{display:block;font-family:'Outfit',sans-serif;font-weight:600;font-size:20px;line-height:1.1;color:#5a1622}
 .card span{font-family:'JetBrains Mono',monospace;font-size:12px;color:#6b5a44}
 @media (max-width:640px){.tree{bottom:22vh;width:110px}.moon{top:8vh}.card{right:50%;top:auto;bottom:calc(min(24vh,190px) + 10px);max-width:90vw;transform:translate(50%,20px) scale(.8)}.card.on{transform:translate(50%,0)}.title{top:auto;bottom:calc(min(24vh,190px) + 90px);left:50%;transform:translateX(-50%)}}
+.pw{display:flex;align-items:center;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(120,90,50,.25)}
+.pw img{width:30px;height:30px;image-rendering:auto;flex:none}
+.pw small{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;opacity:.75}
+.pw b{display:block;font-family:'Outfit',sans-serif;font-weight:600;font-size:16px;text-transform:capitalize;line-height:1.2}
+.pw em{display:block;font-style:normal;font-family:'JetBrains Mono',monospace;font-size:11px;opacity:.85}
+.hint{position:fixed;left:50%;bottom:calc(min(24vh,190px) - 4px);transform:translateX(-50%);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.7;pointer-events:none;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -67,17 +73,18 @@ canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
 <g style="animation-delay:-2s"><path d="M150 0V240" stroke="#d6b06a" stroke-width="1"/><rect x="144" y="236" width="12" height="8" rx="1.5" fill="#d6b06a"/><circle cx="150" cy="276" r="34" fill="url(#b2)"/></g>
 <g style="animation-delay:-4s"><path d="M240 0V110" stroke="#d6b06a" stroke-width="1"/><rect x="234" y="106" width="12" height="8" rx="1.5" fill="#d6b06a"/><circle cx="240" cy="138" r="24" fill="url(#b3)"/></g>
 </svg>
-<div class="title" id="title">Navidad en la sala<small>abrí tu regalo</small></div>
+<div class="title" id="title"></div>
 <div class="gifts" id="gifts"></div>
-<div class="card" id="card"></div>
+<div class="card" id="card"></div><div class="hint" style="color:#e9d7a8">abre un regalo sorpresa</div>
 <script>
 const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const cleanNick = n => String(n || '').replace(/\([^)]*\)/g, '').trim().slice(0, 24);
 let users = (Q.get('u') || '').split(',').map(s => s.trim()).filter(s => /^[A-Za-z0-9_.\-]{1,30}$/.test(s)).slice(0, 16);
-const demo = !users.length; if (demo) users = ['Juan', 'María', 'Yeni', 'Carlos', 'Sole', 'Laly'];
+const demo = !users.length; if (demo) users = ['', '', '', '', ''];
+const WISH = ['paz y abrazos', 'salud para todos', 'risas en la sala', 'amor y alegría', 'un gran año nuevo'];
 const MSG = (Q.get('m') || '¡Feliz Navidad!').slice(0, 40);
-if (Q.get('t')) $('#title').innerHTML = esc(Q.get('t').slice(0, 40)) + '<small>abrí tu regalo</small>';
+if (Q.get('t')) $('#title').textContent = Q.get('t').slice(0, 40); else $('#title').remove();
 
 /* luces del árbol */
 const lts = $('.lts'), C = ['#fff1c9', '#ffd98a', '#fff7e6', '#f7c66b'];
@@ -90,14 +97,14 @@ const lts = $('.lts'), C = ['#fff1c9', '#ffd98a', '#fff7e6', '#f7c66b'];
 const PAPER = [['#7a1f2e', '#d6b06a'], ['#1f4a3c', '#e9d7a8'], ['#efe6d4', '#a8813e'], ['#2b3a55', '#d6b06a'], ['#5c4a6e', '#e9d7a8'], ['#a8813e', '#f4ead7']];
 const info = {};
 users.forEach((u, i) => {
-  const [p, r] = PAPER[i % PAPER.length], b = document.createElement('button'); b.className = 'gift'; b.type = 'button'; b.dataset.u = u;
+  const [p, r] = PAPER[i % PAPER.length], b = document.createElement('button'); b.className = 'gift'; b.type = 'button'; b.dataset.u = u; b.dataset.i = i;
   b.innerHTML = `<svg viewBox="0 0 100 92"><g class="box"><rect x="10" y="38" width="80" height="52" rx="5" fill="${p}"/><rect x="44" y="38" width="12" height="52" fill="${r}"/></g>
     <g class="lid"><rect x="5" y="26" width="90" height="16" rx="4" fill="${p}" stroke="rgba(0,0,0,.12)"/><rect x="44" y="26" width="12" height="16" fill="${r}"/>
-    <path d="M50 26C38 8 22 12 28 22S46 26 50 26C54 26 66 26 72 22S62 8 50 26Z" fill="${r}"/></g></svg><span class="tag">${esc(u)}</span>`;
+    <path d="M50 26C38 8 22 12 28 22S46 26 50 26C54 26 66 26 72 22S62 8 50 26Z" fill="${r}"/></g></svg>${u ? `<span class="tag">${esc(u)}</span>` : ''}`;
   $('#gifts').appendChild(b);
 });
-function lookup(u) {
-  if (demo) return Promise.resolve({ nick: u });
+function lookup(u, i) {
+  if (demo) return Promise.resolve({ nick: WISH[i % WISH.length], wish: true });
   if (info[u]) return Promise.resolve(info[u]);
   return fetch('https://xat.com/web_gear/chat/profile2.php?n=' + encodeURIComponent(u)).then(r => r.json()).then(j => {
     const m = (j && j.Err && j.Err.Media) || {}; const av = String(m.avatar || '').split('#')[0];
@@ -112,13 +119,36 @@ $('#gifts').addEventListener('click', e => {
   const g = e.target.closest('.gift'); if (!g) return;
   document.querySelectorAll('.gift.open').forEach(o => o !== g && o.classList.remove('open'));
   g.classList.toggle('open', true); jingle(); burst(g);
-  lookup(g.dataset.u).then(d => {
+  Promise.all([lookup(g.dataset.u, +g.dataset.i), powerFor(+g.dataset.i, users.length)]).then(([d, pw]) => {
     const card = $('#card');
-    card.innerHTML = (d.avatar ? `<img src="${esc(d.avatar)}" alt="" onerror="this.outerHTML='<div class=ini>${esc((d.nick || '?')[0].toUpperCase())}</div>'">` : `<div class="ini">${esc((d.nick || '?')[0].toUpperCase())}</div>`) +
-      `<div><b>${esc(MSG)}</b><span>${esc(d.nick)}${d.id ? ' · ' + d.id : ''}</span></div>`;
-    card.classList.add('on'); clearTimeout(hideT); hideT = setTimeout(() => { card.classList.remove('on'); g.classList.remove('open'); }, 5200);
+    card.innerHTML = d.wish ? `<div class="ini">✦</div><div><b>${esc(MSG)}</b><span>te deseamos ${esc(d.nick)}</span></div>` : (d.avatar ? `<img src="${esc(d.avatar)}" alt="" onerror="this.outerHTML='<div class=ini>${esc((d.nick || '?')[0].toUpperCase())}</div>'">` : `<div class="ini">${esc((d.nick || '?')[0].toUpperCase())}</div>`) +
+      `<div><b>${esc(MSG)}</b><span>${esc(d.nick)}${d.id ? ' · ' + d.id : ''}</span>${powerHTML(pw)}</div>`;
+    card.classList.add('on'); clearTimeout(hideT); hideT = setTimeout(() => { card.classList.remove('on'); g.classList.remove('open'); }, 7000);
   });
 });
+
+/* powers de xat en vivo (lista oficial): cada regalo trae uno al azar y uno es el power más nuevo */
+let PW = null, JACK = -1; const PICK = {};
+function powers() {
+  return PW || (PW = Promise.all([fetch('https://xat.com/json/powers.php').then(r => r.json()), fetch('https://xat.com/web_gear/chat/pow2.php').then(r => r.json())]).then(([p, a]) => {
+    const topsh = (a.find(x => x[0] === 'topsh') || [])[1] || {}, last = ((a.find(x => x[0] === 'last') || [])[1] || {}).id, sm = {};
+    for (const [code, id] of Object.entries(topsh)) (sm[id] = sm[id] || []).push(code);
+    const list = Object.entries(p).map(([id, v]) => ({ id: +id, s: v.s, d: String(v.d1 || '').slice(0, 60), x: v.x, sm: (sm[id] || []).slice(0, 3) })).filter(v => v.s && /^[a-z0-9]+$/.test(v.s) && v.sm.length);
+    return { list, last: list.find(v => v.id == last) || list[list.length - 1] };
+  }).catch(() => null));
+}
+function powerFor(i, n) {
+  return powers().then(P => {
+    if (!P || !P.list.length) return null;
+    if (JACK < 0) JACK = Math.random() * n | 0;
+    if (!PICK[i]) { if (i === JACK) PICK[i] = Object.assign({ jack: true }, P.last); else { const used = new Set(Object.values(PICK).map(v => v.id)); let v; do { v = P.list[Math.random() * P.list.length | 0]; } while (used.has(v.id) && used.size < P.list.length - 1); PICK[i] = v; } }
+    return PICK[i];
+  });
+}
+function powerHTML(pw) {
+  if (!pw) return '';
+  return `<div class="pw"><img src="https://xat.com/images/smw/${pw.s}.png" alt="" onerror="this.style.display='none'"><div><small>${pw.jack ? '★ ¡Premio mayor! El power más nuevo' : 'Tu power de la suerte'}</small><b>${pw.s}</b><em>${pw.sm.map(c => '(' + c + ')').join(' ')}</em></div></div>`;
+}
 /* sonidito de campanitas (solo al tocar) */
 let AC; function jingle() { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); const t = AC.currentTime;[1319, 1568, 1976, 2637].forEach((f, i) => { const o = AC.createOscillator(), g = AC.createGain(); o.type = 'sine'; o.frequency.value = f; g.gain.setValueAtTime(0.0001, t + i * .07); g.gain.exponentialRampToValueAtTime(.08, t + i * .07 + .01); g.gain.exponentialRampToValueAtTime(0.0001, t + i * .07 + .6); o.connect(g); g.connect(AC.destination); o.start(t + i * .07); o.stop(t + i * .07 + .65); }); } catch (e) { } }
 

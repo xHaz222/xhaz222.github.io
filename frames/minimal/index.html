@@ -36,14 +36,13 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 </head>
 <body>
 <div class="blobs"><i></i><i></i><i></i></div><div class="lines"></div><div class="grain"></div><div class="vig"></div>
-<div class="dot"><i></i><span id="dl">en línea</span></div>
 <div class="title"><b id="tt">Bienvenidos</b><span id="ts">a nuestra sala</span><i></i></div>
 <div class="clock" id="clock"><b id="hh">--:--</b><span id="dd"></span></div>
 <script>
 const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s), clean = s => String(s || '').replace(/[<>]/g, '').slice(0, 40);
 const PAL = { carmesi: ['#14070b', '#8c1c32', '#4a0c1a', '#c23a4e', '#f3e9eb', '#c9a3ab'], oceano: ['#050d14', '#0f4c6b', '#1b2f5a', '#2f8fa8', '#e6f1f5', '#8fb3c2'], bosque: ['#07100c', '#1f5038', '#2e3d1c', '#5f8f5a', '#eaf2ea', '#9fb8a2'], grafito: ['#0b0b0d', '#2a2a33', '#1c1c24', '#5a5a6e', '#ededf2', '#a0a0b0'], arena: ['#140f0b', '#6b4a2f', '#3d2a1c', '#b08552', '#f5ede3', '#c9b298'] };
 const p = PAL[Q.get('p')] || PAL.carmesi;['--bg', '--a', '--b', '--c', '--tx', '--mu'].forEach((k, i) => document.documentElement.style.setProperty(k, p[i]));
-if (Q.get('t')) $('#tt').textContent = clean(Q.get('t')); if (Q.has('s')) $('#ts').textContent = clean(Q.get('s'));
+$('#tt').textContent = clean(Q.get('t')); $('#ts').textContent = clean(Q.get('s')); if (!Q.get('t') && !Q.get('s')) $('.title').remove();
 if (Q.get('reloj') === '0') $('#clock').remove();
 const D = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'], M = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 function tick() { const n = new Date(); if ($('#hh')) { $('#hh').textContent = String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0'); $('#dd').textContent = D[n.getDay()] + ' · ' + n.getDate() + ' ' + M[n.getMonth()]; } }

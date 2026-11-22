@@ -9,7 +9,7 @@
 <style>
 /* Ruleta de la sala — xatframe libre (autor: xHaz 1004002)
    Link:  ?u=usuario1,usuario2,usuario3&modo=reto|sorteo&r=reto 1|reto 2&c=azul|ambar|menta
-   u = registros de xat de tu sala (hasta 16) */
+   u = registros de xat de tu sala (hasta 16). Sin usuarios: ruleta de powers de xat */
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--a:#7aa2ff;--b:#b388ff;--bg1:#0a0b10;--bg2:#141725}
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg1);color:#e8f6ff;font-family:'Rajdhani',system-ui,sans-serif;user-select:none;-webkit-user-select:none}
@@ -52,11 +52,12 @@ const cleanNick = n => String(n || '').replace(/\([^)]*\)/g, '').trim().slice(0,
 const THEMES = { azul: ['#7aa2ff', '#b388ff'], ambar: ['#ffb86b', '#ff7a8a'], menta: ['#6ee7c8', '#7aa2ff'] };
 const th = THEMES[Q.get('c')] || THEMES.azul; document.documentElement.style.setProperty('--a', th[0]); document.documentElement.style.setProperty('--b', th[1]);
 let users = (Q.get('u') || '').split(',').map(s => s.trim()).filter(s => /^[A-Za-z0-9_.\-]{1,30}$/.test(s)).slice(0, 16);
-const demo = users.length < 2; if (demo) users = ['Juan', 'María', 'Yeni', 'Carlos', 'Cherry', 'Juny'];
-const MODE = Q.get('modo') === 'sorteo' ? 'sorteo' : 'reto';
-const RETOS = (Q.get('r') ? Q.get('r').split('|') : ['Contá un chiste', 'Decí tu canción favorita', 'Escribí solo con emojis 2 minutos', 'Decile algo lindo a alguien de la sala', 'Contá una anécdota graciosa', 'Decí un dato curioso', 'Elegí un smiley que te represente', 'Recomendá una peli o serie']).map(s => s.trim().slice(0, 60)).filter(Boolean);
-$('#mode').textContent = MODE === 'sorteo' ? 'SORTEO' : 'RULETA DE RETOS';
-const info = users.map(u => ({ u, nick: u }));
+const demo = users.length < 2;
+const MODE = ['sorteo', 'reto'].includes(Q.get('modo')) ? Q.get('modo') : (Q.get('u') ? 'reto' : 'powers');
+const RETOS = (Q.get('r') ? Q.get('r').split('|') : ['Cuenta un chiste', 'Di tu canción favorita', 'Escribe solo con smileys por 2 minutos', 'Dile algo bonito a alguien de la sala', 'Cuenta una anécdota graciosa', 'Di un dato curioso', 'Elige un smiley que te represente', 'Recomienda una película o serie']).map(s => s.trim().slice(0, 60)).filter(Boolean);
+$('#mode').textContent = MODE === 'sorteo' ? 'SORTEO' : MODE === 'powers' ? 'RULETA DE POWERS' : 'RULETA DE RETOS';
+if (demo) { document.querySelector('.side.l .hd').textContent = MODE === 'sorteo' ? 'NÚMEROS' : MODE === 'powers' ? 'POWERS EN JUEGO' : 'RETOS'; }
+const info = demo && MODE === 'powers' ? [] : demo ? (MODE === 'sorteo' ? Array.from({ length: 10 }, (_, i) => ({ u: '', nick: String(i + 1) })) : RETOS.slice(0, 10).map(t => ({ u: '', nick: t, reto: true }))) : users.map(u => ({ u, nick: u }));
 function lookup(i) {
   if (demo) return Promise.resolve();
   return fetch('https://xat.com/web_gear/chat/profile2.php?n=' + encodeURIComponent(info[i].u)).then(r => r.json()).then(j => {
@@ -64,21 +65,22 @@ function lookup(i) {
     Object.assign(info[i], { nick: cleanNick(m.nick) || m.Name || info[i].u, avatar: /^https:\/\//.test(av) ? av : '', id: m.id }); renderList(); draw();
   }).catch(() => { });
 }
-const face = (d, cls) => d.avatar ? `<img src="${esc(d.avatar)}" alt="" onerror="this.outerHTML='<i>${esc(d.nick[0].toUpperCase())}</i>'">` : `<i>${esc(d.nick[0].toUpperCase())}</i>`;
-function renderList(win) { $('#list').innerHTML = info.map((d, i) => `<div class="pl ${i === win ? 'win' : ''}">${face(d)}<span>${esc(d.nick)}</span></div>`).join(''); }
+const face = (d, cls) => d.pw ? `<img src="https://xat.com/images/smw/${d.nick}.png" alt="" style="border-radius:8px;background:#1c2133;padding:3px">` : d.reto ? '<i>✦</i>' : d.avatar ? `<img src="${esc(d.avatar)}" alt="" onerror="this.outerHTML='<i>${esc(d.nick[0].toUpperCase())}</i>'">` : `<i>${esc(d.nick[0].toUpperCase())}</i>`;
+function renderList(win) { $('#list').innerHTML = info.map((d, i) => `<div class="pl ${i === win ? 'win' : ''}">${d.reto || (demo && MODE === 'sorteo') ? `<i>${d.reto ? i + 1 : esc(d.nick)}</i>` : face(d)}<span>${esc(d.nick)}${d.jack ? ' <small style="color:var(--a)">★ NUEVO</small>' : ''}</span></div>`).join(''); }
 
 /* rueda */
-const cv = $('#wheel'), x = cv.getContext('2d'); let ang = 0;
+const cv = $('#wheel'), x = cv.getContext('2d'); let ang = 0; const IMG = [];
 function size() { const r = cv.getBoundingClientRect(), d = Math.min(devicePixelRatio || 1, 2); cv.width = r.width * d; cv.height = r.height * d; draw(); }
 function draw() {
-  const W = cv.width, R = W / 2 - 4, n = info.length, seg = Math.PI * 2 / n; x.clearRect(0, 0, W, W);
+  const W = cv.width, R = W / 2 - 4, n = info.length, seg = Math.PI * 2 / n; x.clearRect(0, 0, W, W); if (!n) return;
   x.save(); x.translate(W / 2, W / 2); x.rotate(ang);
   for (let i = 0; i < n; i++) {
     x.beginPath(); x.moveTo(0, 0); x.arc(0, 0, R, i * seg - Math.PI / 2, (i + 1) * seg - Math.PI / 2); x.closePath();
     const gg = x.createRadialGradient(0, 0, R * .2, 0, 0, R); gg.addColorStop(0, i % 2 ? '#1b2033' : '#232a40'); gg.addColorStop(1, i % 2 ? '#12151f' : '#181c2a'); x.fillStyle = gg; x.fill(); x.strokeStyle = 'rgba(255,255,255,.12)'; x.lineWidth = W / 300; x.stroke();
     x.beginPath(); x.arc(0, 0, R - W / 70, i * seg - Math.PI / 2 + .02, (i + 1) * seg - Math.PI / 2 - .02); x.strokeStyle = th[i % 2]; x.lineWidth = W / 90; x.stroke();
     x.save(); x.rotate((i + .5) * seg - Math.PI / 2); x.fillStyle = '#e8f6ff'; x.font = `700 ${Math.max(10, W / (n > 10 ? 26 : 18))}px Rajdhani,sans-serif`; x.textAlign = 'right'; x.textBaseline = 'middle';
-    x.fillText(info[i].nick.slice(0, 12), R - W / 26, 0); x.restore();
+    if (info[i].pw && IMG[i] && IMG[i].complete && IMG[i].naturalWidth) { const s = Math.max(16, W / 12); x.rotate(Math.PI / 2); x.drawImage(IMG[i], -s / 2, -(R - W / 26) , s, s); } else x.fillText(info[i].reto ? String(i + 1) : info[i].nick.slice(0, 12), R - W / 26, 0);
+    x.restore();
   }
   x.beginPath(); x.arc(0, 0, R, 0, 6.283); x.strokeStyle = 'rgba(255,255,255,.35)'; x.lineWidth = W / 220; x.stroke();
   x.restore();
@@ -88,7 +90,7 @@ let AC; function tick(f, v) { try { AC = AC || new (window.AudioContext || windo
 let spinning = false, lastSeg = -1;
 $('#go').onclick = () => {
   if (spinning) return; spinning = true; $('#go').disabled = true; $('#res').classList.remove('on'); renderList();
-  const n = info.length, seg = Math.PI * 2 / n, win = Math.random() * n | 0;
+  const n = info.length; if (!n) { spinning = false; $('#go').disabled = false; return; } const seg = Math.PI * 2 / n, win = Math.random() * n | 0;
   const target = Math.PI * 2 * (5 + Math.random() * 2) + (Math.PI * 2 - (win + .5) * seg) - (ang % (Math.PI * 2)) + (Math.random() - .5) * seg * .6;
   const a0 = ang, t0 = performance.now(), dur = 4200;
   (function step(t) {
@@ -96,11 +98,25 @@ $('#go').onclick = () => {
     const cur = Math.floor((((-ang) % (Math.PI * 2)) + Math.PI * 4) % (Math.PI * 2) / seg); if (cur !== lastSeg) { lastSeg = cur; tick(900, .04); }
     if (k < 1) return requestAnimationFrame(step);
     spinning = false; $('#go').disabled = false; const d = info[win]; renderList(win); tick(1400, .08); setTimeout(() => tick(1900, .08), 120);
-    $('#res').innerHTML = face(d) + `<div><b>${esc(d.nick)}</b><span>${MODE === 'sorteo' ? '¡Ganó el sorteo! 🎉' : esc(RETOS[Math.random() * RETOS.length | 0])}</span></div>`;
+    $('#res').innerHTML = (demo && MODE === 'sorteo' ? `<i>${esc(d.nick)}</i>` : face(d)) + `<div><b style="${d.pw ? 'text-transform:capitalize' : ''}">${esc(d.reto ? 'Reto ' + (win + 1) + ': ' + d.nick : d.nick)}</b><span>${d.pw ? (d.jack ? '★ ¡El power más nuevo de xat! ' : 'Tu power de la suerte · ') + esc(d.sm.map(c => '(' + c + ')').join(' ')) : d.reto ? 'Le toca a quien escribió último en la sala' : MODE === 'sorteo' ? (demo ? '¡Salió este número!' : '¡Ganó el sorteo! 🎉') : esc(RETOS[Math.random() * RETOS.length | 0])}</span></div>`;
     $('#res').classList.add('on');
   })(t0);
 };
 addEventListener('resize', size);
+function loadPowers() {
+  Promise.all([fetch('https://xat.com/json/powers.php').then(r => r.json()), fetch('https://xat.com/web_gear/chat/pow2.php').then(r => r.json())]).then(([p, a]) => {
+    const topsh = (a.find(x => x[0] === 'topsh') || [])[1] || {}, last = ((a.find(x => x[0] === 'last') || [])[1] || {}).id, sm = {};
+    for (const [code, id] of Object.entries(topsh)) (sm[id] = sm[id] || []).push(code);
+    const list = Object.entries(p).map(([id, v]) => ({ id: +id, nick: v.s, sm: (sm[id] || []).slice(0, 3), pw: true })).filter(v => v.nick && /^[a-z0-9]+$/.test(v.nick) && v.sm.length);
+    const newest = list.find(v => v.id == last), pick = [];
+    if (newest) pick.push(Object.assign({ jack: true }, newest));
+    while (pick.length < 10 && pick.length < list.length) { const v = list[Math.random() * list.length | 0]; if (!pick.some(q => q.id === v.id)) pick.push(v); }
+    pick.sort(() => Math.random() - .5); info.push(...pick);
+    info.forEach((d, i) => { const im = new Image(); im.onload = draw; im.src = 'https://xat.com/images/smw/' + d.nick + '.png'; IMG[i] = im; });
+    renderList(); draw(); $('#go').disabled = false;
+  }).catch(() => { $('#mode').textContent = 'SIN CONEXIÓN CON XAT'; });
+}
+if (MODE === 'powers' && demo) { $('#go').disabled = true; loadPowers(); }
 renderList(); size(); info.forEach((_, i) => lookup(i));
 </script>
 </body>

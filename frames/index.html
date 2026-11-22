@@ -37,31 +37,33 @@ button.sec{background:#232c55}
 </style>
 </head>
 <body>
-<header><h1>xatframes</h1><p>Fondos animados para tu sala de xat. Livianos, gratis y personalizables: completá los datos y copiá el link.</p></header>
+<header><h1>xatframes</h1><p>Fondos animados para tu sala de xat. Ligeros, gratis y personalizables: completa los datos y copia el link.</p></header>
 <div class="grid" id="grid"></div>
 <div class="how">
-<p><b>¿Cómo lo pongo en mi sala?</b> Copiá el link → en tu grupo pasá el mouse por <b>"grupo"</b> (arriba a la derecha) → <b>"customize"</b> → pestaña de apariencia → pegalo en el campo <b>xatframe</b> → guardá. Solo el dueño principal puede hacerlo. Recordá dejar también un fondo exterior por si alguien tiene los xatframes desactivados.</p>
-<p style="margin-top:10px"><b>Usuarios:</b> escribí los <b>registros</b> de xat de la gente de tu sala separados por coma (ej: juan,maria,yeni). El frame muestra su avatar y su nick automáticamente.</p>
-<p style="margin-top:10px"><b>Botones:</b> en los grupos, xat solo deja hacer clic <b>debajo del banner del chat</b>; por eso los botones de los juegos están abajo. Si tu sala tiene pestañas, tocá "close" en la barra de abajo para poder usarlos.</p>
+<p><b>¿Cómo lo pongo en mi sala?</b> Copia el link → en tu grupo pasa el mouse por <b>"grupo"</b> (arriba a la derecha) → <b>"customize"</b> → pestaña de apariencia → pégalo en el campo <b>xatframe</b> → guarda. Solo el dueño principal puede hacerlo. Recuerda dejar también un fondo exterior por si alguien tiene los xatframes desactivados.</p>
+<p style="margin-top:10px"><b>Usuarios:</b> escribe los <b>registros</b> de xat de la gente de tu sala separados por coma (ej: juan,maria,yeni). El frame muestra su avatar y su nick automáticamente.</p>
+<p style="margin-top:10px"><b>Botones:</b> en los grupos, xat solo deja hacer clic <b>debajo del banner del chat</b>; por eso los botones de los juegos están abajo. Si tu sala tiene pestañas, toca "close" en la barra de abajo para poder usarlos.</p>
 </div>
 <script>
 const BASE = location.href.replace(/[^/]*$/, '');
-const TS = [['t', 'Título', ''], ['s', 'Subtítulo', '']];
+const TS = [['t', 'Título (opcional)', ''], ['s', 'Subtítulo (opcional)', '']];
 const FR = [
   { cat: 'Minimal', id: 'minimal', name: 'Minimal', desc: 'Menos es más: manchas de color suaves que se mueven lento, reloj y fecha de cada visitante. Elegante para cualquier sala.',
     fields: [...TS, ['p', 'Colores', ['carmesi', 'oceano', 'bosque', 'grafito', 'arena']], ['reloj', 'Reloj', ['sí', '0']]] },
-  { cat: 'Navidad', id: 'nieve', name: 'Nieve elegante', desc: 'Copos y cristales que caen, luces cálidas a los costados y cuenta regresiva a Navidad y Año Nuevo.',
-    fields: [...TS, ['p', 'Colores', ['noche', 'malva', 'champagne']]] },
-  { cat: 'Navidad', id: 'navidad', name: 'Navidad en la sala', desc: 'Pino con luces cálidas, esferas de vidrio y un regalo por cada usuario: al abrirlo aparece su avatar con un saludo.',
-    fields: [['t', 'Título', 'Navidad en mi sala'], ['u', 'Usuarios (registros, separados por coma)', '', 'area'], ['m', 'Mensaje del regalo', '¡Feliz Navidad!']] },
-  { cat: 'Juegos', id: 'ruleta', name: 'Ruleta de la sala', desc: 'Girá la ruleta con la gente de tu sala para retos o sorteos. Muestra el avatar del elegido.',
-    fields: [['u', 'Usuarios (registros, separados por coma)', '', 'area'], ['modo', 'Modo', ['reto', 'sorteo']], ['c', 'Colores', ['azul', 'ambar', 'menta']], ['r', 'Retos propios (separados por | , opcional)', '', 'area']] },
-  { cat: 'Temporadas', id: 'otono', name: 'Otoño / Acción de Gracias', desc: 'Hojas que caen en ámbar, óxido y bordó sobre un atardecer cálido. Tocá abajo y sopla el viento.', fields: TS },
+  { cat: 'Navidad', id: 'nieve', name: 'Nieve elegante', desc: 'Copos y cristales que caen, luces cálidas y cuenta regresiva a Navidad y Año Nuevo. Abajo puedes atrapar copos y sumar puntos.',
+    fields: [...TS, ['p', 'Colores', ['noche', 'malva', 'champagne']], ['cuenta', 'Cuenta regresiva', ['sí', '0']]] },
+  { cat: 'Navidad', id: 'navidad', name: 'Navidad en la sala', desc: 'Pino con luces cálidas y esferas de vidrio. Cada regalo trae un power de xat sorpresa (uno es el más nuevo). Si pones usuarios, cada regalo lleva su nombre y avatar.',
+    fields: [['t', 'Título (opcional)', ''], ['u', 'Usuarios (registros, separados por coma)', '', 'area'], ['m', 'Mensaje del regalo', '¡Feliz Navidad!']] },
+  { cat: 'Juegos', id: 'ruleta', name: 'Ruleta de la sala', desc: 'Con los usuarios de tu sala: retos o sorteos con su avatar. Sin usuarios: ruleta de powers de xat con sus íconos oficiales.',
+    fields: [['u', 'Usuarios (registros, separados por coma)', '', 'area'], ['modo', 'Modo (con usuarios)', ['reto', 'sorteo']], ['c', 'Colores', ['azul', 'ambar', 'menta']], ['r', 'Retos propios (separados por | , opcional)', '', 'area']] },
+  { cat: 'xat', id: 'power', name: 'Power nuevo', desc: 'El power más nuevo de xat en vivo: ícono, estado, precios, smileys animados y cuenta regresiva cuando se anuncia un lanzamiento. Se actualiza solo.', fields: [['p', 'Colores', ['noche', 'carmesi', 'esmeralda', 'grafito']]] },
+  { cat: 'xat', id: 'espacio', name: 'Espacio xat', desc: 'Estrellas, nebulosas y el planeta de xat flotando con su luna. Toca abajo y lanza una estrella fugaz.', fields: [...TS, ['p', 'Colores', ['violeta', 'azul', 'rosa']]] },
+  { cat: 'Temporadas', id: 'otono', name: 'Otoño / Acción de Gracias', desc: 'Hojas que caen en ámbar, óxido y bordó sobre un atardecer cálido. ', fields: TS },
   { cat: 'Temporadas', id: 'lluvia', name: 'Días de lluvia', desc: 'Lluvia tranquila, gotas que se deslizan por el vidrio y luces de ciudad desenfocadas.', fields: TS },
   { cat: 'Temporadas', id: 'verano', name: 'Verano', desc: 'Atardecer en la playa: sol sobre el mar, olas en la orilla, palmeras y gaviotas a lo lejos.', fields: TS },
   { cat: 'Temporadas', id: 'primavera', name: 'Primavera', desc: 'Ramas de cerezo en flor y pétalos que caen en tonos rosa suave.', fields: TS },
-  { cat: 'Temporadas', id: 'pascua', name: 'Pascua en la sala', desc: 'Colores pastel, flores y un huevito por cada usuario: al abrirlo aparece su avatar con un saludo.',
-    fields: [['t', 'Título', 'Felices Pascuas'], ['u', 'Usuarios (registros, separados por coma)', '', 'area'], ['m', 'Mensaje', '¡Felices Pascuas!']] }
+  { cat: 'Temporadas', id: 'pascua', name: 'Pascua en la sala', desc: 'Colores pastel y flores. Cada huevito trae un power de xat sorpresa; con usuarios, lleva su nombre y avatar.',
+    fields: [['t', 'Título (opcional)', ''], ['u', 'Usuarios (registros, separados por coma)', '', 'area'], ['m', 'Mensaje', '¡Felices Pascuas!']] }
 ];
 const grid = document.getElementById('grid');
 FR.forEach(f => {

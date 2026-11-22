@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Power nuevo · xatframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Power nuevo — xatframe libre para tu sala (autor: xHaz 1004002)
+   Muestra el power más nuevo de xat en vivo + cuenta regresiva cuando hay lanzamiento.
+   Link: ?p=noche|carmesi|esmeralda|grafito */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg1:#070a16;--bg2:#101833;--a:#7aa2ff;--b:#9f7aff}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg1);color:#eef1fb;font-family:'Outfit',system-ui,sans-serif;user-select:none;-webkit-user-select:none}
+.bg{position:fixed;inset:0;background:radial-gradient(55% 50% at 12% 45%,color-mix(in srgb,var(--a) 16%,transparent),transparent 70%),radial-gradient(50% 45% at 88% 50%,color-mix(in srgb,var(--b) 14%,transparent),transparent 70%),linear-gradient(180deg,var(--bg1),var(--bg2))}
+.dots{position:fixed;inset:0;opacity:.18;background-image:radial-gradient(rgba(255,255,255,.5) 1px,transparent 1px);background-size:28px 28px;mask-image:linear-gradient(180deg,transparent,#000 30%,#000 70%,transparent)}
+.panel{position:fixed;top:50%;transform:translateY(-50%);width:min(22vw,330px);padding:18px;border-radius:20px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 20px 50px rgba(0,0,0,.35);opacity:0;transition:opacity .8s}
+.panel.on{opacity:1}
+.panel.l{left:2vw}.panel.r{right:2vw}
+.lab{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:color-mix(in srgb,var(--a) 75%,#fff)}
+.hero{display:flex;align-items:center;gap:14px;margin:12px 0 14px}
+.hero img{width:72px;height:72px;border-radius:16px;background:rgba(255,255,255,.06);padding:6px;flex:none}
+.hero b{display:block;font-weight:600;font-size:clamp(18px,1.6vw,26px);text-transform:capitalize;line-height:1.1}
+.st{display:inline-block;margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:color-mix(in srgb,var(--a) 22%,transparent);color:#fff}
+.desc{font-size:13px;line-height:1.45;color:#c6cbe0;margin-bottom:12px}
+.row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-top:1px solid rgba(255,255,255,.07);font-size:13px}
+.row span{color:#9aa3c4;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.row b{font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.grid div{aspect-ratio:1;border-radius:12px;background:rgba(255,255,255,.05);display:grid;place-items:center;position:relative}
+.grid img{width:78%;height:78%;object-fit:contain}
+.grid small{position:absolute;bottom:-15px;left:0;right:0;text-align:center;font-family:'JetBrains Mono',monospace;font-size:8.5px;color:#9aa3c4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.grid{row-gap:22px}
+.cd{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);display:flex;align-items:center;gap:14px;padding:10px 18px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px);white-space:nowrap;opacity:0;transition:opacity .8s}
+.cd.on{opacity:1}
+.cd .lab{color:#9aa3c4}
+.cd b{font-family:'JetBrains Mono',monospace;font-weight:500;font-size:clamp(14px,1.3vw,18px);letter-spacing:.08em;font-variant-numeric:tabular-nums}
+.cd i{width:8px;height:8px;border-radius:50%;background:var(--a);box-shadow:0 0 10px var(--a);animation:pl 2.4s ease-in-out infinite}
+@keyframes pl{50%{opacity:.35}}
+body.counting .cd{bottom:22px;padding:14px 26px;gap:18px;background:color-mix(in srgb,var(--a) 14%,rgba(10,12,24,.7));border-color:color-mix(in srgb,var(--a) 45%,transparent);box-shadow:0 12px 40px color-mix(in srgb,var(--a) 25%,transparent)}
+body.counting .cd b{font-size:clamp(22px,2.4vw,34px);letter-spacing:.1em}
+@media (max-width:760px){.panel.r{display:none}.panel.l{left:50%;transform:translate(-50%,-50%);width:80vw;top:auto;bottom:14vh;transform:translateX(-50%)}}
+</style>
+</head>
+<body>
+<div class="bg"></div><div class="dots"></div>
+<div class="panel l" id="pl">
+  <div class="lab">Power nuevo</div>
+  <div class="hero"><img id="ic" alt=""><div><b id="nm">—</b><span class="st" id="st">—</span></div></div>
+  <p class="desc" id="ds"></p>
+  <div class="row"><span>Tienda</span><b id="ps">—</b></div>
+  <div class="row"><span>Intercambio</span><b id="px">—</b></div>
+  <div class="row"><span>Días</span><b id="pd">—</b></div>
+  <div class="row"><span>ID</span><b id="pi">—</b></div>
+</div>
+<div class="panel r" id="pr"><div class="lab">Smileys</div><div class="grid" id="sm"></div></div>
+<div class="cd" id="cd"><i></i><span class="lab" id="cdl">Lanzamiento</span><b id="cdt">—</b><span class="lab" id="cdn"></span></div>
+<script>
+const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const PAL = { noche: ['#070a16', '#101833', '#7aa2ff', '#9f7aff'], carmesi: ['#12060a', '#2a0c16', '#ff6b81', '#ff9f6b'], esmeralda: ['#05110d', '#0c2a22', '#5ee0b5', '#7ac8ff'], grafito: ['#0b0b0e', '#1b1b22', '#c8ccd8', '#8f95a8'] };
+const p = PAL[Q.get('p')] || PAL.noche;['--bg1', '--bg2', '--a', '--b'].forEach((k, i) => document.documentElement.style.setProperty(k, p[i]));
+const SM = n => `https://s0.xat.com/web_gear/chat/GetStrip8.php?c=a_(${encodeURIComponent(n)})_80`;
+const ST = { Limited: 'Limitado', Unlimited: 'Ilimitado', Hidden: 'Oculto' };
+function loadPower() {
+  fetch('https://illuxat.com/api/latestpower', { cache: 'no-store' }).then(r => r.json()).then(j => {
+    const L = j && j.data && j.data.latest; if (!L) return;
+    const smi = (L.Smileys || []).filter(s => /^[a-z0-9]+$/i.test(s));
+    $('#ic').src = SM(smi[0] || L.Name); $('#ic').onerror = () => { $('#ic').src = `https://xat.com/images/smw/${L.Name}.png`; };
+    $('#nm').textContent = L.Name; $('#st').textContent = ST[L.StoreStatus] || ST[L.Status] || L.Status || '';
+    $('#ds').textContent = String((L.Descriptions && (L.Descriptions.shortDescription || L.Descriptions.longDescription)) || '').replace(/\$WIKI\.?/g, '').trim();
+    const P = L.Prices || {}; $('#ps').textContent = P.store || '—'; $('#px').textContent = P.xats ? P.xats + ' xats' : '—'; $('#pd').textContent = P.days || '—'; $('#pi').textContent = L.Id || '—';
+    $('#sm').innerHTML = smi.slice(1, 13).map(s => `<div><img src="${SM(s)}" alt="" loading="lazy" onerror="this.parentNode.remove()"><small>(${esc(s)})</small></div>`).join('');
+    $('#pl').classList.add('on'); $('#pr').classList.add('on');
+  }).catch(() => { });
+}
+/* cuenta regresiva del próximo lanzamiento (si hay) */
+let target = 0;
+function findTime(o) {
+  for (const [k, v] of Object.entries(o || {})) {
+    if (v && typeof v === 'object') { const r = findTime(v); if (r) return r; continue; }
+    if (!/time|date|release|launch|end|count|remain|left|second|unix/i.test(k)) continue;
+    if (typeof v === 'number' || /^\d+$/.test(String(v))) { const n = +v; if (n > 1e12) return n; if (n > 1e9) return n * 1000; if (n > 0 && n < 1e8) return Date.now() + n * 1000; }
+    else if (typeof v === 'string' && !isNaN(Date.parse(v))) return Date.parse(v);
+  }
+  return 0;
+}
+function loadCountdown() {
+  fetch('https://api.xatblog.net/countdown', { cache: 'no-store' }).then(r => r.json()).then(j => {
+    const counting = j && j.status_code === 'counting' && +j.remaining_int > 0;
+    target = counting ? Date.now() + (+j.remaining_int) * 1000 : (j && j.status_code !== 'no_countdown' ? findTime(j) : 0);
+    const name = (j && j.power_info && j.power_info.name) || '';
+    document.body.classList.toggle('counting', !!target);
+    if (!target) { $('#cdl').textContent = 'Último power'; $('#cdt').textContent = name ? `(${name})` : '—'; }
+    else { $('#cdl').textContent = 'Próximo power en'; if (name) $('#cdn').textContent = `(${name})`; }
+    $('#cd').classList.add('on'); tick();
+  }).catch(() => { });
+}
+function tick() {
+  if (!target) return; let s = Math.max(0, Math.round((target - Date.now()) / 1000));
+  if (!s) { $('#cdl').textContent = '¡Ya salió!'; $('#cdt').textContent = 'recarga la sala'; return; }
+  const d = s / 86400 | 0, h = s % 86400 / 3600 | 0, m = s % 3600 / 60 | 0, ss = s % 60;
+  $('#cdt').textContent = (d ? d + 'd ' : '') + [h, m, ss].map(v => String(v).padStart(2, '0')).join(':');
+}
+loadPower(); loadCountdown(); setInterval(tick, 1000); setInterval(() => { loadPower(); loadCountdown(); }, 5 * 60 * 1000);
+</script>
+</body>
+</html>

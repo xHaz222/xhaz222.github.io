@@ -23,6 +23,10 @@ canvas{position:fixed;inset:0;width:100%;height:100%}
 .count{position:fixed;right:3vw;bottom:5vh;text-align:right;color:#fff;pointer-events:none}
 .count b{display:block;font-family:'Outfit',sans-serif;font-weight:300;font-size:clamp(30px,3.8vw,58px);line-height:1}
 .count span{font-family:'JetBrains Mono',monospace;font-size:clamp(10px,.8vw,12px);letter-spacing:.2em;text-transform:uppercase;opacity:.75}
+.catch{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.8);text-shadow:0 1px 6px rgba(0,0,0,.4);pointer-events:none}
+.catch b{font-size:16px;color:#fff}
+.catch.pop b{display:inline-block;animation:pp .35s}
+@keyframes pp{50%{transform:scale(1.5)}}
 @media (max-width:640px){.count{bottom:auto;top:56px}.title{bottom:3vh}}
 </style>
 </head>
@@ -33,8 +37,9 @@ canvas{position:fixed;inset:0;width:100%;height:100%}
 <svg class="hills" viewBox="0 0 1000 160" preserveAspectRatio="none" aria-hidden="true"><path id="h2" d="M0 90C120 60 220 70 330 88S560 60 680 76 880 96 1000 70V160H0Z" opacity=".55"/><path id="h1" d="M0 120C150 96 260 104 400 118S650 92 780 108 920 124 1000 112V160H0Z"/></svg>
 <div class="title"><b id="tt">Feliz Navidad</b><span id="ts">que la magia te encuentre</span></div>
 <div class="count"><b id="cn">—</b><span id="cl">días para Navidad</span></div>
+<div class="catch" id="catch">toca los copos · <b id="cc">0</b> ❄</div>
 <script>
-/* Personalizá con el link:  ?t=Título&s=Subtítulo&p=noche|malva|champagne */
+/* Personaliza con el link:  ?t=Título&s=Subtítulo&p=noche|malva|champagne&cuenta=0 */
 const Q = new URLSearchParams(location.search);
 const PAL = {
   noche:  { sky: 'linear-gradient(180deg,#060b1f 0%,#0e1b45 55%,#22396e 100%)', glow: '#5b8cff', hill: ['#dfe9ff', '#b9c9ee'], flake: [230, 240, 255], lights: ['#ffd36b', '#9fd4ff', '#ffffff'] },
@@ -44,8 +49,9 @@ const PAL = {
 let pal = PAL[Q.get('p')] ? Q.get('p') : 'noche';
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const clean = s => String(s || '').replace(/[<>]/g, '').slice(0, 40);
-if (Q.get('t')) $('#tt').textContent = clean(Q.get('t'));
-if (Q.has('s')) $('#ts').textContent = clean(Q.get('s'));
+$('#tt').textContent = clean(Q.get('t')); $('#ts').textContent = clean(Q.get('s'));
+if (!Q.get('t') && !Q.get('s')) $('.title').remove();
+if (Q.get('cuenta') === '0') $('.count').remove();
 
 function applyPal() {
   const P = PAL[pal];
@@ -103,9 +109,14 @@ function loop(t) {
   requestAnimationFrame(loop);
 }
 addEventListener('pointermove', e => { wind += (e.movementX || 0) * .002; });
-addEventListener('pointerdown', e => { for (let i = 0; i < 26; i++) { const a = Math.random() * 6.283, v = .6 + Math.random() * 2.4; puffs.push({ x: e.clientX, y: e.clientY, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 1, r: 1 + Math.random() * 2.5, t: 0 }); } });
+let caught = 0;
+addEventListener('pointerdown', e => {
+  let best = null, bd = 1e9; for (const f of flakes) { const d = Math.hypot(f.x - e.clientX, f.y - e.clientY), lim = f.crystal ? f.r + 22 : 20; if (d < lim && d < bd) { bd = d; best = f; } }
+  if (best) { caught += best.crystal ? 3 : 1; $('#cc').textContent = caught; const c = $('#catch'); c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); Object.assign(best, mk(false), { x: Math.random() * W }); ding(); }
+  for (let i = 0; i < 26; i++) { const a = Math.random() * 6.283, v = .6 + Math.random() * 2.4; puffs.push({ x: e.clientX, y: e.clientY, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 1, r: 1 + Math.random() * 2.5, t: 0 }); } });
+let AC; function ding() { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(1568 + Math.random() * 400, t); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(.06, t + .01); g.gain.exponentialRampToValueAtTime(0.0001, t + .4); o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + .45); } catch (e) { } }
 addEventListener('resize', size);
-size(); countdown(); setInterval(countdown, 60000); requestAnimationFrame(loop);
+size(); if ($('.count')) { countdown(); setInterval(countdown, 60000); } requestAnimationFrame(loop);
 </script>
 </body>
 </html>
