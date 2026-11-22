@@ -20,17 +20,17 @@ html,body{width:100%;height:100%;overflow:hidden;background:#05040d;color:#eef0f
 .neb i:nth-child(3){width:28vw;height:22vw;left:38%;top:-6%;background:var(--n3);opacity:.6;animation-duration:72s}
 @keyframes nb{to{transform:translate(4vw,3vh) scale(1.1)}}
 canvas{position:fixed;inset:0;width:100%;height:100%}
-.xat{position:fixed;right:6vw;top:22vh;width:min(26vw,420px);animation:fl 12s ease-in-out infinite;filter:drop-shadow(0 0 40px rgba(120,180,255,.35))}
+.xat{position:fixed;right:5vw;top:24vh;width:min(13vw,200px);animation:fl 12s ease-in-out infinite;filter:drop-shadow(0 0 22px rgba(120,180,255,.3))}
 .xat img{width:100%;display:block}
-@keyframes fl{50%{transform:translateY(-14px) rotate(-3deg)}}
-.orbit{position:fixed;right:calc(6vw + min(13vw,210px));top:calc(22vh + min(6.7vw,108px));width:0;height:0;animation:or 22s linear infinite}
-.orbit i{position:absolute;left:min(19vw,300px);top:-7px;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffffff,#b9c3d9 70%);box-shadow:0 0 12px rgba(200,215,255,.6)}
+@keyframes fl{50%{transform:translateY(-8px) rotate(-3deg)}}
+.orbit{position:fixed;right:calc(5vw + min(6.5vw,100px));top:calc(24vh + min(3.4vw,52px));width:0;height:0;animation:or 22s linear infinite}
+.orbit i{position:absolute;left:min(9.5vw,146px);top:-4px;width:8px;height:8px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffffff,#b9c3d9 70%);box-shadow:0 0 12px rgba(200,215,255,.6)}
 @keyframes or{to{transform:rotate(360deg)}}
-.small{position:fixed;left:6vw;top:30vh;width:min(7vw,110px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 32% 30%,#ffd7a8,#d9785a 45%,#5a2340 80%);box-shadow:inset -12px -10px 24px rgba(0,0,0,.5),0 0 30px rgba(217,120,90,.25);animation:fl 16s ease-in-out infinite}
+.small{position:fixed;left:8vw;top:28vh;width:min(3.6vw,56px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 32% 30%,#ffd7a8,#d9785a 45%,#5a2340 80%);box-shadow:inset -6px -5px 12px rgba(0,0,0,.5),0 0 18px rgba(217,120,90,.22);animation:fl 16s ease-in-out infinite}
 .title{position:fixed;left:3vw;bottom:5vh}
 .title b{display:block;font-weight:300;font-size:clamp(26px,3.2vw,50px);letter-spacing:.03em;line-height:1}
 .title span{display:block;margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:clamp(10px,.8vw,12px);letter-spacing:.22em;text-transform:uppercase;color:#a9b2e0}
-@media (max-width:640px){.xat{width:44vw;top:auto;bottom:26vh;right:4vw}.orbit{display:none}.small{width:60px;top:auto;bottom:30vh}}
+@media (max-width:640px){.xat{width:26vw;top:auto;bottom:27vh;right:4vw}.orbit{display:none}.small{width:34px;top:auto;bottom:31vh}}
 </style>
 </head>
 <body>

@@ -119,9 +119,9 @@ $('#gifts').addEventListener('click', e => {
   const g = e.target.closest('.gift'); if (!g) return;
   document.querySelectorAll('.gift.open').forEach(o => o !== g && o.classList.remove('open'));
   g.classList.toggle('open', true); jingle(); burst(g);
-  Promise.all([lookup(g.dataset.u, +g.dataset.i), powerFor(+g.dataset.i, users.length)]).then(([d, pw]) => {
+  Promise.all([lookup(g.dataset.u, +g.dataset.i), powerFor(+g.dataset.i, document.querySelectorAll('.gift').length)]).then(([d, pw]) => {
     const card = $('#card');
-    card.innerHTML = d.wish ? `<div class="ini">✦</div><div><b>${esc(MSG)}</b><span>te deseamos ${esc(d.nick)}</span></div>` : (d.avatar ? `<img src="${esc(d.avatar)}" alt="" onerror="this.outerHTML='<div class=ini>${esc((d.nick || '?')[0].toUpperCase())}</div>'">` : `<div class="ini">${esc((d.nick || '?')[0].toUpperCase())}</div>`) +
+    card.innerHTML = d.wish ? `<div class="ini">✦</div><div><b>${esc(MSG)}</b><span>te deseamos ${esc(d.nick)}</span>${powerHTML(pw)}</div>` : (d.avatar ? `<img src="${esc(d.avatar)}" alt="" onerror="this.outerHTML='<div class=ini>${esc((d.nick || '?')[0].toUpperCase())}</div>'">` : `<div class="ini">${esc((d.nick || '?')[0].toUpperCase())}</div>`) +
       `<div><b>${esc(MSG)}</b><span>${esc(d.nick)}${d.id ? ' · ' + d.id : ''}</span>${powerHTML(pw)}</div>`;
     card.classList.add('on'); clearTimeout(hideT); hideT = setTimeout(() => { card.classList.remove('on'); g.classList.remove('open'); }, 7000);
   });

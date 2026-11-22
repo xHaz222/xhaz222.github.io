@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Contador de power · xatframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Contador de power — xatframe con fondo transparente, para poner encima de tu propio diseño.
+   ?p=noche|carmesi|esmeralda|grafito|claro   ?pos=izq|der|arriba|abajo
+   ?lim=2 (forzar límite)  ?hist=0 (ocultar salidas)    ?bg=https://...imagen de tu fondo (opcional) */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--a:#7aa2ff;--glass:rgba(10,13,26,.62);--tx:#eef1fb;--mu:#9aa3c4;--ln:rgba(255,255,255,.1)}
+html,body{width:100%;height:100%;overflow:hidden;background:transparent;color:var(--tx);font-family:'Outfit',system-ui,sans-serif;user-select:none;-webkit-user-select:none}
+body.bg{background:#000 center/cover no-repeat}
+.w{position:fixed;width:min(21vw,310px);padding:18px 18px 16px;border-radius:20px;background:var(--glass);border:1px solid var(--ln);backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);box-shadow:0 18px 48px rgba(0,0,0,.35);opacity:0;transition:opacity .8s}
+.w.on{opacity:1}
+.izq{left:2vw;top:50%;transform:translateY(-50%)}.der{right:2vw;top:50%;transform:translateY(-50%)}
+.arriba{left:50%;top:14vh;transform:translateX(-50%);width:min(38vw,460px)}
+.abajo{left:50%;bottom:calc(min(24vh,190px) + 12px);transform:translateX(-50%);width:min(38vw,460px)}
+.lab{display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--a)}
+.lab i{width:7px;height:7px;border-radius:50%;background:var(--a);box-shadow:0 0 8px var(--a);animation:pl 2.4s ease-in-out infinite}
+@keyframes pl{50%{opacity:.3}}
+.pw{display:flex;align-items:center;gap:12px;margin:12px 0 14px}
+.pw img{width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,.07);padding:4px;flex:none}
+.pw b{display:block;font-size:clamp(17px,1.5vw,23px);font-weight:600;line-height:1.1}
+.pw span{font-size:12px;color:var(--mu)}
+.cd{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.cd div{text-align:center;padding:9px 0 7px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid var(--ln)}
+.cd b{display:block;font-family:'JetBrains Mono',monospace;font-weight:500;font-size:clamp(18px,1.7vw,26px);font-variant-numeric:tabular-nums;letter-spacing:.04em}
+.cd small{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu)}
+.msg{font-size:13px;color:var(--mu);line-height:1.4}
+.row{display:flex;justify-content:space-between;align-items:baseline;margin-top:12px;padding-top:10px;border-top:1px solid var(--ln);font-size:13px}
+.row span{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mu)}
+.row b{font-weight:600}
+.hist{margin-top:12px;padding-top:10px;border-top:1px solid var(--ln)}
+.hist .lab{color:var(--mu);margin-bottom:6px}
+.hist ol{list-style:none}
+.hist li{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:6px 0;font-size:12.5px;border-bottom:1px dashed var(--ln)}
+.hist li:last-child{border-bottom:0}
+.hist li span{color:var(--mu);font-family:'JetBrains Mono',monospace;font-size:11px}
+.hist li b{font-weight:600;text-align:right}
+.hist li em{grid-column:1/-1;font-style:normal;font-size:10.5px;color:var(--mu);font-family:'JetBrains Mono',monospace}
+.tot{display:flex;justify-content:space-between;font-size:12px;color:var(--mu);margin-top:6px;font-family:'JetBrains Mono',monospace}
+.tot b{color:var(--tx);font-weight:500}
+[hidden]{display:none!important}
+@media (max-width:760px){.w,.arriba,.abajo{left:50%;right:auto;top:auto;bottom:calc(min(24vh,190px) + 10px);transform:translateX(-50%);width:84vw}}
+</style>
+</head>
+<body>
+<div class="w" id="w">
+  <div class="lab"><i></i><span id="lb">Próximo power</span></div>
+  <div class="pw"><img id="ic" alt="" hidden><div><b id="nm">—</b><span id="sb"></span></div></div>
+  <div class="cd" id="cd" hidden><div><b id="dd">00</b><small>días</small></div><div><b id="hh">00</b><small>horas</small></div><div><b id="mm">00</b><small>min</small></div><div><b id="ss">00</b><small>seg</small></div></div>
+  <p class="msg" id="ms" hidden></p>
+  <div class="row" id="lr" hidden><span>Límite por persona</span><b id="li"></b></div>
+  <div class="row" id="ur" hidden><span>Unidades</span><b id="un"></b></div>
+  <div class="row" id="pr" hidden><span>Precio en tienda</span><b id="pc"></b></div>
+  <div class="hist" id="hs" hidden><div class="lab">Salidas</div><ol id="hl"></ol><div class="tot"><span>Total liberado</span><b id="tt"></b></div></div>
+</div>
+<script>
+const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s);
+const PAL = { noche: ['#7aa2ff', 'rgba(10,13,26,.62)', '#eef1fb', '#9aa3c4', 'rgba(255,255,255,.1)'], carmesi: ['#ff6b81', 'rgba(26,8,14,.62)', '#fbeef1', '#c9a0aa', 'rgba(255,255,255,.1)'], esmeralda: ['#5ee0b5', 'rgba(6,22,18,.62)', '#eefbf6', '#9cc4b6', 'rgba(255,255,255,.1)'], grafito: ['#d6dae6', 'rgba(14,14,18,.66)', '#f2f3f7', '#9a9fae', 'rgba(255,255,255,.1)'], claro: ['#4f6bd8', 'rgba(255,255,255,.72)', '#151a2c', '#5d6580', 'rgba(20,30,60,.12)'] };
+const P = PAL[Q.get('p')] || PAL.noche;['--a', '--glass', '--tx', '--mu', '--ln'].forEach((k, i) => document.documentElement.style.setProperty(k, P[i]));
+const pos = ['izq', 'der', 'arriba', 'abajo'].includes(Q.get('pos')) ? Q.get('pos') : 'izq'; $('#w').classList.add(pos);
+const bg = Q.get('bg'); if (bg && /^https:\/\/[^\s"'()<>]+$/i.test(bg)) { document.body.classList.add('bg'); document.body.style.backgroundImage = `url("${bg}")`; }
+const manualLim = /^\d{1,3}$/.test(Q.get('lim') || '') ? +Q.get('lim') : 0;
+const ST = { Limited: 'Limitado', Unlimited: 'Ilimitado' };
+let target = 0, latest = null, cdName = '';
+
+const showHist = Q.get('hist') !== '0';
+let rel = [], up = null;
+function numTime(v) { const n = +v; if (!n || isNaN(n)) return 0; if (n > 1e12) return n; if (n > 1e9) return n * 1000; return 0; }
+const fmt = t => new Date(t).toLocaleString('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+const nf = n => Number(n).toLocaleString('es');
+const J = u => fetch(u, { cache: 'no-store' }).then(r => r.json());
+
+function load() {
+  Promise.allSettled([J('https://illuxat.com/api/latestpower'), J('https://api.xatblog.net/countdown')]).then(([i, c]) => {
+    i = i.value; c = c.value;
+    latest = i && i.data && i.data.latest;
+    const counting = c && c.status_code === 'counting' && +c.remaining_int > 0;
+    cdName = counting && c.power_info && c.power_info.name || '';
+    const name = cdName || (latest && latest.Name);
+    const xbTarget = counting ? Date.now() + (+c.remaining_int) * 1000 : 0;
+    if (!name) { target = xbTarget; render(); return; }
+    J('https://illuxat.com/api/power/' + encodeURIComponent(name)).then(j => {
+      const d = j && (j.data || j) || {};
+      rel = (Array.isArray(d.releases) ? d.releases : []).map(r => ({ ann: numTime(r.announced_date), t: numTime(r.timestamp), max: +r.max_user || 0, n: +r.amount_released || 0 })).filter(r => r.t).sort((a, b) => b.t - a.t);
+      up = rel.find(r => r.t > Date.now()) || null;
+      target = up ? up.t : xbTarget;
+      if (!cdName && up) cdName = name;
+      render();
+    }).catch(() => { rel = []; up = null; target = xbTarget; render(); });
+  });
+}
+function render() {
+  const lim = manualLim || (up && up.max) || 0;
+  if (target) {
+    $('#lb').textContent = 'Próximo lanzamiento';
+    $('#nm').textContent = cdName ? `(${cdName})` : 'Nuevo power';
+    $('#sb').textContent = 'sale a la venta en';
+    setIcon(cdName);
+    $('#cd').hidden = false; $('#ms').hidden = true; $('#pr').hidden = true;
+  } else {
+    $('#lb').textContent = 'Último power';
+    if (latest) {
+      $('#nm').textContent = `(${latest.Name})`; $('#sb').textContent = (ST[latest.StoreStatus] || ST[latest.Status] || '') + (latest.Id ? ' · ID ' + latest.Id : '');
+      setIcon(latest.Name);
+      if (latest.Prices && latest.Prices.store) { $('#pc').textContent = latest.Prices.store; $('#pr').hidden = false; }
+    }
+    $('#cd').hidden = true; $('#ms').hidden = false; $('#ms').textContent = 'Sin lanzamiento anunciado. El contador aparece solo cuando se anuncie una salida.';
+  }
+  if (lim) { $('#li').textContent = lim + (lim === 1 ? ' power' : ' powers'); $('#lr').hidden = false; } else $('#lr').hidden = true;
+  if (up && up.n) { $('#un').textContent = nf(up.n) + ' disponibles'; $('#ur').hidden = false; } else $('#ur').hidden = true;
+  const past = rel.filter(r => r.t <= Date.now());
+  if (showHist && past.length) {
+    $('#hl').innerHTML = past.slice(0, 4).map((r, k) => `<li><span>#${past.length - k} · ${fmt(r.t)}</span><b>${r.n ? nf(r.n) + ' u.' : '—'}</b>${r.max ? `<em>máx. ${r.max} por persona</em>` : ''}</li>`).join('');
+    $('#tt').textContent = nf(past.reduce((a, r) => a + r.n, 0)) + ' u.';
+    $('#hs').hidden = false;
+  } else $('#hs').hidden = true;
+  $('#w').classList.add('on'); tick();
+}
+function setIcon(name) {
+  const ic = $('#ic'); if (!name) { ic.hidden = true; return; }
+  ic.onerror = () => { if (!ic.dataset.f) { ic.dataset.f = 1; ic.src = `https://xat.com/images/smw/${name}.png`; } else ic.hidden = true; };
+  ic.onload = () => ic.hidden = false; delete ic.dataset.f;
+  ic.src = `https://s0.xat.com/web_gear/chat/GetStrip8.php?c=a_(${encodeURIComponent(name)})_80`;
+}
+function tick() {
+  if (!target) return;
+  const s = Math.max(0, Math.round((target - Date.now()) / 1000));
+  if (!s) { target = 0; $('#cd').hidden = true; $('#ms').hidden = false; $('#lb').textContent = '¡Ya salió!'; $('#ms').textContent = 'El power nuevo ya está a la venta.'; setTimeout(load, 60000); return; }
+  const v = [s / 86400 | 0, s % 86400 / 3600 | 0, s % 3600 / 60 | 0, s % 60];
+  ['#dd', '#hh', '#mm', '#ss'].forEach((k, n) => $(k).textContent = String(v[n]).padStart(2, '0'));
+}
+load(); setInterval(tick, 1000); setInterval(load, 3 * 60 * 1000);
+</script>
+</body>
+</html>
