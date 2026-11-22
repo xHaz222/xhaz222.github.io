@@ -472,6 +472,23 @@ box-shadow:inset 0 0 0 4px rgba(7,8,13,.5),inset 0 0 0 5px rgba(244,193,61,.12),
 .idol:hover .idol-ph{transform:scale(1.06) rotate(-2deg)}
 #s-boca.has-bg::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,rgba(7,8,13,.55),rgba(7,8,13,.82)),var(--bocabg) center/cover no-repeat;animation:fade .6s}
 .t-boca.has-bg{background-size:cover!important;background-position:center!important}
+#s-boca:not(.has-bg)::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+background:
+radial-gradient(2px 2px at 12% 18%,rgba(255,231,160,.9),transparent 60%),
+radial-gradient(1.5px 1.5px at 78% 12%,rgba(255,231,160,.8),transparent 60%),
+radial-gradient(2.5px 2.5px at 64% 42%,rgba(255,231,160,.7),transparent 60%),
+radial-gradient(1.5px 1.5px at 30% 66%,rgba(255,231,160,.8),transparent 60%),
+radial-gradient(2px 2px at 88% 76%,rgba(255,231,160,.8),transparent 60%),
+radial-gradient(1.5px 1.5px at 46% 88%,rgba(255,231,160,.7),transparent 60%),
+radial-gradient(60px 60px at 20% 30%,rgba(244,193,61,.16),transparent 70%),
+radial-gradient(90px 90px at 80% 60%,rgba(244,193,61,.12),transparent 70%),
+radial-gradient(70px 70px at 40% 85%,rgba(244,193,61,.12),transparent 70%),
+linear-gradient(115deg,transparent 38%,rgba(244,193,61,.22) 46%,rgba(255,224,138,.35) 50%,rgba(244,193,61,.22) 54%,transparent 62%),
+radial-gradient(120% 80% at 50% 0%,#123f9e 0%,#0a2a6b 40%,#05122f 100%);
+animation:twinkle 4s ease-in-out infinite alternate}
+#s-boca:not(.has-bg)::after{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(115deg,transparent 40%,rgba(255,240,200,.18) 50%,transparent 60%);background-size:250% 100%;animation:sweep 6s linear infinite}
+@keyframes twinkle{to{filter:brightness(1.15) saturate(1.1)}}
+@keyframes sweep{from{background-position:150% 0}to{background-position:-100% 0}}
 </style>
 </head>
 <body>
