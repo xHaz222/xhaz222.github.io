@@ -521,6 +521,12 @@ animation:twinkle 4s ease-in-out infinite alternate}
 .sc-ev small{color:var(--mu)}
 .sc-ev li.new{animation:goal 1.2s ease}
 @keyframes goal{0%{background:rgba(244,193,61,.5);transform:scale(1.03)}100%{background:rgba(255,255,255,.035)}}
+.bird.fenix{width:clamp(230px,34vw,330px);left:calc(-1 * clamp(250px,36vw,350px))}
+.fenix .fw{animation:fflap2 .7s cubic-bezier(.45,0,.55,1) infinite alternate}
+.fenix .fw2{animation-delay:.08s}
+@keyframes fflap2{0%{transform:scaleY(1)}100%{transform:scaleY(-.45)}}
+body.lit .bird.fenix{animation-duration:4.2s}
+body.born .bird.fenix{animation-duration:4.4s}
 </style>
 </head>
 <body>
