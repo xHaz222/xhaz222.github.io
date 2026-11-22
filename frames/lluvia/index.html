@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Días de lluvia · xatframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Días de lluvia — xatframe libre para tu sala (autor: xHaz 1004002)
+   Link: ?t=Título&s=Subtítulo */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Outfit',system-ui,sans-serif;user-select:none;-webkit-user-select:none;background:#0e1416}
+.sky{position:fixed;inset:0;background:linear-gradient(180deg,#0c1215 0%,#16232a 50%,#22343a 100%)}
+canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
+.deco{position:fixed;pointer-events:none}
+.title{position:fixed;left:3vw;bottom:5vh;color:#e3ecee;text-shadow:0 2px 16px rgba(0,0,0,.6);pointer-events:none;z-index:3}
+.title b{display:block;font-family:'Outfit',system-ui,sans-serif;font-weight:300;letter-spacing:.02em;font-size:clamp(26px,3.2vw,50px);line-height:1}
+.title span{display:block;margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:clamp(10px,.8vw,12px);letter-spacing:.22em;text-transform:uppercase;color:#8fb3b5}
+.bokeh{inset:0}
+.bokeh i{position:absolute;border-radius:50%;filter:blur(8px);animation:bk 9s ease-in-out infinite}
+@keyframes bk{50%{opacity:.35}}
+.fog{left:0;right:0;bottom:0;height:35vh;background:linear-gradient(0deg,rgba(150,180,185,.18),transparent)}
+@media (max-width:640px){.title{bottom:3vh}}
+</style>
+</head>
+<body>
+<div class="sky"></div>
+<div class="deco bokeh" id="bokeh"></div><div class="deco fog"></div>
+<canvas id="c"></canvas>
+
+<div class="title"><b id="tt">Días de lluvia</b><span id="ts">un café y buena charla</span></div>
+<script>
+const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s);
+const clean = s => String(s || '').replace(/[<>]/g, '').slice(0, 40);
+if (Q.get('t')) $('#tt').textContent = clean(Q.get('t'));
+if (Q.has('s')) $('#ts').textContent = clean(Q.get('s'));
+const cv = $('#c'), x = cv.getContext('2d'); let W, H, P = [];
+const rnd = (a, b) => a + Math.random() * (b - a);
+function size() { const d = Math.min(devicePixelRatio || 1, 1.5); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); init(); }
+const BK = ['#ffcf8a', '#f7a86b', '#9fd1d4', '#e8e2c9', '#c9a46b'];
+(function () { const b = $('#bokeh'); for (let i = 0; i < 16; i++) { const e = document.createElement('i'), s = rnd(40, 120); Object.assign(e.style, { width: s + 'px', height: s + 'px', left: rnd(0, 100) + '%', top: rnd(35, 100) + '%', background: BK[i % BK.length], opacity: rnd(.12, .32), animationDelay: rnd(-9, 0) + 's' }); b.appendChild(e); } })();
+let D = [];
+function init() {
+  P = Array.from({ length: Math.round(Math.min(260, W * H / 6000)) }, () => ({ x: rnd(0, W), y: rnd(0, H), l: rnd(10, 26), v: rnd(9, 16), a: rnd(.12, .35) }));
+  D = Array.from({ length: Math.round(Math.min(60, W * H / 30000)) }, () => drop(true));
+}
+function drop(any) { return { x: rnd(0, W), y: any ? rnd(0, H) : rnd(-50, H * .4), r: rnd(2, 5.5), v: 0, wait: rnd(30, 400), trail: [] }; }
+function frame() {
+  x.strokeStyle = 'rgba(200,225,230,1)'; x.lineCap = 'round';
+  for (const p of P) { p.y += p.v; p.x += p.v * .12; if (p.y > H) { p.y = -p.l; p.x = rnd(-50, W); } x.globalAlpha = p.a; x.lineWidth = 1; x.beginPath(); x.moveTo(p.x, p.y); x.lineTo(p.x - p.l * .12, p.y - p.l); x.stroke(); }
+  /* gotas en el vidrio que se deslizan */
+  for (const d of D) {
+    if (d.wait > 0) d.wait--; else { d.v = Math.min(d.v + .04 * d.r, 1.8 + d.r * .3); d.y += d.v; d.x += Math.sin(d.y / 23) * .15; d.trail.push([d.x, d.y]); if (d.trail.length > 40) d.trail.shift(); if (Math.random() < .01) { d.wait = rnd(20, 90); d.v = 0; } }
+    if (d.y > H + 10) Object.assign(d, drop(false));
+    x.globalAlpha = .22; x.lineWidth = d.r * .7; x.strokeStyle = 'rgba(210,235,240,1)'; x.beginPath(); d.trail.forEach(([a, b], i) => i ? x.lineTo(a, b) : x.moveTo(a, b)); x.stroke();
+    const g = x.createRadialGradient(d.x - d.r * .3, d.y - d.r * .3, .5, d.x, d.y, d.r); g.addColorStop(0, 'rgba(255,255,255,.85)'); g.addColorStop(.6, 'rgba(190,220,225,.35)'); g.addColorStop(1, 'rgba(120,150,160,.15)');
+    x.globalAlpha = 1; x.fillStyle = g; x.beginPath(); x.arc(d.x, d.y, d.r, 0, 6.283); x.fill();
+  }
+  x.globalAlpha = 1;
+}
+addEventListener('resize', size); size();
+(function loop(t) { x.clearRect(0, 0, W, H); frame(t || 0); requestAnimationFrame(loop); })();
+</script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nieve elegante · xatframe by xHaz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Nieve elegante — xatframe libre para usar en tu sala (autor: xHaz 1004002) */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0b1430;font-family:'Outfit',system-ui,sans-serif;user-select:none;-webkit-user-select:none}
+#sky{position:fixed;inset:0;transition:background 1.2s ease}
+canvas{position:fixed;inset:0;width:100%;height:100%}
+.glow{position:fixed;left:50%;top:-30vh;width:120vw;height:70vh;transform:translateX(-50%);border-radius:50%;filter:blur(60px);opacity:.35;transition:background 1.2s}
+.hills{position:fixed;left:0;bottom:0;width:100%;height:16vh;pointer-events:none}
+.lights{position:fixed;left:0;top:0;bottom:0;width:60px;pointer-events:none}.lights.r{left:auto;right:0}
+.lights i{position:absolute;width:9px;height:13px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;animation:tw 3.2s ease-in-out infinite}
+@keyframes tw{0%,100%{opacity:.55}50%{opacity:1}}
+.title{position:fixed;left:3vw;bottom:5vh;color:#fff;text-shadow:0 0 18px rgba(255,255,255,.35);pointer-events:none}
+.title b{display:block;font-family:'Outfit',sans-serif;font-weight:300;letter-spacing:.02em;font-size:clamp(26px,3.2vw,50px);line-height:1}
+.title span{display:block;margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:clamp(10px,.8vw,12px);letter-spacing:.22em;text-transform:uppercase;opacity:.75}
+.count{position:fixed;right:3vw;bottom:5vh;text-align:right;color:#fff;pointer-events:none}
+.count b{display:block;font-family:'Outfit',sans-serif;font-weight:300;font-size:clamp(30px,3.8vw,58px);line-height:1}
+.count span{font-family:'JetBrains Mono',monospace;font-size:clamp(10px,.8vw,12px);letter-spacing:.2em;text-transform:uppercase;opacity:.75}
+@media (max-width:640px){.count{bottom:auto;top:56px}.title{bottom:3vh}}
+</style>
+</head>
+<body>
+<div id="sky"></div><div class="glow" id="glow"></div>
+<div class="lights" id="lights"></div><div class="lights r" id="lightsR"></div>
+<canvas id="c"></canvas>
+<svg class="hills" viewBox="0 0 1000 160" preserveAspectRatio="none" aria-hidden="true"><path id="h2" d="M0 90C120 60 220 70 330 88S560 60 680 76 880 96 1000 70V160H0Z" opacity=".55"/><path id="h1" d="M0 120C150 96 260 104 400 118S650 92 780 108 920 124 1000 112V160H0Z"/></svg>
+<div class="title"><b id="tt">Feliz Navidad</b><span id="ts">que la magia te encuentre</span></div>
+<div class="count"><b id="cn">—</b><span id="cl">días para Navidad</span></div>
+<script>
+/* Personalizá con el link:  ?t=Título&s=Subtítulo&p=noche|malva|champagne */
+const Q = new URLSearchParams(location.search);
+const PAL = {
+  noche:  { sky: 'linear-gradient(180deg,#060b1f 0%,#0e1b45 55%,#22396e 100%)', glow: '#5b8cff', hill: ['#dfe9ff', '#b9c9ee'], flake: [230, 240, 255], lights: ['#ffd36b', '#9fd4ff', '#ffffff'] },
+  malva:  { sky: 'linear-gradient(180deg,#17121a 0%,#33263a 55%,#6b5268 100%)', glow: '#c9a2c4', hill: ['#f3ecef', '#d9c8d2'], flake: [250, 240, 246], lights: ['#f3d8e6', '#fff6ee', '#e9c9a0'] },
+  champagne: { sky: 'linear-gradient(180deg,#0f0d0a 0%,#2a241b 55%,#5e4f39 100%)', glow: '#e7c98f', hill: ['#fbf5e9', '#e6d8bc'], flake: [255, 248, 232], lights: ['#f6dfa8', '#fff5df', '#e9c27a'] }
+};
+let pal = PAL[Q.get('p')] ? Q.get('p') : 'noche';
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const clean = s => String(s || '').replace(/[<>]/g, '').slice(0, 40);
+if (Q.get('t')) $('#tt').textContent = clean(Q.get('t'));
+if (Q.has('s')) $('#ts').textContent = clean(Q.get('s'));
+
+function applyPal() {
+  const P = PAL[pal];
+  $('#sky').style.background = P.sky; $('#glow').style.background = P.glow;
+  $('#h1').setAttribute('fill', P.hill[0]); $('#h2').setAttribute('fill', P.hill[1]);
+  $$('.lights i').forEach((el, i) => { const c = P.lights[i % P.lights.length]; el.style.background = c; el.style.boxShadow = `0 0 12px ${c}`; });
+}
+function buildLights() {
+  ['#lights', '#lightsR'].forEach((sel, side) => {
+    const L = $(sel); L.innerHTML = ''; const n = Math.max(6, Math.round(innerHeight / 80));
+    for (let i = 0; i < n; i++) {
+      const y = (i + .5) / n * 100, xx = 14 + Math.sin(i * 1.1 + side) * 10;
+      const el = document.createElement('i'); el.style.top = y + '%'; el.style[side ? 'right' : 'left'] = xx + 'px'; el.style.animationDelay = (i * .37 % 3.2) + 's'; L.appendChild(el);
+    }
+  });
+  applyPal();
+}
+/* cuenta regresiva: Navidad y luego Año Nuevo (hora local de cada visitante) */
+function countdown() {
+  const now = new Date(), y = now.getFullYear(), day = 864e5;
+  const xmas = new Date(y, 11, 25), ny = new Date(y + 1, 0, 1);
+  if (now.getMonth() === 11 && (now.getDate() === 24 || now.getDate() === 25)) { $('#cn').textContent = '¡Feliz Navidad!'; $('#cl').textContent = 'paz y amor en la sala'; }
+  else if (now < xmas) { const d = Math.ceil((xmas - now) / day); $('#cn').textContent = d; $('#cl').textContent = d === 1 ? 'día para Navidad' : 'días para Navidad'; }
+  else { const d = Math.ceil((ny - now) / day); $('#cn').textContent = d <= 1 ? '¡Feliz Año!' : d; $('#cl').textContent = d <= 1 ? 'que sea un gran año' : 'días para Año Nuevo'; }
+}
+
+/* nieve en tres capas + cristales grandes */
+const cv = $('#c'), x = cv.getContext('2d'); let W, H, flakes = [], wind = 0, windT = 0, puffs = [];
+function size() {
+  const d = Math.min(devicePixelRatio || 1, 1.5); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0);
+  const n = Math.round(Math.min(260, W * H / 6500)); flakes = [];
+  for (let i = 0; i < n; i++) flakes.push(mk(true));
+  buildLights();
+}
+function mk(any) {
+  const z = Math.random(), crystal = Math.random() < .07;
+  return { x: Math.random() * W, y: any ? Math.random() * H : -20, z, r: crystal ? 6 + z * 9 : .8 + z * 2.6, vy: .25 + z * 1.1, ph: Math.random() * 6.28, rot: Math.random() * 6.28, vr: (Math.random() - .5) * .01, crystal };
+}
+function crystal(f, a) {
+  x.save(); x.translate(f.x, f.y); x.rotate(f.rot); x.strokeStyle = `rgba(${PAL[pal].flake},${a})`; x.lineWidth = 1.1; x.lineCap = 'round';
+  for (let k = 0; k < 6; k++) { x.rotate(Math.PI / 3); x.beginPath(); x.moveTo(0, 0); x.lineTo(0, -f.r); x.moveTo(0, -f.r * .55); x.lineTo(-f.r * .28, -f.r * .78); x.moveTo(0, -f.r * .55); x.lineTo(f.r * .28, -f.r * .78); x.stroke(); }
+  x.restore();
+}
+function loop(t) {
+  x.clearRect(0, 0, W, H); windT += .003; const w = Math.sin(windT) * .4 + wind; wind *= .98;
+  const c = PAL[pal].flake;
+  for (const f of flakes) {
+    f.ph += .01 + f.z * .01; f.y += f.vy; f.x += Math.sin(f.ph) * .3 * (f.z + .3) + w * (f.z + .4); f.rot += f.vr;
+    if (f.y > H + 20 || f.x < -40 || f.x > W + 40) Object.assign(f, mk(false), { x: Math.random() * W });
+    const a = .35 + f.z * .6;
+    if (f.crystal) crystal(f, a * .9);
+    else { x.fillStyle = `rgba(${c},${a})`; x.beginPath(); x.arc(f.x, f.y, f.r, 0, 6.283); x.fill(); }
+  }
+  for (let i = puffs.length - 1; i >= 0; i--) { const p = puffs[i]; p.t++; p.x += p.vx; p.y += p.vy; p.vy += .03; const k = 1 - p.t / 70; if (k <= 0) { puffs.splice(i, 1); continue; } x.fillStyle = `rgba(${c},${k})`; x.beginPath(); x.arc(p.x, p.y, p.r * k + .5, 0, 6.283); x.fill(); }
+  requestAnimationFrame(loop);
+}
+addEventListener('pointermove', e => { wind += (e.movementX || 0) * .002; });
+addEventListener('pointerdown', e => { for (let i = 0; i < 26; i++) { const a = Math.random() * 6.283, v = .6 + Math.random() * 2.4; puffs.push({ x: e.clientX, y: e.clientY, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 1, r: 1 + Math.random() * 2.5, t: 0 }); } });
+addEventListener('resize', size);
+size(); countdown(); setInterval(countdown, 60000); requestAnimationFrame(loop);
+</script>
+</body>
+</html>

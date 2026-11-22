@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Minimal · xatframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Minimal — xatframe libre para tu sala (autor: xHaz 1004002)
+   Link: ?t=Título&s=Subtítulo&p=carmesi|oceano|bosque|grafito|arena&reloj=0 */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#14070b;--a:#8c1c32;--b:#4a0c1a;--c:#c23a4e;--tx:#f3e9eb;--mu:#c9a3ab}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-family:'Outfit',system-ui,sans-serif;user-select:none;-webkit-user-select:none}
+.blobs{position:fixed;inset:-20%;filter:blur(90px);opacity:.85}
+.blobs i{position:absolute;border-radius:50%;mix-blend-mode:screen;animation:mv 28s ease-in-out infinite alternate}
+.blobs i:nth-child(1){width:55vw;height:55vw;left:5%;top:10%;background:var(--a)}
+.blobs i:nth-child(2){width:45vw;height:45vw;right:0;top:35%;background:var(--b);animation-duration:34s;animation-delay:-8s}
+.blobs i:nth-child(3){width:30vw;height:30vw;left:40%;top:60%;background:var(--c);opacity:.55;animation-duration:40s;animation-delay:-16s}
+@keyframes mv{0%{transform:translate(0,0) scale(1)}50%{transform:translate(8vw,-6vh) scale(1.12)}100%{transform:translate(-6vw,5vh) scale(.92)}}
+.grain{position:fixed;inset:0;opacity:.07;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.vig{position:fixed;inset:0;background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.45))}
+.lines{position:fixed;inset:0;opacity:.06;background-image:linear-gradient(var(--tx) 1px,transparent 1px);background-size:100% 64px}
+.title{position:fixed;left:3vw;bottom:5vh}
+.title b{display:block;font-weight:200;font-size:clamp(30px,3.6vw,58px);letter-spacing:.04em;line-height:1}
+.title span{display:block;margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:clamp(10px,.8vw,12px);letter-spacing:.24em;text-transform:uppercase;color:var(--mu)}
+.title i{display:block;width:44px;height:1px;background:var(--mu);margin-top:14px;opacity:.6}
+.clock{position:fixed;right:3vw;bottom:5vh;text-align:right}
+.clock b{display:block;font-weight:200;font-size:clamp(30px,3.6vw,58px);letter-spacing:.06em;line-height:1;font-variant-numeric:tabular-nums}
+.clock span{display:block;margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:clamp(10px,.8vw,12px);letter-spacing:.2em;text-transform:uppercase;color:var(--mu)}
+.dot{position:fixed;right:3vw;top:max(100px,13vh);display:flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;color:var(--mu);text-transform:uppercase}
+.dot i{width:7px;height:7px;border-radius:50%;background:var(--c);box-shadow:0 0 10px var(--c);animation:p 2.6s ease-in-out infinite}
+@keyframes p{50%{opacity:.35}}
+@media (max-width:640px){.dot{display:none}}
+</style>
+</head>
+<body>
+<div class="blobs"><i></i><i></i><i></i></div><div class="lines"></div><div class="grain"></div><div class="vig"></div>
+<div class="dot"><i></i><span id="dl">en línea</span></div>
+<div class="title"><b id="tt">Bienvenidos</b><span id="ts">a nuestra sala</span><i></i></div>
+<div class="clock" id="clock"><b id="hh">--:--</b><span id="dd"></span></div>
+<script>
+const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s), clean = s => String(s || '').replace(/[<>]/g, '').slice(0, 40);
+const PAL = { carmesi: ['#14070b', '#8c1c32', '#4a0c1a', '#c23a4e', '#f3e9eb', '#c9a3ab'], oceano: ['#050d14', '#0f4c6b', '#1b2f5a', '#2f8fa8', '#e6f1f5', '#8fb3c2'], bosque: ['#07100c', '#1f5038', '#2e3d1c', '#5f8f5a', '#eaf2ea', '#9fb8a2'], grafito: ['#0b0b0d', '#2a2a33', '#1c1c24', '#5a5a6e', '#ededf2', '#a0a0b0'], arena: ['#140f0b', '#6b4a2f', '#3d2a1c', '#b08552', '#f5ede3', '#c9b298'] };
+const p = PAL[Q.get('p')] || PAL.carmesi;['--bg', '--a', '--b', '--c', '--tx', '--mu'].forEach((k, i) => document.documentElement.style.setProperty(k, p[i]));
+if (Q.get('t')) $('#tt').textContent = clean(Q.get('t')); if (Q.has('s')) $('#ts').textContent = clean(Q.get('s'));
+if (Q.get('reloj') === '0') $('#clock').remove();
+const D = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'], M = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+function tick() { const n = new Date(); if ($('#hh')) { $('#hh').textContent = String(n.getHours()).padStart(2, '0') + ':' + String(n.getMinutes()).padStart(2, '0'); $('#dd').textContent = D[n.getDay()] + ' · ' + n.getDate() + ' ' + M[n.getMonth()]; } }
+tick(); setInterval(tick, 10000);
+</script>
+</body>
+</html>

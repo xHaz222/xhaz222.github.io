@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Navidad en la sala · xatframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Navidad en la sala — xatframe libre (autor: xHaz 1004002)
+   Link:  ?u=usuario1,usuario2,usuario3&t=Navidad en mi sala&m=¡Feliz Navidad!
+   u = registros de xat de la gente de tu sala (hasta 16) */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Outfit',system-ui,sans-serif;user-select:none;-webkit-user-select:none;background:#0b1633}
+.sky{position:fixed;inset:0;background:radial-gradient(70% 55% at 15% 85%,rgba(255,196,120,.16),transparent 60%),radial-gradient(60% 50% at 88% 30%,rgba(214,170,98,.10),transparent 60%),linear-gradient(180deg,#0a1220 0%,#0e1d22 55%,#132a27 100%)}
+.moon{display:none}
+.orn{position:fixed;top:0;right:3vw;width:min(22vw,320px);height:46vh;pointer-events:none}
+.orn g{transform-box:fill-box;transform-origin:50% 0;animation:sway 6s ease-in-out infinite}
+@keyframes sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
+.ground{position:fixed;left:0;bottom:0;width:100%;height:30vh;pointer-events:none}
+.tree{position:fixed;left:3vw;bottom:14vh;width:clamp(150px,17vw,280px);pointer-events:none}
+.tree .lt{animation:lt 2.8s ease-in-out infinite}
+@keyframes lt{0%,100%{opacity:.45}50%{opacity:1}}
+.tree .star{transform-origin:100px 18px;animation:st 4s ease-in-out infinite}
+@keyframes st{50%{transform:scale(1.12) rotate(8deg)}}
+.title{position:fixed;left:3vw;top:max(96px,12vh);color:#f4ead7;font-family:'Outfit',sans-serif;font-weight:300;letter-spacing:.02em;font-size:clamp(24px,2.4vw,38px);line-height:1;text-shadow:0 2px 14px rgba(0,0,0,.45);white-space:nowrap;pointer-events:none}
+.title small{display:block;margin-top:8px;font-family:'JetBrains Mono',monospace;font-weight:500;font-size:clamp(10px,.75vw,12px);letter-spacing:.22em;text-transform:uppercase;color:#d6b06a}
+/* franja de abajo: la única zona donde xat deja hacer clic */
+.gifts{position:fixed;left:0;right:0;bottom:0;height:min(24vh,190px);display:flex;align-items:flex-end;justify-content:center;gap:clamp(6px,1.2vw,18px);padding:0 2vw 14px;overflow-x:auto;scrollbar-width:none}
+.gifts::-webkit-scrollbar{display:none}
+.gift{flex:none;width:clamp(58px,6.2vw,92px);cursor:pointer;background:none;border:0;font:inherit;color:#fff;display:flex;flex-direction:column;align-items:center;gap:4px;transition:transform .25s}
+.gift:hover{transform:translateY(-6px) rotate(-3deg)}
+.gift svg{width:100%;overflow:visible;filter:drop-shadow(0 6px 8px rgba(0,0,0,.35))}
+.gift .lid{transition:transform .6s cubic-bezier(.3,1.6,.5,1)}
+.gift.open .lid{transform:translate(0,-40px) rotate(-25deg)}
+.gift.open{pointer-events:auto}
+.tag{max-width:100%;font-size:clamp(10px,.85vw,12px);font-weight:600;letter-spacing:.04em;background:rgba(244,234,215,.95);color:#3b2a1a;padding:2px 9px;border-radius:999px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card{position:fixed;right:2vw;top:38vh;max-width:24vw;transform:translate(0,20px) scale(.8);opacity:0;pointer-events:none;transition:all .45s cubic-bezier(.2,1.4,.4,1);display:flex;align-items:center;gap:12px;padding:12px 18px 12px 12px;border-radius:18px;background:linear-gradient(160deg,#f7f0e1,#e8dcc2);color:#2b1f14;box-shadow:0 14px 40px rgba(0,0,0,.45),inset 0 0 0 1px #d6b06a,inset 0 0 0 5px #f7f0e1,inset 0 0 0 6px rgba(168,129,62,.6)}
+.card.on{opacity:1;transform:none}
+.card img,.card .ini{width:58px;height:58px;border-radius:50%;object-fit:cover;border:2px solid #a8813e;background:#fff;flex:none}
+.card .ini{display:grid;place-items:center;font-family:'Outfit',sans-serif;font-size:26px;font-weight:600;color:#7a1f2e}
+.card b{display:block;font-family:'Outfit',sans-serif;font-weight:600;font-size:20px;line-height:1.1;color:#5a1622}
+.card span{font-family:'JetBrains Mono',monospace;font-size:12px;color:#6b5a44}
+@media (max-width:640px){.tree{bottom:22vh;width:110px}.moon{top:8vh}.card{right:50%;top:auto;bottom:calc(min(24vh,190px) + 10px);max-width:90vw;transform:translate(50%,20px) scale(.8)}.card.on{transform:translate(50%,0)}.title{top:auto;bottom:calc(min(24vh,190px) + 90px);left:50%;transform:translateX(-50%)}}
+</style>
+</head>
+<body>
+<div class="sky"></div><div class="moon"></div>
+<canvas id="c"></canvas>
+<svg class="ground" viewBox="0 0 1000 300" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="sn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4f1ea"/><stop offset="1" stop-color="#c9d3d6"/></linearGradient></defs><path d="M0 120C160 80 300 96 470 118S760 84 1000 104V300H0Z" fill="#9fb0b4" opacity=".35"/><path d="M0 170C180 140 330 150 520 166S820 140 1000 156V300H0Z" fill="url(#sn)"/></svg>
+<svg class="tree" viewBox="0 0 200 260" aria-hidden="true">
+  <defs><linearGradient id="pine" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2f5a46"/><stop offset="1" stop-color="#14302a"/></linearGradient><radialGradient id="gw"><stop offset="0" stop-color="#fff3cf"/><stop offset="1" stop-color="#ffcf73" stop-opacity="0"/></radialGradient></defs>
+  <rect x="93" y="222" width="14" height="26" rx="2" fill="#4a3424"/>
+  <path d="M100 26 58 96H76L40 154H62L22 226H178L138 154H160L124 96H142Z" fill="url(#pine)"/>
+  <path d="M100 26 58 96H76L40 154H62L22 226H100Z" fill="#0f2621" opacity=".45"/>
+  <path d="M64 92Q100 108 136 90M48 150Q100 172 152 146M30 220Q100 244 170 214" stroke="#d6b06a" stroke-width="1.6" fill="none" opacity=".9"/>
+  <g class="lts"></g>
+  <circle cx="100" cy="16" r="16" fill="url(#gw)" opacity=".8"/>
+  <path class="star" d="M100 4 104 14 115 15 107 22 109 33 100 27 91 33 93 22 85 15 96 14Z" fill="#e9c77d"/>
+</svg>
+<svg class="orn" viewBox="0 0 300 420" aria-hidden="true"><defs>
+<radialGradient id="b1" cx=".35" cy=".35"><stop offset="0" stop-color="#f6e2b0"/><stop offset=".45" stop-color="#c9a04e"/><stop offset="1" stop-color="#6e5320"/></radialGradient>
+<radialGradient id="b2" cx=".35" cy=".35"><stop offset="0" stop-color="#e8a3a3"/><stop offset=".45" stop-color="#8e2a3b"/><stop offset="1" stop-color="#3d0f19"/></radialGradient>
+<radialGradient id="b3" cx=".35" cy=".35"><stop offset="0" stop-color="#cfe3df"/><stop offset=".45" stop-color="#3f6d63"/><stop offset="1" stop-color="#16302b"/></radialGradient></defs>
+<g style="animation-delay:0s"><path d="M60 0V150" stroke="#d6b06a" stroke-width="1"/><rect x="54" y="146" width="12" height="8" rx="1.5" fill="#d6b06a"/><circle cx="60" cy="182" r="28" fill="url(#b1)"/></g>
+<g style="animation-delay:-2s"><path d="M150 0V240" stroke="#d6b06a" stroke-width="1"/><rect x="144" y="236" width="12" height="8" rx="1.5" fill="#d6b06a"/><circle cx="150" cy="276" r="34" fill="url(#b2)"/></g>
+<g style="animation-delay:-4s"><path d="M240 0V110" stroke="#d6b06a" stroke-width="1"/><rect x="234" y="106" width="12" height="8" rx="1.5" fill="#d6b06a"/><circle cx="240" cy="138" r="24" fill="url(#b3)"/></g>
+</svg>
+<div class="title" id="title">Navidad en la sala<small>abrí tu regalo</small></div>
+<div class="gifts" id="gifts"></div>
+<div class="card" id="card"></div>
+<script>
+const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const cleanNick = n => String(n || '').replace(/\([^)]*\)/g, '').trim().slice(0, 24);
+let users = (Q.get('u') || '').split(',').map(s => s.trim()).filter(s => /^[A-Za-z0-9_.\-]{1,30}$/.test(s)).slice(0, 16);
+const demo = !users.length; if (demo) users = ['Juan', 'María', 'Yeni', 'Carlos', 'Sole', 'Laly'];
+const MSG = (Q.get('m') || '¡Feliz Navidad!').slice(0, 40);
+if (Q.get('t')) $('#title').innerHTML = esc(Q.get('t').slice(0, 40)) + '<small>abrí tu regalo</small>';
+
+/* luces del árbol */
+const lts = $('.lts'), C = ['#fff1c9', '#ffd98a', '#fff7e6', '#f7c66b'];
+[[70, 104], [100, 114], [130, 100], [56, 162], [86, 174], [118, 172], [148, 160], [40, 216], [74, 228], [106, 232], [140, 224], [168, 214], [100, 70], [82, 88], [118, 86]].forEach(([cx, cy], i) => {
+  const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle'); c.setAttribute('cx', cx); c.setAttribute('cy', cy); c.setAttribute('r', 4.2);
+  c.setAttribute('fill', C[i % C.length]); c.setAttribute('class', 'lt'); c.style.animationDelay = (i * .31 % 2.8) + 's'; c.style.filter = `drop-shadow(0 0 4px ${C[i % C.length]})`; lts.appendChild(c);
+});
+
+/* regalos */
+const PAPER = [['#7a1f2e', '#d6b06a'], ['#1f4a3c', '#e9d7a8'], ['#efe6d4', '#a8813e'], ['#2b3a55', '#d6b06a'], ['#5c4a6e', '#e9d7a8'], ['#a8813e', '#f4ead7']];
+const info = {};
+users.forEach((u, i) => {
+  const [p, r] = PAPER[i % PAPER.length], b = document.createElement('button'); b.className = 'gift'; b.type = 'button'; b.dataset.u = u;
+  b.innerHTML = `<svg viewBox="0 0 100 92"><g class="box"><rect x="10" y="38" width="80" height="52" rx="5" fill="${p}"/><rect x="44" y="38" width="12" height="52" fill="${r}"/></g>
+    <g class="lid"><rect x="5" y="26" width="90" height="16" rx="4" fill="${p}" stroke="rgba(0,0,0,.12)"/><rect x="44" y="26" width="12" height="16" fill="${r}"/>
+    <path d="M50 26C38 8 22 12 28 22S46 26 50 26C54 26 66 26 72 22S62 8 50 26Z" fill="${r}"/></g></svg><span class="tag">${esc(u)}</span>`;
+  $('#gifts').appendChild(b);
+});
+function lookup(u) {
+  if (demo) return Promise.resolve({ nick: u });
+  if (info[u]) return Promise.resolve(info[u]);
+  return fetch('https://xat.com/web_gear/chat/profile2.php?n=' + encodeURIComponent(u)).then(r => r.json()).then(j => {
+    const m = (j && j.Err && j.Err.Media) || {}; const av = String(m.avatar || '').split('#')[0];
+    return (info[u] = m.id ? { nick: cleanNick(m.nick) || m.Name || u, avatar: /^https:\/\//.test(av) ? av : '', id: m.id } : { nick: u });
+  }).catch(() => ({ nick: u }));
+}
+/* nicks en las etiquetas */
+if (!demo) users.forEach(u => lookup(u).then(d => { const t = document.querySelector(`.gift[data-u="${u}"] .tag`); if (t && d.nick) t.textContent = d.nick; }));
+
+let hideT;
+$('#gifts').addEventListener('click', e => {
+  const g = e.target.closest('.gift'); if (!g) return;
+  document.querySelectorAll('.gift.open').forEach(o => o !== g && o.classList.remove('open'));
+  g.classList.toggle('open', true); jingle(); burst(g);
+  lookup(g.dataset.u).then(d => {
+    const card = $('#card');
+    card.innerHTML = (d.avatar ? `<img src="${esc(d.avatar)}" alt="" onerror="this.outerHTML='<div class=ini>${esc((d.nick || '?')[0].toUpperCase())}</div>'">` : `<div class="ini">${esc((d.nick || '?')[0].toUpperCase())}</div>`) +
+      `<div><b>${esc(MSG)}</b><span>${esc(d.nick)}${d.id ? ' · ' + d.id : ''}</span></div>`;
+    card.classList.add('on'); clearTimeout(hideT); hideT = setTimeout(() => { card.classList.remove('on'); g.classList.remove('open'); }, 5200);
+  });
+});
+/* sonidito de campanitas (solo al tocar) */
+let AC; function jingle() { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); const t = AC.currentTime;[1319, 1568, 1976, 2637].forEach((f, i) => { const o = AC.createOscillator(), g = AC.createGain(); o.type = 'sine'; o.frequency.value = f; g.gain.setValueAtTime(0.0001, t + i * .07); g.gain.exponentialRampToValueAtTime(.08, t + i * .07 + .01); g.gain.exponentialRampToValueAtTime(0.0001, t + i * .07 + .6); o.connect(g); g.connect(AC.destination); o.start(t + i * .07); o.stop(t + i * .07 + .65); }); } catch (e) { } }
+
+/* nieve suave + confeti de los regalos */
+const cv = $('#c'), x = cv.getContext('2d'); let W, H, F = [], P = [];
+function size() { const d = Math.min(devicePixelRatio || 1, 1.5); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); F = Array.from({ length: Math.round(Math.min(170, W * H / 9000)) }, () => ({ x: Math.random() * W, y: Math.random() * H, r: .8 + Math.random() * 2.4, v: .3 + Math.random() * .9, p: Math.random() * 6 })); }
+function burst(g) { const r = g.getBoundingClientRect(); for (let i = 0; i < 34; i++) { const a = -Math.PI / 2 + (Math.random() - .5) * 2.2, v = 2 + Math.random() * 4; P.push({ x: r.left + r.width / 2, y: r.top + r.height * .4, vx: Math.cos(a) * v, vy: Math.sin(a) * v, c: ['#d6b06a', '#f4ead7', '#7a1f2e', '#3f6d63'][i % 4], t: 0, s: 3 + Math.random() * 4, rot: Math.random() * 6 }); } }
+(function loop() {
+  x.clearRect(0, 0, W, H);
+  x.fillStyle = 'rgba(255,255,255,.85)';
+  for (const f of F) { f.p += .012; f.y += f.v; f.x += Math.sin(f.p) * .35; if (f.y > H + 5) { f.y = -5; f.x = Math.random() * W; } x.globalAlpha = .45 + f.r / 5; x.beginPath(); x.arc(f.x, f.y, f.r, 0, 6.283); x.fill(); }
+  x.globalAlpha = 1;
+  for (let i = P.length - 1; i >= 0; i--) { const p = P[i]; p.t++; p.vy += .12; p.x += p.vx; p.y += p.vy; p.rot += .2; if (p.t > 90) { P.splice(i, 1); continue; } x.save(); x.translate(p.x, p.y); x.rotate(p.rot); x.fillStyle = p.c; x.globalAlpha = 1 - p.t / 90; x.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); x.restore(); }
+  requestAnimationFrame(loop);
+})();
+addEventListener('resize', size); size();
+</script>
+</body>
+</html>

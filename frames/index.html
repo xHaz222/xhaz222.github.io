@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>xatframes · colección</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',system-ui,sans-serif;background:#0b0f1f;color:#e9edf7;min-height:100vh}
+header{padding:38px 5vw 18px;text-align:center}
+h1{font-size:clamp(28px,3.6vw,46px);font-weight:300;letter-spacing:.04em}
+header p{color:#9aa6c4;margin-top:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:22px;padding:18px 5vw 40px;max-width:1500px;margin:0 auto}
+.card{background:#121833;border:1px solid #232c55;border-radius:18px;overflow:hidden;display:flex;flex-direction:column}
+.pv{position:relative;aspect-ratio:16/9;overflow:hidden;background:#000}
+.pv iframe{position:absolute;left:0;top:0;width:1600px;height:900px;border:0;transform-origin:0 0;pointer-events:none}
+.pv .chat{position:absolute;left:50%;top:13%;transform:translateX(-50%);width:47%;height:62%;background:rgba(210,212,226,.55);border-radius:6px;pointer-events:none}
+.pv .ban{position:absolute;left:50%;top:78%;transform:translateX(-50%);width:47%;height:9%;background:rgba(30,30,120,.8);pointer-events:none}
+.body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:10px;flex:1}
+.body h2{font-size:19px}
+.cat{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#7f8bb0}
+.body p{color:#9aa6c4;font-size:14px;line-height:1.45}
+label{font-size:12px;font-weight:700;color:#b9c3e0;letter-spacing:.04em;margin-top:4px}
+input,select,textarea{width:100%;font:inherit;font-size:14px;color:#fff;background:#0b0f1f;border:1px solid #2c3766;border-radius:10px;padding:9px 11px;outline:none}
+textarea{min-height:58px;resize:vertical}
+input:focus,select:focus,textarea:focus{border-color:#5b8cff}
+.out{display:flex;gap:8px;margin-top:6px}
+.out input{font-size:12px;color:#9fd4ff}
+button{font:inherit;font-weight:800;font-size:13px;border:0;border-radius:10px;padding:0 14px;cursor:pointer;background:#5b8cff;color:#fff;white-space:nowrap}
+button.sec{background:#232c55}
+.how{max-width:900px;margin:0 auto 50px;padding:0 5vw;color:#9aa6c4;font-size:14px;line-height:1.6}
+.how b{color:#e9edf7}
+.toggle{display:flex;align-items:center;gap:8px;font-size:12px;color:#9aa6c4}
+.toggle input{width:auto}
+</style>
+</head>
+<body>
+<header><h1>xatframes</h1><p>Fondos animados para tu sala de xat. Livianos, gratis y personalizables: completá los datos y copiá el link.</p></header>
+<div class="grid" id="grid"></div>
+<div class="how">
+<p><b>¿Cómo lo pongo en mi sala?</b> Copiá el link → en tu grupo pasá el mouse por <b>"grupo"</b> (arriba a la derecha) → <b>"customize"</b> → pestaña de apariencia → pegalo en el campo <b>xatframe</b> → guardá. Solo el dueño principal puede hacerlo. Recordá dejar también un fondo exterior por si alguien tiene los xatframes desactivados.</p>
+<p style="margin-top:10px"><b>Usuarios:</b> escribí los <b>registros</b> de xat de la gente de tu sala separados por coma (ej: juan,maria,yeni). El frame muestra su avatar y su nick automáticamente.</p>
+<p style="margin-top:10px"><b>Botones:</b> en los grupos, xat solo deja hacer clic <b>debajo del banner del chat</b>; por eso los botones de los juegos están abajo. Si tu sala tiene pestañas, tocá "close" en la barra de abajo para poder usarlos.</p>
+</div>
+<script>
+const BASE = location.href.replace(/[^/]*$/, '');
+const TS = [['t', 'Título', ''], ['s', 'Subtítulo', '']];
+const FR = [
+  { cat: 'Minimal', id: 'minimal', name: 'Minimal', desc: 'Menos es más: manchas de color suaves que se mueven lento, reloj y fecha de cada visitante. Elegante para cualquier sala.',
+    fields: [...TS, ['p', 'Colores', ['carmesi', 'oceano', 'bosque', 'grafito', 'arena']], ['reloj', 'Reloj', ['sí', '0']]] },
+  { cat: 'Navidad', id: 'nieve', name: 'Nieve elegante', desc: 'Copos y cristales que caen, luces cálidas a los costados y cuenta regresiva a Navidad y Año Nuevo.',
+    fields: [...TS, ['p', 'Colores', ['noche', 'malva', 'champagne']]] },
+  { cat: 'Navidad', id: 'navidad', name: 'Navidad en la sala', desc: 'Pino con luces cálidas, esferas de vidrio y un regalo por cada usuario: al abrirlo aparece su avatar con un saludo.',
+    fields: [['t', 'Título', 'Navidad en mi sala'], ['u', 'Usuarios (registros, separados por coma)', '', 'area'], ['m', 'Mensaje del regalo', '¡Feliz Navidad!']] },
+  { cat: 'Juegos', id: 'ruleta', name: 'Ruleta de la sala', desc: 'Girá la ruleta con la gente de tu sala para retos o sorteos. Muestra el avatar del elegido.',
+    fields: [['u', 'Usuarios (registros, separados por coma)', '', 'area'], ['modo', 'Modo', ['reto', 'sorteo']], ['c', 'Colores', ['azul', 'ambar', 'menta']], ['r', 'Retos propios (separados por | , opcional)', '', 'area']] },
+  { cat: 'Temporadas', id: 'otono', name: 'Otoño / Acción de Gracias', desc: 'Hojas que caen en ámbar, óxido y bordó sobre un atardecer cálido. Tocá abajo y sopla el viento.', fields: TS },
+  { cat: 'Temporadas', id: 'lluvia', name: 'Días de lluvia', desc: 'Lluvia tranquila, gotas que se deslizan por el vidrio y luces de ciudad desenfocadas.', fields: TS },
+  { cat: 'Temporadas', id: 'verano', name: 'Verano', desc: 'Atardecer en la playa: sol sobre el mar, olas en la orilla, palmeras y gaviotas a lo lejos.', fields: TS },
+  { cat: 'Temporadas', id: 'primavera', name: 'Primavera', desc: 'Ramas de cerezo en flor y pétalos que caen en tonos rosa suave.', fields: TS },
+  { cat: 'Temporadas', id: 'pascua', name: 'Pascua en la sala', desc: 'Colores pastel, flores y un huevito por cada usuario: al abrirlo aparece su avatar con un saludo.',
+    fields: [['t', 'Título', 'Felices Pascuas'], ['u', 'Usuarios (registros, separados por coma)', '', 'area'], ['m', 'Mensaje', '¡Felices Pascuas!']] }
+];
+const grid = document.getElementById('grid');
+FR.forEach(f => {
+  const c = document.createElement('div'); c.className = 'card';
+  c.innerHTML = `<div class="pv"><iframe loading="lazy" title="${f.name}"></iframe><div class="chat"></div><div class="ban"></div></div>
+  <div class="body"><span class="cat">${f.cat}</span><h2>${f.name}</h2><p>${f.desc}</p>
+  ${f.fields.map(([k, l, d, t]) => `<label>${l}</label>` + (Array.isArray(d) ? `<select data-k="${k}">${d.map(o => `<option>${o}</option>`).join('')}</select>` : t === 'area' ? `<textarea data-k="${k}" placeholder="${d}"></textarea>` : `<input data-k="${k}" placeholder="${d}">`)).join('')}
+  <label class="toggle"><input type="checkbox" class="sim" checked> mostrar el chat encima en la vista previa</label>
+  <div class="out"><input readonly class="link"><button class="cp">Copiar</button><button class="sec op">Abrir</button></div></div>`;
+  grid.appendChild(c);
+  const ifr = c.querySelector('iframe'), pv = c.querySelector('.pv');
+  const build = () => {
+    const q = new URLSearchParams();
+    c.querySelectorAll('[data-k]').forEach(el => { let v = el.value.trim(); if (el.dataset.k === 'u') v = v.split(/[\s,;]+/).filter(Boolean).join(','); if (v && !(el.tagName === 'SELECT' && el.selectedIndex === 0)) q.set(el.dataset.k, v); });
+    const s = q.toString().replace(/%2C/g, ','); return BASE + f.id + '/' + (s ? '?' + s : '');
+  };
+  let t; const upd = () => { const u = build(); c.querySelector('.link').value = u; clearTimeout(t); t = setTimeout(() => { if (ifr.src !== u) ifr.src = u; }, 500); };
+  c.querySelectorAll('[data-k]').forEach(el => el.addEventListener('input', upd));
+  c.querySelector('.sim').onchange = e => { c.querySelectorAll('.chat,.ban').forEach(x => x.style.display = e.target.checked ? '' : 'none'); };
+  c.querySelector('.cp').onclick = e => { const i = c.querySelector('.link'); i.select(); navigator.clipboard && navigator.clipboard.writeText(i.value); e.target.textContent = '¡Copiado!'; setTimeout(() => e.target.textContent = 'Copiar', 1400); };
+  c.querySelector('.op').onclick = () => window.open(c.querySelector('.link').value, '_blank', 'noopener');
+  const fit = () => { ifr.style.transform = `scale(${pv.clientWidth / 1600})`; };
+  new ResizeObserver(fit).observe(pv); fit(); upd();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pascua en la sala · xatframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Pascua en la sala — xatframe libre (autor: xHaz 1004002)
+   Link: ?u=usuario1,usuario2&t=Título&m=Mensaje   (u = registros de xat, hasta 16) */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Outfit',system-ui,sans-serif;user-select:none;-webkit-user-select:none;background:#eef3ee}
+.sky{position:fixed;inset:0;background:radial-gradient(60% 50% at 20% 10%,#fffaf0,transparent 70%),linear-gradient(180deg,#f3f1fa 0%,#e7eef0 50%,#dfeadf 100%)}
+canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
+.grass{position:fixed;left:0;bottom:0;width:100%;height:30vh;pointer-events:none}
+.title{position:fixed;left:3vw;top:max(96px,12vh);color:#3f4a45;pointer-events:none}
+.title b{display:block;font-weight:300;font-size:clamp(26px,2.6vw,42px);letter-spacing:.02em;line-height:1}
+.title span{display:block;margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:clamp(10px,.75vw,12px);letter-spacing:.22em;text-transform:uppercase;color:#8a9e92}
+.flowers{position:fixed;bottom:16vh;width:min(18vw,260px);pointer-events:none}
+.flowers.l{left:2vw}.flowers.r{right:2vw;transform:scaleX(-1)}
+.flowers g{transform-box:fill-box;transform-origin:50% 100%;animation:fs 5s ease-in-out infinite}
+@keyframes fs{50%{transform:rotate(3deg)}}
+.eggs{position:fixed;left:0;right:0;bottom:0;height:min(24vh,190px);display:flex;align-items:flex-end;justify-content:center;gap:clamp(8px,1.4vw,22px);padding:0 2vw 16px;overflow-x:auto;scrollbar-width:none}
+.egg{flex:none;width:clamp(48px,4.8vw,72px);cursor:pointer;background:none;border:0;font:inherit;display:flex;flex-direction:column;align-items:center;gap:6px;transition:transform .25s}
+.egg:hover{transform:translateY(-6px) rotate(4deg)}
+.egg svg{width:100%;overflow:visible;filter:drop-shadow(0 6px 8px rgba(60,80,70,.25))}
+.egg .top{transition:transform .6s cubic-bezier(.3,1.6,.5,1);transform-origin:20% 60%}
+.egg.open .top{transform:translate(-6px,-26px) rotate(-30deg)}
+.tag{max-width:100%;font-size:clamp(10px,.8vw,12px);font-weight:600;background:rgba(255,255,255,.9);color:#3f4a45;padding:2px 9px;border-radius:999px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card{position:fixed;right:2vw;top:38vh;max-width:24vw;opacity:0;transform:translateY(20px) scale(.85);pointer-events:none;transition:all .45s cubic-bezier(.2,1.4,.4,1);display:flex;align-items:center;gap:12px;padding:12px 18px 12px 12px;border-radius:18px;background:rgba(255,255,255,.88);backdrop-filter:blur(8px);color:#3f4a45;box-shadow:0 14px 40px rgba(60,80,70,.18),inset 0 0 0 1px rgba(160,190,175,.6)}
+.card.on{opacity:1;transform:none}
+.card img,.card .ini{width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid #b7d3c4;background:#fff;flex:none}
+.card .ini{display:grid;place-items:center;font-size:24px;font-weight:600;color:#7aa892}
+.card b{display:block;font-weight:600;font-size:19px}
+.card span{font-family:'JetBrains Mono',monospace;font-size:12px;color:#8a9e92}
+@media (max-width:640px){.flowers{bottom:24vh;width:90px}.card{right:50%;top:auto;bottom:calc(min(24vh,190px) + 10px);max-width:90vw;transform:translate(50%,20px) scale(.85)}.card.on{transform:translate(50%,0)}.title{top:auto;bottom:calc(min(24vh,190px) + 90px)}}
+</style>
+</head>
+<body>
+<div class="sky"></div><canvas id="c"></canvas>
+<svg class="grass" viewBox="0 0 1000 300" preserveAspectRatio="none" aria-hidden="true"><path d="M0 130C170 96 320 112 500 128S820 100 1000 118V300H0Z" fill="#cfe2cf"/><path d="M0 180C190 154 340 164 530 176S830 152 1000 168V300H0Z" fill="#b8d4bb"/></svg>
+<svg class="flowers l" id="fl" viewBox="0 0 260 260" aria-hidden="true"></svg><svg class="flowers r" id="fr" viewBox="0 0 260 260" aria-hidden="true"></svg>
+<div class="title" id="title"><b id="tt">Felices Pascuas</b><span>encontrá tu huevito</span></div>
+<div class="eggs" id="eggs"></div><div class="card" id="card"></div>
+<script>
+const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const cleanNick = n => String(n || '').replace(/\([^)]*\)/g, '').trim().slice(0, 24);
+let users = (Q.get('u') || '').split(',').map(s => s.trim()).filter(s => /^[A-Za-z0-9_.\-]{1,30}$/.test(s)).slice(0, 16);
+const demo = !users.length; if (demo) users = ['Juan', 'María', 'Yeni', 'Carlos', 'Cherry', 'Laly'];
+const MSG = (Q.get('m') || '¡Felices Pascuas!').slice(0, 40); if (Q.get('t')) $('#tt').textContent = Q.get('t').replace(/[<>]/g, '').slice(0, 40);
+const EGG = [['#f6d6de', '#e9a9b8'], ['#d8e8f5', '#9fc3e0'], ['#fbefc6', '#ecd27f'], ['#dcefe0', '#a6d1b2'], ['#e7dcf3', '#bda6dd'], ['#fde2cf', '#f2b48c']];
+/* flores */
+const FL = ['#f3c6d2', '#fbe7a6', '#c9b8ec', '#ffffff', '#bfe0f2'];
+const fl = [[50, 150], [100, 110], [150, 160], [200, 125], [80, 200], [180, 205]].map(([cx, cy], i) => { let p = ''; for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3; p += `<ellipse cx="${(cx + Math.cos(a) * 9).toFixed(1)}" cy="${(cy + Math.sin(a) * 9).toFixed(1)}" rx="8" ry="5" transform="rotate(${k * 60} ${(cx + Math.cos(a) * 9).toFixed(1)} ${(cy + Math.sin(a) * 9).toFixed(1)})" fill="${FL[i % FL.length]}"/>`; } return `<g style="animation-delay:${-i * .7}s"><path d="M${cx} ${cy}Q${cx + 6} ${cy + 50} ${cx - 4} 260" stroke="#8fbf98" stroke-width="3" fill="none"/>${p}<circle cx="${cx}" cy="${cy}" r="5" fill="#f2c14e"/></g>`; }).join('');
+$('#fl').innerHTML = fl; $('#fr').innerHTML = fl;
+/* huevitos */
+users.forEach((u, i) => {
+  const [a, b] = EGG[i % EGG.length], e = document.createElement('button'); e.className = 'egg'; e.type = 'button'; e.dataset.u = u;
+  const deco = i % 3 === 0 ? `<path d="M10 52Q30 44 50 52T90 52" stroke="${b}" stroke-width="5" fill="none"/><path d="M12 70Q30 62 50 70T88 70" stroke="#fff" stroke-width="3" fill="none" opacity=".8"/>` : i % 3 === 1 ? `<circle cx="34" cy="56" r="5" fill="${b}"/><circle cx="58" cy="48" r="4" fill="#fff"/><circle cx="62" cy="72" r="5" fill="${b}"/><circle cx="38" cy="80" r="3.5" fill="#fff"/>` : `<path d="M14 60L30 50 46 60 62 50 78 60 88 54" stroke="${b}" stroke-width="4" fill="none"/>`;
+  e.innerHTML = `<svg viewBox="0 0 100 130"><defs><clipPath id="cb${i}"><rect x="0" y="62" width="100" height="70"/></clipPath><clipPath id="ct${i}"><path d="M0 0H100V58L88 64 76 56 64 64 52 56 40 64 28 56 16 64 0 58Z"/></clipPath></defs>
+    <g clip-path="url(#cb${i})"><ellipse cx="50" cy="70" rx="40" ry="54" fill="${a}"/></g>
+    <g class="top" clip-path="url(#ct${i})"><ellipse cx="50" cy="70" rx="40" ry="54" fill="${a}"/>${deco}</g></svg><span class="tag">${esc(u)}</span>`;
+  $('#eggs').appendChild(e);
+});
+const info = {};
+function lookup(u) { if (demo) return Promise.resolve({ nick: u }); if (info[u]) return Promise.resolve(info[u]); return fetch('https://xat.com/web_gear/chat/profile2.php?n=' + encodeURIComponent(u)).then(r => r.json()).then(j => { const m = (j && j.Err && j.Err.Media) || {}; const av = String(m.avatar || '').split('#')[0]; return (info[u] = m.id ? { nick: cleanNick(m.nick) || m.Name || u, avatar: /^https:\/\//.test(av) ? av : '', id: m.id } : { nick: u }); }).catch(() => ({ nick: u })); }
+if (!demo) users.forEach(u => lookup(u).then(d => { const t = document.querySelector(`.egg[data-u="${u}"] .tag`); if (t && d.nick) t.textContent = d.nick; }));
+let hideT, AC;
+function chime() { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); const t = AC.currentTime;[784, 988, 1175].forEach((f, i) => { const o = AC.createOscillator(), g = AC.createGain(); o.type = 'sine'; o.frequency.value = f; g.gain.setValueAtTime(0.0001, t + i * .08); g.gain.exponentialRampToValueAtTime(.07, t + i * .08 + .01); g.gain.exponentialRampToValueAtTime(0.0001, t + i * .08 + .5); o.connect(g); g.connect(AC.destination); o.start(t + i * .08); o.stop(t + i * .08 + .55); }); } catch (e) { } }
+$('#eggs').addEventListener('click', ev => {
+  const g = ev.target.closest('.egg'); if (!g) return; document.querySelectorAll('.egg.open').forEach(o => o !== g && o.classList.remove('open')); g.classList.add('open'); chime(); burst(g);
+  lookup(g.dataset.u).then(d => { const c = $('#card'); const ini = esc((d.nick || '?')[0].toUpperCase()); c.innerHTML = (d.avatar ? `<img src="${esc(d.avatar)}" alt="" onerror="this.outerHTML='<div class=ini>${ini}</div>'">` : `<div class="ini">${ini}</div>`) + `<div><b>${esc(MSG)}</b><span>${esc(d.nick)}${d.id ? ' · ' + d.id : ''}</span></div>`; c.classList.add('on'); clearTimeout(hideT); hideT = setTimeout(() => { c.classList.remove('on'); g.classList.remove('open'); }, 5200); });
+});
+/* pétalos y mariposas suaves */
+const cv = $('#c'), x = cv.getContext('2d'); let W, H, P = [], C2 = [];
+function size() { const d = Math.min(devicePixelRatio || 1, 1.5); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); P = Array.from({ length: 40 }, () => ({ x: Math.random() * W, y: Math.random() * H, s: 3 + Math.random() * 4, v: .3 + Math.random() * .6, p: Math.random() * 6, c: FL[Math.random() * FL.length | 0] })); }
+function burst(g) { const r = g.getBoundingClientRect(); for (let i = 0; i < 26; i++) { const a = -Math.PI / 2 + (Math.random() - .5) * 2, v = 2 + Math.random() * 3.5; C2.push({ x: r.left + r.width / 2, y: r.top + r.height * .4, vx: Math.cos(a) * v, vy: Math.sin(a) * v, c: EGG[i % EGG.length][1], t: 0, s: 3 + Math.random() * 3 }); } }
+(function loop(t) {
+  x.clearRect(0, 0, W, H);
+  for (const p of P) { p.p += .02; p.y += p.v; p.x += Math.sin(p.p) * .5 + .2; if (p.y > H + 10) { p.y = -10; p.x = Math.random() * W; } x.globalAlpha = .8; x.fillStyle = p.c; x.beginPath(); x.ellipse(p.x, p.y, p.s, p.s * .6 * Math.abs(Math.sin(p.p)) + 1, p.p, 0, 6.283); x.fill(); }
+  for (let i = C2.length - 1; i >= 0; i--) { const p = C2[i]; p.t++; p.vy += .1; p.x += p.vx; p.y += p.vy; if (p.t > 80) { C2.splice(i, 1); continue; } x.globalAlpha = 1 - p.t / 80; x.fillStyle = p.c; x.beginPath(); x.arc(p.x, p.y, p.s, 0, 6.283); x.fill(); }
+  x.globalAlpha = 1; requestAnimationFrame(loop);
+})();
+addEventListener('resize', size); size();
+</script>
+</body>
+</html>

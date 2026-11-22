@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Verano · xatframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Verano — xatframe libre para tu sala (autor: xHaz 1004002)
+   Link: ?t=Título&s=Subtítulo */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Outfit',system-ui,sans-serif;user-select:none;-webkit-user-select:none;background:#2b1a2e}
+.sky{position:fixed;inset:0;background:linear-gradient(180deg,#2b1a3a 0%,#7a3b5c 32%,#e2775f 58%,#f6b77c 72%,#f9d6a2 80%)}
+canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
+.deco{position:fixed;pointer-events:none}
+.title{position:fixed;left:3vw;bottom:5vh;color:#fff4e6;text-shadow:0 2px 16px rgba(80,30,40,.45);pointer-events:none;z-index:3}
+.title b{display:block;font-family:'Outfit',system-ui,sans-serif;font-weight:300;letter-spacing:.02em;font-size:clamp(26px,3.2vw,50px);line-height:1}
+.title span{display:block;margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:clamp(10px,.8vw,12px);letter-spacing:.22em;text-transform:uppercase;color:#ffe2b8}
+.sun{left:50%;top:58vh;width:min(22vw,320px);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#fff3d1 0%,#ffd28a 45%,rgba(255,170,100,0) 70%)}
+.sea{left:0;bottom:0;width:100%;height:42vh}
+.palm{bottom:20vh;width:min(18vw,260px)}
+.palm.l{left:-1vw}.palm.r{right:-1vw;transform:scaleX(-1)}
+.palm .fr{transform-origin:150px 60px;animation:pf 5s ease-in-out infinite}
+@keyframes pf{50%{transform:rotate(2.5deg)}}
+@media (max-width:640px){.title{bottom:3vh}}
+</style>
+</head>
+<body>
+<div class="sky"></div>
+<div class="deco sun"></div>
+<svg class="deco sea" viewBox="0 0 1000 420" preserveAspectRatio="none"><defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c2697a"/><stop offset=".4" stop-color="#6d4a73"/><stop offset="1" stop-color="#2b2648"/></linearGradient><linearGradient id="sand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9c39a"/><stop offset="1" stop-color="#b98b67"/></linearGradient></defs><rect width="1000" height="420" fill="url(#sg)"/><path d="M0 330C200 300 420 318 620 304S880 300 1000 296V420H0Z" fill="url(#sand)"/></svg>
+<svg class="deco palm l" viewBox="0 0 300 420"><path d="M150 60C160 160 170 260 150 420H170C186 260 176 160 162 60Z" fill="#2a1a26"/><g class="fr" fill="#2a1a26"><path d="M156 60C120 30 70 30 20 60 70 50 110 56 156 66Z"/><path d="M156 60C150 20 120 0 80 0 116 14 136 36 152 66Z"/><path d="M158 60C200 26 250 30 290 64 246 52 202 58 160 68Z"/><path d="M158 62C196 70 236 100 250 140 220 106 190 88 156 70Z"/><path d="M154 62C116 74 80 106 66 146 96 112 126 92 156 70Z"/></g></svg>
+<svg class="deco palm r" viewBox="0 0 300 420"><path d="M150 60C160 160 170 260 150 420H170C186 260 176 160 162 60Z" fill="#2a1a26"/><g class="fr" fill="#2a1a26" style="animation-delay:-2s"><path d="M156 60C120 30 70 30 20 60 70 50 110 56 156 66Z"/><path d="M156 60C150 20 120 0 80 0 116 14 136 36 152 66Z"/><path d="M158 60C200 26 250 30 290 64 246 52 202 58 160 68Z"/><path d="M158 62C196 70 236 100 250 140 220 106 190 88 156 70Z"/><path d="M154 62C116 74 80 106 66 146 96 112 126 92 156 70Z"/></g></svg>
+<canvas id="c"></canvas>
+
+<div class="title"><b id="tt">Verano</b><span id="ts">atardecer en la playa</span></div>
+<script>
+const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s);
+const clean = s => String(s || '').replace(/[<>]/g, '').slice(0, 40);
+if (Q.get('t')) $('#tt').textContent = clean(Q.get('t'));
+if (Q.has('s')) $('#ts').textContent = clean(Q.get('s'));
+const cv = $('#c'), x = cv.getContext('2d'); let W, H, P = [];
+const rnd = (a, b) => a + Math.random() * (b - a);
+function size() { const d = Math.min(devicePixelRatio || 1, 1.5); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); init(); }
+let B = [];
+function init() {
+  P = Array.from({ length: 70 }, () => ({ x: rnd(0, W), y: rnd(H * .6, H * .85), l: rnd(10, 60), ph: rnd(0, 6.28), sp: rnd(.01, .03) }));
+  B = Array.from({ length: 5 }, (_, i) => ({ x: rnd(-200, W), y: rnd(H * .12, H * .4), s: rnd(.6, 1.1), v: rnd(.25, .5), ph: rnd(0, 6) }));
+}
+function frame(t) {
+  /* brillo del sol sobre el mar */
+  for (const p of P) { p.ph += p.sp; const a = (Math.sin(p.ph) + 1) / 2; const cx = W / 2 + (p.x - W / 2) * (p.y - H * .58) / (H * .3); x.globalAlpha = a * .55; x.fillStyle = '#ffe3b0'; x.fillRect(cx - p.l / 2, p.y, p.l, 1.6); }
+  /* olas en la orilla */
+  x.globalAlpha = .55; x.strokeStyle = '#fff6ea'; x.lineWidth = 2;
+  for (let k = 0; k < 2; k++) { x.beginPath(); const y0 = H * (.79 + k * .025) + Math.sin(t / 1600 + k) * 5; for (let i = 0; i <= W; i += 20) x.lineTo(i, y0 + Math.sin(i / 60 + t / 700 + k * 2) * 3); x.stroke(); }
+  /* gaviotas lejanas */
+  x.globalAlpha = .7; x.strokeStyle = '#3a2233'; x.lineWidth = 1.6;
+  for (const b of B) { b.x += b.v; b.ph += .08; if (b.x > W + 40) { b.x = -40; b.y = rnd(H * .12, H * .4); } const f = Math.sin(b.ph) * 4 * b.s; x.beginPath(); x.moveTo(b.x - 10 * b.s, b.y - f); x.quadraticCurveTo(b.x - 5 * b.s, b.y - 5 * b.s, b.x, b.y); x.quadraticCurveTo(b.x + 5 * b.s, b.y - 5 * b.s, b.x + 10 * b.s, b.y - f); x.stroke(); }
+  x.globalAlpha = 1;
+}
+addEventListener('resize', size); size();
+(function loop(t) { x.clearRect(0, 0, W, H); frame(t || 0); requestAnimationFrame(loop); })();
+</script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ruleta de la sala · xatframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* Ruleta de la sala — xatframe libre (autor: xHaz 1004002)
+   Link:  ?u=usuario1,usuario2,usuario3&modo=reto|sorteo&r=reto 1|reto 2&c=azul|ambar|menta
+   u = registros de xat de tu sala (hasta 16) */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--a:#7aa2ff;--b:#b388ff;--bg1:#0a0b10;--bg2:#141725}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg1);color:#e8f6ff;font-family:'Rajdhani',system-ui,sans-serif;user-select:none;-webkit-user-select:none}
+.bg{position:fixed;inset:0;background:radial-gradient(60% 50% at 85% 50%,color-mix(in srgb,var(--a) 14%,transparent),transparent 70%),radial-gradient(50% 45% at 12% 55%,color-mix(in srgb,var(--b) 10%,transparent),transparent 70%),linear-gradient(180deg,var(--bg1),var(--bg2))}
+.hex{position:fixed;inset:-60px;opacity:.05;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='97' viewBox='0 0 56 97'%3E%3Cpath d='M28 0 56 16v32L28 64 0 48V16Z M28 64v33 M0 48l-28 16 M56 48l28 16' fill='none' stroke='%23ffffff' stroke-width='1'/%3E%3C/svg%3E");animation:drift 40s linear infinite}
+@keyframes drift{to{transform:translate(56px,97px)}}
+.scan{display:none}
+.side{position:fixed;top:50%;transform:translateY(-50%);width:min(22vw,330px);display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:none}
+.side.l{left:2vw}.side.r{right:2vw}
+.hd{font-family:'Orbitron',sans-serif;font-weight:600;font-size:clamp(10px,.85vw,13px);letter-spacing:.35em;color:color-mix(in srgb,var(--a) 85%,#fff)}
+.list{width:100%;display:flex;flex-direction:column;gap:6px;max-height:60vh;overflow:hidden}
+.pl{display:flex;align-items:center;gap:10px;padding:7px 12px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);backdrop-filter:blur(6px);font-weight:700;font-size:clamp(13px,1.1vw,17px);transition:all .3s}
+.pl img,.pl i{width:28px;height:28px;border-radius:50%;object-fit:cover;flex:none;border:1.5px solid color-mix(in srgb,var(--a) 70%,transparent);background:#1c2133;display:grid;place-items:center;font-style:normal;font-size:13px;color:#fff}
+.pl.win{background:color-mix(in srgb,var(--a) 18%,transparent);border-color:color-mix(in srgb,var(--a) 70%,transparent)}
+.wheelbox{position:relative;width:min(20vw,300px);aspect-ratio:1}
+#wheel{width:100%;height:100%;filter:drop-shadow(0 18px 30px rgba(0,0,0,.45))}
+.ptr{position:absolute;left:50%;top:-6px;transform:translateX(-50%);width:0;height:0;border-left:11px solid transparent;border-right:11px solid transparent;border-top:20px solid #f2f4fa;filter:drop-shadow(0 3px 4px rgba(0,0,0,.5));z-index:2}
+.hub{position:absolute;inset:41%;border-radius:50%;background:radial-gradient(circle at 35% 30%,#2a3045,#0e1018);border:1.5px solid rgba(255,255,255,.25);display:grid;place-items:center;font-family:'Orbitron';font-size:clamp(9px,.8vw,12px);color:var(--a);letter-spacing:.1em}
+/* franja clickeable (debajo del banner del chat) */
+.bar{position:fixed;left:0;right:0;bottom:0;height:min(22vh,170px);display:flex;align-items:center;justify-content:center;gap:16px;padding:0 3vw}
+.go{font-family:'Orbitron',sans-serif;font-weight:600;font-size:clamp(13px,1.2vw,17px);letter-spacing:.28em;color:#0a0b10;background:linear-gradient(135deg,color-mix(in srgb,var(--a) 90%,#fff),var(--b));border:0;border-radius:999px;padding:14px 34px;cursor:pointer;box-shadow:0 10px 30px color-mix(in srgb,var(--a) 30%,transparent);transition:transform .2s}
+.go:hover{transform:translateY(-2px) scale(1.03)}.go:disabled{opacity:.5;cursor:default;transform:none}
+.res{display:flex;align-items:center;gap:12px;min-width:0;opacity:0;transform:translateY(10px);transition:all .4s}
+.res.on{opacity:1;transform:none}
+.res img,.res i{width:54px;height:54px;border-radius:50%;object-fit:cover;border:2px solid color-mix(in srgb,var(--a) 80%,#fff);box-shadow:0 8px 20px rgba(0,0,0,.4);flex:none;background:#1a2250;display:grid;place-items:center;font-style:normal;font-size:24px;font-weight:700;color:#fff}
+.res b{display:block;font-family:'Orbitron';font-weight:600;letter-spacing:.06em;font-size:clamp(14px,1.3vw,19px);color:#fff}
+.res span{display:block;font-size:clamp(14px,1.2vw,18px);color:#cfe9ff;max-width:44vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:700px){.side.l{display:none}.side.r{right:50%;transform:translate(50%,-62%);width:60vw}.wheelbox{width:46vw}}
+</style>
+</head>
+<body>
+<div class="bg"></div><div class="hex"></div><div class="scan"></div>
+<div class="side l"><div class="hd">JUGADORES</div><div class="list" id="list"></div></div>
+<div class="side r"><div class="hd" id="mode">RULETA</div><div class="wheelbox"><div class="ptr"></div><canvas id="wheel"></canvas><div class="hub">SALA</div></div></div>
+<div class="bar"><button class="go" id="go" type="button">GIRAR</button><div class="res" id="res"></div></div>
+<script>
+const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const cleanNick = n => String(n || '').replace(/\([^)]*\)/g, '').trim().slice(0, 20);
+const THEMES = { azul: ['#7aa2ff', '#b388ff'], ambar: ['#ffb86b', '#ff7a8a'], menta: ['#6ee7c8', '#7aa2ff'] };
+const th = THEMES[Q.get('c')] || THEMES.azul; document.documentElement.style.setProperty('--a', th[0]); document.documentElement.style.setProperty('--b', th[1]);
+let users = (Q.get('u') || '').split(',').map(s => s.trim()).filter(s => /^[A-Za-z0-9_.\-]{1,30}$/.test(s)).slice(0, 16);
+const demo = users.length < 2; if (demo) users = ['Juan', 'María', 'Yeni', 'Carlos', 'Cherry', 'Juny'];
+const MODE = Q.get('modo') === 'sorteo' ? 'sorteo' : 'reto';
+const RETOS = (Q.get('r') ? Q.get('r').split('|') : ['Contá un chiste', 'Decí tu canción favorita', 'Escribí solo con emojis 2 minutos', 'Decile algo lindo a alguien de la sala', 'Contá una anécdota graciosa', 'Decí un dato curioso', 'Elegí un smiley que te represente', 'Recomendá una peli o serie']).map(s => s.trim().slice(0, 60)).filter(Boolean);
+$('#mode').textContent = MODE === 'sorteo' ? 'SORTEO' : 'RULETA DE RETOS';
+const info = users.map(u => ({ u, nick: u }));
+function lookup(i) {
+  if (demo) return Promise.resolve();
+  return fetch('https://xat.com/web_gear/chat/profile2.php?n=' + encodeURIComponent(info[i].u)).then(r => r.json()).then(j => {
+    const m = (j && j.Err && j.Err.Media) || {}; if (!m.id) return; const av = String(m.avatar || '').split('#')[0];
+    Object.assign(info[i], { nick: cleanNick(m.nick) || m.Name || info[i].u, avatar: /^https:\/\//.test(av) ? av : '', id: m.id }); renderList(); draw();
+  }).catch(() => { });
+}
+const face = (d, cls) => d.avatar ? `<img src="${esc(d.avatar)}" alt="" onerror="this.outerHTML='<i>${esc(d.nick[0].toUpperCase())}</i>'">` : `<i>${esc(d.nick[0].toUpperCase())}</i>`;
+function renderList(win) { $('#list').innerHTML = info.map((d, i) => `<div class="pl ${i === win ? 'win' : ''}">${face(d)}<span>${esc(d.nick)}</span></div>`).join(''); }
+
+/* rueda */
+const cv = $('#wheel'), x = cv.getContext('2d'); let ang = 0;
+function size() { const r = cv.getBoundingClientRect(), d = Math.min(devicePixelRatio || 1, 2); cv.width = r.width * d; cv.height = r.height * d; draw(); }
+function draw() {
+  const W = cv.width, R = W / 2 - 4, n = info.length, seg = Math.PI * 2 / n; x.clearRect(0, 0, W, W);
+  x.save(); x.translate(W / 2, W / 2); x.rotate(ang);
+  for (let i = 0; i < n; i++) {
+    x.beginPath(); x.moveTo(0, 0); x.arc(0, 0, R, i * seg - Math.PI / 2, (i + 1) * seg - Math.PI / 2); x.closePath();
+    const gg = x.createRadialGradient(0, 0, R * .2, 0, 0, R); gg.addColorStop(0, i % 2 ? '#1b2033' : '#232a40'); gg.addColorStop(1, i % 2 ? '#12151f' : '#181c2a'); x.fillStyle = gg; x.fill(); x.strokeStyle = 'rgba(255,255,255,.12)'; x.lineWidth = W / 300; x.stroke();
+    x.beginPath(); x.arc(0, 0, R - W / 70, i * seg - Math.PI / 2 + .02, (i + 1) * seg - Math.PI / 2 - .02); x.strokeStyle = th[i % 2]; x.lineWidth = W / 90; x.stroke();
+    x.save(); x.rotate((i + .5) * seg - Math.PI / 2); x.fillStyle = '#e8f6ff'; x.font = `700 ${Math.max(10, W / (n > 10 ? 26 : 18))}px Rajdhani,sans-serif`; x.textAlign = 'right'; x.textBaseline = 'middle';
+    x.fillText(info[i].nick.slice(0, 12), R - W / 26, 0); x.restore();
+  }
+  x.beginPath(); x.arc(0, 0, R, 0, 6.283); x.strokeStyle = 'rgba(255,255,255,.35)'; x.lineWidth = W / 220; x.stroke();
+  x.restore();
+}
+/* tick */
+let AC; function tick(f, v) { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain(); o.type = 'square'; o.frequency.value = f; g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.0001, t + .05); o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + .06); } catch (e) { } }
+let spinning = false, lastSeg = -1;
+$('#go').onclick = () => {
+  if (spinning) return; spinning = true; $('#go').disabled = true; $('#res').classList.remove('on'); renderList();
+  const n = info.length, seg = Math.PI * 2 / n, win = Math.random() * n | 0;
+  const target = Math.PI * 2 * (5 + Math.random() * 2) + (Math.PI * 2 - (win + .5) * seg) - (ang % (Math.PI * 2)) + (Math.random() - .5) * seg * .6;
+  const a0 = ang, t0 = performance.now(), dur = 4200;
+  (function step(t) {
+    const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3.4); ang = a0 + target * e; draw();
+    const cur = Math.floor((((-ang) % (Math.PI * 2)) + Math.PI * 4) % (Math.PI * 2) / seg); if (cur !== lastSeg) { lastSeg = cur; tick(900, .04); }
+    if (k < 1) return requestAnimationFrame(step);
+    spinning = false; $('#go').disabled = false; const d = info[win]; renderList(win); tick(1400, .08); setTimeout(() => tick(1900, .08), 120);
+    $('#res').innerHTML = face(d) + `<div><b>${esc(d.nick)}</b><span>${MODE === 'sorteo' ? '¡Ganó el sorteo! 🎉' : esc(RETOS[Math.random() * RETOS.length | 0])}</span></div>`;
+    $('#res').classList.add('on');
+  })(t0);
+};
+addEventListener('resize', size);
+renderList(); size(); info.forEach((_, i) => lookup(i));
+</script>
+</body>
+</html>

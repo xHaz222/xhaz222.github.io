@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Otoño dorado · xatframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Otoño dorado — xatframe libre para tu sala (autor: xHaz 1004002)
+   Link: ?t=Título&s=Subtítulo */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Outfit',system-ui,sans-serif;user-select:none;-webkit-user-select:none;background:#1c120c}
+.sky{position:fixed;inset:0;background:radial-gradient(70% 60% at 50% 100%,rgba(255,170,90,.35),transparent 65%),linear-gradient(180deg,#140d0a 0%,#2c1a12 45%,#5a2f18 100%)}
+canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
+.deco{position:fixed;pointer-events:none}
+.title{position:fixed;left:3vw;bottom:5vh;color:#f6e7cf;text-shadow:0 2px 16px rgba(0,0,0,.5);pointer-events:none;z-index:3}
+.title b{display:block;font-family:'Outfit',system-ui,sans-serif;font-weight:300;letter-spacing:.02em;font-size:clamp(26px,3.2vw,50px);line-height:1}
+.title span{display:block;margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:clamp(10px,.8vw,12px);letter-spacing:.22em;text-transform:uppercase;color:#e3a85a}
+.hills{left:0;bottom:0;width:100%;height:22vh}
+.sun{left:50%;bottom:10vh;width:34vw;max-width:520px;aspect-ratio:1;transform:translateX(-50%);border-radius:50%;background:radial-gradient(circle,rgba(255,196,120,.55),rgba(255,140,60,.12) 45%,transparent 70%)}
+@media (max-width:640px){.title{bottom:3vh}}
+</style>
+</head>
+<body>
+<div class="sky"></div>
+<div class="deco sun"></div><svg class="deco hills" viewBox="0 0 1000 220" preserveAspectRatio="none"><path d="M0 120C140 80 260 96 400 112S640 70 780 92 920 112 1000 96V220H0Z" fill="#3a2015"/><path d="M0 160C170 132 300 140 470 156S780 128 1000 148V220H0Z" fill="#24140d"/></svg>
+<canvas id="c"></canvas>
+
+<div class="title"><b id="tt">Gracias por estar acá</b><span id="ts">temporada de otoño</span></div>
+<script>
+const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s);
+const clean = s => String(s || '').replace(/[<>]/g, '').slice(0, 40);
+if (Q.get('t')) $('#tt').textContent = clean(Q.get('t'));
+if (Q.has('s')) $('#ts').textContent = clean(Q.get('s'));
+const cv = $('#c'), x = cv.getContext('2d'); let W, H, P = [];
+const rnd = (a, b) => a + Math.random() * (b - a);
+function size() { const d = Math.min(devicePixelRatio || 1, 1.5); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); init(); }
+const LC = ['#e0a04a', '#b5562b', '#7d2a2a', '#c98a2c', '#d9773a'];
+const LEAF = new Path2D('M0 -12C3 -8 7 -9 8 -5 6 -4 10 -1 11 2 7 2 6 4 4 3 5 7 3 8 1 6V12H-1V6C-3 8 -5 7 -4 3 -6 4 -7 2 -11 2 -10 -1 -6 -4 -8 -5 -7 -9 -3 -8 0 -12Z');
+let gust = 0;
+function init() { P = Array.from({ length: Math.round(Math.min(70, W * H / 42000)) }, () => mk(true)); }
+function mk(any) { return { x: rnd(0, W), y: any ? rnd(0, H) : -20, s: rnd(.8, 2.1), vy: rnd(.4, 1.1), vx: rnd(-.3, .3), r: rnd(0, 6.28), vr: rnd(-.03, .03), ph: rnd(0, 6.28), c: LC[Math.random() * LC.length | 0], fl: rnd(.6, 1) }; }
+addEventListener('pointerdown', () => { gust = 6; });
+function frame(t) {
+  gust *= .97; const w = Math.sin(t / 3000) * .6 + gust;
+  for (const p of P) {
+    p.ph += .02; p.y += p.vy; p.x += p.vx + Math.sin(p.ph) * .8 + w * .4; p.r += p.vr + Math.sin(p.ph) * .01;
+    if (p.y > H + 30 || p.x > W + 40 || p.x < -40) Object.assign(p, mk(false), { x: rnd(-20, W) });
+    x.save(); x.translate(p.x, p.y); x.rotate(p.r); x.scale(p.s, p.s * (.55 + .45 * Math.abs(Math.cos(p.ph)))); x.globalAlpha = .9 * p.fl; x.fillStyle = p.c; x.fill(LEAF); x.restore();
+  }
+  x.globalAlpha = 1;
+}
+addEventListener('resize', size); size();
+(function loop(t) { x.clearRect(0, 0, W, H); frame(t || 0); requestAnimationFrame(loop); })();
+</script>
+</body>
+</html>
