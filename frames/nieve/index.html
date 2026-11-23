@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Nieve elegante · xatframe by xHaz</title>
+<title>Nieve elegante · xatframe</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
-/* Nieve elegante — xatframe libre para usar en tu sala (autor: xHaz 1004002) */
+/* Nieve elegante — xatframe */
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;overflow:hidden;background:#0b1430;font-family:'Outfit',system-ui,sans-serif;user-select:none;-webkit-user-select:none}
 #sky{position:fixed;inset:0;transition:background 1.2s ease}
@@ -41,6 +41,9 @@ canvas{position:fixed;inset:0;width:100%;height:100%}
 <script>
 /* Personaliza con el link:  ?t=Título&s=Subtítulo&p=noche|malva|champagne&cuenta=0 */
 const Q = new URLSearchParams(location.search);
+const EN = Q.get('lang') ? Q.get('lang') === 'en' : !/^es\b/i.test(navigator.language || 'es'), L = (es, en) => EN ? en : es; document.documentElement.lang = EN ? 'en' : 'es';
+if (EN) document.getElementById('catch').firstChild.textContent = 'catch the snowflakes · ';
+
 const PAL = {
   noche:  { sky: 'linear-gradient(180deg,#060b1f 0%,#0e1b45 55%,#22396e 100%)', glow: '#5b8cff', hill: ['#dfe9ff', '#b9c9ee'], flake: [230, 240, 255], lights: ['#ffd36b', '#9fd4ff', '#ffffff'] },
   malva:  { sky: 'linear-gradient(180deg,#17121a 0%,#33263a 55%,#6b5268 100%)', glow: '#c9a2c4', hill: ['#f3ecef', '#d9c8d2'], flake: [250, 240, 246], lights: ['#f3d8e6', '#fff6ee', '#e9c9a0'] },
@@ -73,9 +76,9 @@ function buildLights() {
 function countdown() {
   const now = new Date(), y = now.getFullYear(), day = 864e5;
   const xmas = new Date(y, 11, 25), ny = new Date(y + 1, 0, 1);
-  if (now.getMonth() === 11 && (now.getDate() === 24 || now.getDate() === 25)) { $('#cn').textContent = '¡Feliz Navidad!'; $('#cl').textContent = 'paz y amor en la sala'; }
-  else if (now < xmas) { const d = Math.ceil((xmas - now) / day); $('#cn').textContent = d; $('#cl').textContent = d === 1 ? 'día para Navidad' : 'días para Navidad'; }
-  else { const d = Math.ceil((ny - now) / day); $('#cn').textContent = d <= 1 ? '¡Feliz Año!' : d; $('#cl').textContent = d <= 1 ? 'que sea un gran año' : 'días para Año Nuevo'; }
+  if (now.getMonth() === 11 && (now.getDate() === 24 || now.getDate() === 25)) { $('#cn').textContent = L('¡Feliz Navidad!', 'Merry Christmas!'); $('#cl').textContent = L('paz y amor en la sala', 'peace and love to the room'); }
+  else if (now < xmas) { const d = Math.ceil((xmas - now) / day); $('#cn').textContent = d; $('#cl').textContent = d === 1 ? L('día para Navidad', 'day to Christmas') : L('días para Navidad', 'days to Christmas'); }
+  else { const d = Math.ceil((ny - now) / day); $('#cn').textContent = d <= 1 ? L('¡Feliz Año!', 'Happy New Year!') : d; $('#cl').textContent = d <= 1 ? L('que sea un gran año', 'have a great year') : L('días para Año Nuevo', 'days to New Year'); }
 }
 
 /* nieve en tres capas + cristales grandes */
@@ -118,7 +121,7 @@ let AC; function ding() { try { AC = AC || new (window.AudioContext || window.we
 addEventListener('resize', size);
 size(); if ($('.count')) { countdown(); setInterval(countdown, 60000); } requestAnimationFrame(loop);
 </script>
-<script>var SW = { pal: PAL, cur: P0, set: k => { pal = k; applyPal(); }, dots: k => [PAL[k].glow, PAL[k].lights[0], PAL[k].hill[1]] };</script>
+<script>var SW = { pal: PAL, cur: P0, set: k => { pal = k; applyPal(); }, names: EN ? { noche: 'night', malva: 'mauve', champagne: 'champagne' } : null, dots: k => [PAL[k].glow, PAL[k].lights[0], PAL[k].hill[1]] };</script>
 <button class="swc" id="swc" type="button" aria-label="Cambiar color"><span></span></button><div class="swn" id="swn"></div>
 <style>
 .swc{position:fixed;right:14px;bottom:14px;z-index:60;width:30px;height:30px;padding:3px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.25);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);cursor:pointer;opacity:.6;transition:opacity .25s,transform .4s}

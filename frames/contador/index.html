@@ -61,20 +61,23 @@ body.bg{background:#000 center/cover no-repeat}
 </div>
 <script>
 const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s);
+const EN = Q.get('lang') ? Q.get('lang') === 'en' : !/^es\b/i.test(navigator.language || 'es'), L = (es, en) => EN ? en : es; document.documentElement.lang = EN ? 'en' : 'es';
+if (EN) { [['#lb', 'Next power'], ['#lr span', 'Limit per person'], ['#ur span', 'Units'], ['#pr span', 'Store price'], ['#hs .lab', 'Releases'], ['#hs .tot span', 'Total released']].forEach(([s, t]) => { const e = document.querySelector(s); if (e) e.textContent = t; }); document.querySelectorAll('#cd small').forEach((e, i) => e.textContent = ['days', 'hours', 'min', 'sec'][i]); }
+
 const PAL = { noche: ['#7aa2ff', 'rgba(10,13,26,.62)', '#eef1fb', '#9aa3c4', 'rgba(255,255,255,.1)'], carmesi: ['#ff6b81', 'rgba(26,8,14,.62)', '#fbeef1', '#c9a0aa', 'rgba(255,255,255,.1)'], esmeralda: ['#5ee0b5', 'rgba(6,22,18,.62)', '#eefbf6', '#9cc4b6', 'rgba(255,255,255,.1)'], grafito: ['#d6dae6', 'rgba(14,14,18,.66)', '#f2f3f7', '#9a9fae', 'rgba(255,255,255,.1)'], claro: ['#4f6bd8', 'rgba(255,255,255,.72)', '#151a2c', '#5d6580', 'rgba(20,30,60,.12)'] };
 function setPal(k) { const P = PAL[k];['--a', '--glass', '--tx', '--mu', '--ln'].forEach((v, i) => document.documentElement.style.setProperty(v, P[i])); }
 const P0 = PAL[Q.get('p')] ? Q.get('p') : 'noche'; setPal(P0);
 const pos = ['izq', 'der', 'arriba', 'abajo'].includes(Q.get('pos')) ? Q.get('pos') : 'izq'; $('#w').classList.add(pos);
 const bg = Q.get('bg'); if (bg && /^https:\/\/[^\s"'()<>]+$/i.test(bg)) { document.body.classList.add('bg'); document.body.style.backgroundImage = `url("${bg}")`; }
 const manualLim = /^\d{1,3}$/.test(Q.get('lim') || '') ? +Q.get('lim') : 0;
-const ST = { Limited: 'Limitado', Unlimited: 'Ilimitado' };
+const ST = EN ? { Limited: 'Limited', Unlimited: 'Unlimited' } : { Limited: 'Limitado', Unlimited: 'Ilimitado' };
 let target = 0, latest = null, cdName = '';
 
 const showHist = Q.get('hist') !== '0';
 let rel = [], up = null;
 function numTime(v) { const n = +v; if (!n || isNaN(n)) return 0; if (n > 1e12) return n; if (n > 1e9) return n * 1000; return 0; }
-const fmt = t => new Date(t).toLocaleString('es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-const nf = n => Number(n).toLocaleString('es');
+const fmt = t => new Date(t).toLocaleString(EN ? 'en' : 'es', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+const nf = n => Number(n).toLocaleString(EN ? 'en' : 'es');
 const J = u => fetch(u, { cache: 'no-store' }).then(r => r.json());
 
 function load() {
@@ -99,25 +102,25 @@ function load() {
 function render() {
   const lim = manualLim || (up && up.max) || 0;
   if (target) {
-    $('#lb').textContent = 'Próximo lanzamiento';
+    $('#lb').textContent = L('Próximo lanzamiento', 'Next release');
     $('#nm').textContent = cdName ? `(${cdName})` : 'Nuevo power';
-    $('#sb').textContent = 'sale a la venta en';
+    $('#sb').textContent = L('sale a la venta en', 'goes on sale in');
     setIcon(cdName);
     $('#cd').hidden = false; $('#ms').hidden = true; $('#pr').hidden = true;
   } else {
-    $('#lb').textContent = 'Último power';
+    $('#lb').textContent = L('Último power', 'Latest power');
     if (latest) {
       $('#nm').textContent = `(${latest.Name})`; $('#sb').textContent = (ST[latest.StoreStatus] || ST[latest.Status] || '') + (latest.Id ? ' · ID ' + latest.Id : '');
       setIcon(latest.Name);
       if (latest.Prices && latest.Prices.store) { $('#pc').textContent = latest.Prices.store; $('#pr').hidden = false; }
     }
-    $('#cd').hidden = true; $('#ms').hidden = false; $('#ms').textContent = 'Sin lanzamiento anunciado. El contador aparece solo cuando se anuncie una salida.';
+    $('#cd').hidden = true; $('#ms').hidden = false; $('#ms').textContent = L('Sin lanzamiento anunciado. El contador aparece solo cuando se anuncie una salida.', 'No release announced. The countdown appears as soon as one is.');
   }
   if (lim) { $('#li').textContent = lim + (lim === 1 ? ' power' : ' powers'); $('#lr').hidden = false; } else $('#lr').hidden = true;
-  if (up && up.n) { $('#un').textContent = nf(up.n) + ' disponibles'; $('#ur').hidden = false; } else $('#ur').hidden = true;
+  if (up && up.n) { $('#un').textContent = nf(up.n) + L(' disponibles', ' available'); $('#ur').hidden = false; } else $('#ur').hidden = true;
   const past = rel.filter(r => r.t <= Date.now());
   if (showHist && past.length) {
-    $('#hl').innerHTML = past.slice(0, 4).map((r, k) => `<li><span>#${past.length - k} · ${fmt(r.t)}</span><b>${r.n ? nf(r.n) + ' u.' : '—'}</b>${r.max ? `<em>máx. ${r.max} por persona</em>` : ''}</li>`).join('');
+    $('#hl').innerHTML = past.slice(0, 4).map((r, k) => `<li><span>#${past.length - k} · ${fmt(r.t)}</span><b>${r.n ? nf(r.n) + ' u.' : '—'}</b>${r.max ? `<em>${L('máx.', 'max.')} ${r.max} ${L('por persona', 'per person')}</em>` : ''}</li>`).join('');
     $('#tt').textContent = nf(past.reduce((a, r) => a + r.n, 0)) + ' u.';
     $('#hs').hidden = false;
   } else $('#hs').hidden = true;
@@ -132,13 +135,13 @@ function setIcon(name) {
 function tick() {
   if (!target) return;
   const s = Math.max(0, Math.round((target - Date.now()) / 1000));
-  if (!s) { target = 0; $('#cd').hidden = true; $('#ms').hidden = false; $('#lb').textContent = '¡Ya salió!'; $('#ms').textContent = 'El power nuevo ya está a la venta.'; setTimeout(load, 60000); return; }
+  if (!s) { target = 0; $('#cd').hidden = true; $('#ms').hidden = false; $('#lb').textContent = L('¡Ya salió!', 'Out now!'); $('#ms').textContent = L('El power nuevo ya está a la venta.', 'The new power is on sale now.'); setTimeout(load, 60000); return; }
   const v = [s / 86400 | 0, s % 86400 / 3600 | 0, s % 3600 / 60 | 0, s % 60];
   ['#dd', '#hh', '#mm', '#ss'].forEach((k, n) => $(k).textContent = String(v[n]).padStart(2, '0'));
 }
 load(); setInterval(tick, 1000); setInterval(load, 3 * 60 * 1000);
 </script>
-<script>var SW = { pal: PAL, cur: P0, set: setPal, dots: k => [PAL[k][0], PAL[k][2], PAL[k][0]], names: { carmesi: 'carmesí' } };</script>
+<script>var SW = { pal: PAL, cur: P0, set: setPal, dots: k => [PAL[k][0], PAL[k][2], PAL[k][0]], names: EN ? { noche: 'night', carmesi: 'crimson', esmeralda: 'emerald', grafito: 'graphite', claro: 'light' } : { carmesi: 'carmesí', claro: 'claro' } };</script>
 <button class="swc" id="swc" type="button" aria-label="Cambiar color"><span></span></button><div class="swn" id="swn"></div>
 <style>
 .swc{position:fixed;right:14px;bottom:14px;z-index:60;width:30px;height:30px;padding:3px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.25);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);cursor:pointer;opacity:.6;transition:opacity .25s,transform .4s}

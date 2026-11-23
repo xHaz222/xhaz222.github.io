@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
 <style>
-/* Ruleta de la sala — xatframe libre (autor: xHaz 1004002)
+/* Ruleta de la sala — xatframe
    Link:  ?u=usuario1,usuario2,usuario3&modo=reto|sorteo&r=reto 1|reto 2&c=azul|ambar|menta
    u = registros de xat de tu sala (hasta 16). Sin usuarios: ruleta de powers de xat */
 *{margin:0;padding:0;box-sizing:border-box}
@@ -47,6 +47,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg1);color:#e8
 <div class="bar"><button class="go" id="go" type="button">GIRAR</button><div class="res" id="res"></div></div>
 <script>
 const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s);
+const EN = Q.get('lang') ? Q.get('lang') === 'en' : !/^es\b/i.test(navigator.language || 'es'), L = (es, en) => EN ? en : es; document.documentElement.lang = EN ? 'en' : 'es';
+if (EN) { document.querySelector('.side.l .hd').textContent = 'PLAYERS'; document.querySelector('.hub').textContent = 'ROOM'; document.getElementById('go').textContent = 'SPIN'; }
+
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const cleanNick = n => String(n || '').replace(/\([^)]*\)/g, '').trim().slice(0, 20);
 const THEMES = { azul: ['#7aa2ff', '#b388ff'], ambar: ['#ffb86b', '#ff7a8a'], menta: ['#6ee7c8', '#7aa2ff'] };
@@ -55,9 +58,9 @@ const T0 = THEMES[Q.get('c')] ? Q.get('c') : 'azul'; setTh(T0);
 let users = (Q.get('u') || '').split(',').map(s => s.trim()).filter(s => /^[A-Za-z0-9_.\-]{1,30}$/.test(s)).slice(0, 16);
 const demo = users.length < 2;
 const MODE = ['sorteo', 'reto'].includes(Q.get('modo')) ? Q.get('modo') : (Q.get('u') ? 'reto' : 'powers');
-const RETOS = (Q.get('r') ? Q.get('r').split('|') : ['Cuenta un chiste', 'Di tu canción favorita', 'Escribe solo con smileys por 2 minutos', 'Dile algo bonito a alguien de la sala', 'Cuenta una anécdota graciosa', 'Di un dato curioso', 'Elige un smiley que te represente', 'Recomienda una película o serie']).map(s => s.trim().slice(0, 60)).filter(Boolean);
-$('#mode').textContent = MODE === 'sorteo' ? 'SORTEO' : MODE === 'powers' ? 'RULETA DE POWERS' : 'RULETA DE RETOS';
-if (demo) { document.querySelector('.side.l .hd').textContent = MODE === 'sorteo' ? 'NÚMEROS' : MODE === 'powers' ? 'POWERS EN JUEGO' : 'RETOS'; }
+const RETOS = (Q.get('r') ? Q.get('r').split('|') : (EN ? ['Tell a joke', 'Share your favorite song', 'Chat only in smileys for 2 minutes', 'Say something nice to someone in the room', 'Tell a funny story', 'Share a fun fact', 'Pick a smiley that represents you', 'Recommend a movie or series'] : ['Cuenta un chiste', 'Di tu canción favorita', 'Escribe solo con smileys por 2 minutos', 'Dile algo bonito a alguien de la sala', 'Cuenta una anécdota graciosa', 'Di un dato curioso', 'Elige un smiley que te represente', 'Recomienda una película o serie'])).map(s => s.trim().slice(0, 60)).filter(Boolean);
+$('#mode').textContent = MODE === 'sorteo' ? L('SORTEO', 'GIVEAWAY') : MODE === 'powers' ? L('RULETA DE POWERS', 'POWER WHEEL') : L('RULETA DE RETOS', 'DARE WHEEL');
+if (demo) { document.querySelector('.side.l .hd').textContent = MODE === 'sorteo' ? L('NÚMEROS', 'NUMBERS') : MODE === 'powers' ? L('POWERS EN JUEGO', 'POWERS IN PLAY') : L('RETOS', 'DARES'); }
 const info = demo && MODE === 'powers' ? [] : demo ? (MODE === 'sorteo' ? Array.from({ length: 10 }, (_, i) => ({ u: '', nick: String(i + 1) })) : RETOS.slice(0, 10).map(t => ({ u: '', nick: t, reto: true }))) : users.map(u => ({ u, nick: u }));
 function lookup(i) {
   if (demo) return Promise.resolve();
@@ -67,7 +70,7 @@ function lookup(i) {
   }).catch(() => { });
 }
 const face = (d, cls) => d.pw ? `<img src="https://xat.com/images/smw/${d.nick}.png" alt="" style="border-radius:8px;background:#1c2133;padding:3px">` : d.reto ? '<i>✦</i>' : d.avatar ? `<img src="${esc(d.avatar)}" alt="" onerror="this.outerHTML='<i>${esc(d.nick[0].toUpperCase())}</i>'">` : `<i>${esc(d.nick[0].toUpperCase())}</i>`;
-function renderList(win) { $('#list').innerHTML = info.map((d, i) => `<div class="pl ${i === win ? 'win' : ''}">${d.reto || (demo && MODE === 'sorteo') ? `<i>${d.reto ? i + 1 : esc(d.nick)}</i>` : face(d)}<span>${esc(d.nick)}${d.jack ? ' <small style="color:var(--a)">★ NUEVO</small>' : ''}</span></div>`).join(''); }
+function renderList(win) { $('#list').innerHTML = info.map((d, i) => `<div class="pl ${i === win ? 'win' : ''}">${d.reto || (demo && MODE === 'sorteo') ? `<i>${d.reto ? i + 1 : esc(d.nick)}</i>` : face(d)}<span>${esc(d.nick)}${d.jack ? ' <small style="color:var(--a)">' + L('★ NUEVO', '★ NEW') + '</small>' : ''}</span></div>`).join(''); }
 
 /* rueda */
 const cv = $('#wheel'), x = cv.getContext('2d'); let ang = 0; const IMG = [];
@@ -99,7 +102,7 @@ $('#go').onclick = () => {
     const cur = Math.floor((((-ang) % (Math.PI * 2)) + Math.PI * 4) % (Math.PI * 2) / seg); if (cur !== lastSeg) { lastSeg = cur; tick(900, .04); }
     if (k < 1) return requestAnimationFrame(step);
     spinning = false; $('#go').disabled = false; const d = info[win]; renderList(win); tick(1400, .08); setTimeout(() => tick(1900, .08), 120);
-    $('#res').innerHTML = (demo && MODE === 'sorteo' ? `<i>${esc(d.nick)}</i>` : face(d)) + `<div><b style="${d.pw ? 'text-transform:capitalize' : ''}">${esc(d.reto ? 'Reto ' + (win + 1) + ': ' + d.nick : d.nick)}</b><span>${d.pw ? (d.jack ? '★ ¡El power más nuevo de xat! ' : 'Tu power de la suerte · ') + esc(d.sm.map(c => '(' + c + ')').join(' ')) : d.reto ? 'Le toca a quien escribió último en la sala' : MODE === 'sorteo' ? (demo ? '¡Salió este número!' : '¡Ganó el sorteo! 🎉') : esc(RETOS[Math.random() * RETOS.length | 0])}</span></div>`;
+    $('#res').innerHTML = (demo && MODE === 'sorteo' ? `<i>${esc(d.nick)}</i>` : face(d)) + `<div><b style="${d.pw ? 'text-transform:capitalize' : ''}">${esc(d.reto ? L('Reto ', 'Dare ') + (win + 1) + ': ' + d.nick : d.nick)}</b><span>${d.pw ? (d.jack ? L('★ ¡El power más nuevo de xat! ', '★ The newest xat power! ') : L('Tu power de la suerte · ', 'Your lucky power · ')) + esc(d.sm.map(c => '(' + c + ')').join(' ')) : d.reto ? L('Le toca a quien escribió último en la sala', 'Whoever chatted last has to do it') : MODE === 'sorteo' ? (demo ? L('¡Salió este número!', 'This number came up!') : L('¡Ganó el sorteo! 🎉', 'Won the giveaway! 🎉')) : esc(RETOS[Math.random() * RETOS.length | 0])}</span></div>`;
     $('#res').classList.add('on');
   })(t0);
 };
@@ -115,12 +118,12 @@ function loadPowers() {
     pick.sort(() => Math.random() - .5); info.push(...pick);
     info.forEach((d, i) => { const im = new Image(); im.onload = draw; im.src = 'https://xat.com/images/smw/' + d.nick + '.png'; IMG[i] = im; });
     renderList(); draw(); $('#go').disabled = false;
-  }).catch(() => { $('#mode').textContent = 'SIN CONEXIÓN CON XAT'; });
+  }).catch(() => { $('#mode').textContent = L('SIN CONEXIÓN CON XAT', 'NO CONNECTION TO XAT'); });
 }
 if (MODE === 'powers' && demo) { $('#go').disabled = true; loadPowers(); }
 renderList(); size(); info.forEach((_, i) => lookup(i));
 </script>
-<script>var SW = { pal: THEMES, cur: T0, set: setTh, dots: k => [THEMES[k][0], THEMES[k][1], THEMES[k][0]], names: { ambar: 'ámbar' } };</script>
+<script>var SW = { pal: THEMES, cur: T0, set: setTh, dots: k => [THEMES[k][0], THEMES[k][1], THEMES[k][0]], names: EN ? { azul: 'blue', ambar: 'amber', menta: 'mint' } : { ambar: 'ámbar' } };</script>
 <button class="swc" id="swc" type="button" aria-label="Cambiar color"><span></span></button><div class="swn" id="swn"></div>
 <style>
 .swc{position:fixed;right:14px;bottom:14px;z-index:60;width:30px;height:30px;padding:3px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.25);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);cursor:pointer;opacity:.6;transition:opacity .25s,transform .4s}
