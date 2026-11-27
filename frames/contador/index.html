@@ -8,15 +8,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
 /* Contador de power — xatframe con fondo transparente, para poner encima de tu propio diseño.
-   ?p=noche|carmesi|esmeralda|grafito|claro   ?pos=izq|der|arriba|abajo
+   ?p=noche|carmesi|esmeralda|grafito|claro   ?pos=izq|der
    ?lim=2 (forzar límite)  ?hist=0 (ocultar salidas)    ?bg=https://...imagen de tu fondo (opcional) */
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--a:#7aa2ff;--glass:rgba(10,13,26,.62);--tx:#eef1fb;--mu:#9aa3c4;--ln:rgba(255,255,255,.1)}
 html,body{width:100%;height:100%;overflow:hidden;background:transparent;color:var(--tx);font-family:'Outfit',system-ui,sans-serif;user-select:none;-webkit-user-select:none}
 body.bg{background:#000 center/cover no-repeat}
-.w{position:fixed;width:min(21vw,310px);padding:18px 18px 16px;border-radius:20px;background:var(--glass);border:1px solid var(--ln);backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);box-shadow:0 18px 48px rgba(0,0,0,.35);opacity:0;transition:opacity .8s}
+.w{position:fixed;width:min(calc((100vw - 728px) / 2 - 36px),310px);padding:18px 18px 16px;border-radius:20px;background:var(--glass);border:1px solid var(--ln);backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);box-shadow:0 18px 48px rgba(0,0,0,.35);opacity:0;transition:opacity .8s}
 .w.on{opacity:1}
-.izq{left:2vw;top:50%;transform:translateY(-50%)}.der{right:2vw;top:50%;transform:translateY(-50%)}
+.izq{left:18px;top:50%;transform:translateY(-50%)}.der{right:18px;top:50%;transform:translateY(-50%)}
 .arriba{left:50%;top:14vh;transform:translateX(-50%);width:min(38vw,460px)}
 .abajo{left:50%;bottom:calc(min(24vh,190px) + 12px);transform:translateX(-50%);width:min(38vw,460px)}
 .lab{display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--a)}
@@ -67,7 +67,7 @@ if (EN) { [['#lb', 'Next power'], ['#lr span', 'Limit per person'], ['#ur span',
 const PAL = { noche: ['#7aa2ff', 'rgba(10,13,26,.62)', '#eef1fb', '#9aa3c4', 'rgba(255,255,255,.1)'], carmesi: ['#ff6b81', 'rgba(26,8,14,.62)', '#fbeef1', '#c9a0aa', 'rgba(255,255,255,.1)'], esmeralda: ['#5ee0b5', 'rgba(6,22,18,.62)', '#eefbf6', '#9cc4b6', 'rgba(255,255,255,.1)'], grafito: ['#d6dae6', 'rgba(14,14,18,.66)', '#f2f3f7', '#9a9fae', 'rgba(255,255,255,.1)'], claro: ['#4f6bd8', 'rgba(255,255,255,.72)', '#151a2c', '#5d6580', 'rgba(20,30,60,.12)'] };
 function setPal(k) { const P = PAL[k];['--a', '--glass', '--tx', '--mu', '--ln'].forEach((v, i) => document.documentElement.style.setProperty(v, P[i])); }
 const P0 = PAL[Q.get('p')] ? Q.get('p') : 'noche'; setPal(P0);
-const pos = ['izq', 'der', 'arriba', 'abajo'].includes(Q.get('pos')) ? Q.get('pos') : 'izq'; $('#w').classList.add(pos);
+const pos = Q.get('pos') === 'der' ? 'der' : 'izq'; $('#w').classList.add(pos);
 const bg = Q.get('bg'); if (bg && /^https:\/\/[^\s"'()<>]+$/i.test(bg)) { document.body.classList.add('bg'); document.body.style.backgroundImage = `url("${bg}")`; }
 const manualLim = /^\d{1,3}$/.test(Q.get('lim') || '') ? +Q.get('lim') : 0;
 const ST = EN ? { Limited: 'Limited', Unlimited: 'Unlimited' } : { Limited: 'Limitado', Unlimited: 'Ilimitado' };
@@ -126,10 +126,11 @@ function render() {
   } else $('#hs').hidden = true;
   $('#w').classList.add('on'); tick();
 }
+$('#ic').addEventListener('error', () => { const ic = $('#ic'); if (!ic.dataset.f) { ic.dataset.f = 1; ic.src = `https://xat.com/images/smw/${ic.dataset.name}.png`; } else ic.hidden = true; });
+$('#ic').addEventListener('load', () => { $('#ic').hidden = false; });
 function setIcon(name) {
   const ic = $('#ic'); if (!name) { ic.hidden = true; return; }
-  ic.onerror = () => { if (!ic.dataset.f) { ic.dataset.f = 1; ic.src = `https://xat.com/images/smw/${name}.png`; } else ic.hidden = true; };
-  ic.onload = () => ic.hidden = false; delete ic.dataset.f;
+  ic.dataset.name = name; delete ic.dataset.f;
   ic.src = `https://s0.xat.com/web_gear/chat/GetStrip8.php?c=a_(${encodeURIComponent(name)})_80`;
 }
 function tick() {

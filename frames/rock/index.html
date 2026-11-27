@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rock · xatframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Rock — xatframe. ?p= colores, ?boton=0 oculta el botón de color */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;user-select:none;-webkit-user-select:none}
+canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
+
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<script>
+const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s);
+const EN = Q.get('lang') ? Q.get('lang') === 'en' : !/^es\b/i.test(navigator.language || 'es'), L = (es, en) => EN ? en : es; document.documentElement.lang = EN ? 'en' : 'es';
+const TAU = Math.PI * 2, rnd = (a, b) => a + Math.random() * (b - a);
+const rgb = h => { h = h.replace('#', ''); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; };
+const rgba = (h, a) => { const [r, g, b] = rgb(h); return `rgba(${r},${g},${b},${a})`; };
+const c = $('#c'), x = c.getContext('2d'); let W = 0, H = 0, DPR = 1;
+let P, PK;
+const PAL = {
+  fuego: { bg: '#0c0705', l1: '#ffb347', l2: '#ff5a2e', e: '#ffae3b', fl: '#1a1210' },
+  sangre: { bg: '#0b0405', l1: '#ff3b4f', l2: '#ffe2e2', e: '#ff5a5a', fl: '#1a0c0e' },
+  acero: { bg: '#05070b', l1: '#bcd6ff', l2: '#6aa0ff', e: '#d6e6ff', fl: '#0e1218' }
+};
+const SP = document.createElement('canvas'); SP.width = SP.height = 128; { const g = SP.getContext('2d'), r = g.createRadialGradient(64, 64, 0, 64, 64, 64); r.addColorStop(0, 'rgba(255,255,255,.5)'); r.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = r; g.fillRect(0, 0, 128, 128); }
+const GR = document.createElement('canvas'); GR.width = GR.height = 10; { const g = GR.getContext('2d'); g.fillStyle = '#16100e'; g.fillRect(0, 0, 10, 10); g.fillStyle = '#060404'; g.beginPath(); g.arc(5, 5, 2.4, 0, TAU); g.fill(); }
+let smoke = [], emb = [], grill;
+function rsHook() {
+  smoke = Array.from({ length: 14 }, () => ({ x: Math.random() * W, y: rnd(H * .3, H * .9), r: rnd(H * .2, H * .45), vx: rnd(-12, 12), a: rnd(.04, .09), p: Math.random() * TAU }));
+  emb = Array.from({ length: Math.round(W / 22) }, () => ({ x: Math.random() * W, y: Math.random() * H, v: rnd(18, 50), s: rnd(1, 2.6), p: Math.random() * TAU }));
+  grill = x.createPattern(GR, 'repeat');
+}
+function frame(t, dt) {
+  x.fillStyle = P.bg; x.fillRect(0, 0, W, H);
+  x.globalCompositeOperation = 'lighter';
+  for (const [ox, ph, col] of [[W * .1, 0, P.l1], [W * .9, 2.1, P.l2], [W * .32, 4, P.l2], [W * .68, 1, P.l1]]) {
+    const ang = Math.PI / 2 + Math.sin(t * .3 + ph) * .38, len = H * 1.3, sp = .13;
+    const g = x.createRadialGradient(ox, -20, 0, ox, -20, len); g.addColorStop(0, rgba(col, .28)); g.addColorStop(1, rgba(col, 0)); x.fillStyle = g;
+    x.beginPath(); x.moveTo(ox, -20); x.lineTo(ox + Math.cos(ang - sp) * len, -20 + Math.sin(ang - sp) * len); x.lineTo(ox + Math.cos(ang + sp) * len, -20 + Math.sin(ang + sp) * len); x.closePath(); x.fill();
+  }
+  for (const s of smoke) { s.x += s.vx * dt; if (s.x > W + s.r) s.x = -s.r; if (s.x < -s.r) s.x = W + s.r; x.globalAlpha = s.a; x.drawImage(SP, s.x - s.r, s.y - s.r + Math.sin(t * .2 + s.p) * 20, s.r * 2, s.r * 2); }
+  x.globalAlpha = 1;
+  for (const e of emb) { e.y -= e.v * dt; e.x += Math.sin(t * 1.4 + e.p) * 14 * dt; if (e.y < -10) { e.y = H + 10; e.x = Math.random() * W; } x.fillStyle = rgba(P.e, .45 + .35 * Math.sin(t * 2.5 + e.p)); x.fillRect(e.x, e.y, e.s, e.s); }
+  x.globalCompositeOperation = 'source-over';
+  const fy = H * .86; let g = x.createLinearGradient(0, fy, 0, H); g.addColorStop(0, P.fl); g.addColorStop(1, '#030202'); x.fillStyle = g; x.fillRect(0, fy, W, H - fy);
+  const aw = W * .1, ah = H * .2;
+  for (const ax of [W * .025, W * .975 - aw]) {
+    const ay = fy - ah; x.fillStyle = '#100b09'; x.fillRect(ax, ay, aw, ah); x.strokeStyle = 'rgba(255,255,255,.07)'; x.strokeRect(ax + .5, ay + .5, aw - 1, ah - 1);
+    x.fillStyle = grill; x.fillRect(ax + aw * .07, ay + ah * .22, aw * .86, ah * .7);
+    for (let k = 0; k < 5; k++) { x.fillStyle = '#2b2421'; x.beginPath(); x.arc(ax + aw * (.16 + k * .17), ay + ah * .11, Math.max(2, aw * .028), 0, TAU); x.fill(); }
+    x.fillStyle = rgba(P.l1, .8); x.fillRect(ax + aw * .07, ay + ah * .1, 4, 4);
+  }
+}
+function setPal(k) { PK = k; P = PAL[k]; if (typeof palHook === 'function') palHook(); }
+const P0 = PAL[Q.get('p')] ? Q.get('p') : 'fuego'; setPal(P0);
+function rs() { DPR = Math.min(window.devicePixelRatio || 1, 1.5); W = innerWidth; H = innerHeight; c.width = Math.round(W * DPR); c.height = Math.round(H * DPR); x.setTransform(DPR, 0, 0, DPR, 0, 0); if (typeof rsHook === 'function') rsHook(); }
+addEventListener('resize', rs); rs();
+let last = performance.now();
+(function loop(t) { const dt = Math.min(50, t - last) / 1000; last = t; if (!document.hidden) frame(t / 1000, dt); requestAnimationFrame(loop); })(last);
+</script>
+<script>var SW = { pal: PAL, cur: P0, set: setPal, dots: k => [PAL[k].l1, PAL[k].l2, PAL[k].e], names: EN ? {"fuego": "fire", "sangre": "blood", "acero": "steel"} : {} };</script>
+<button class="swc" id="swc" type="button" aria-label="Cambiar color"><span></span></button><div class="swn" id="swn"></div>
+<style>
+.swc{position:fixed;right:14px;bottom:14px;z-index:60;width:30px;height:30px;padding:3px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.25);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);cursor:pointer;opacity:.6;transition:opacity .25s,transform .4s}
+.swc:hover{opacity:1;transform:rotate(120deg)}
+.swc span{display:block;width:100%;height:100%;border-radius:50%;background:conic-gradient(var(--sw1),var(--sw2),var(--sw3),var(--sw1))}
+.swn{position:fixed;right:52px;bottom:19px;z-index:60;font:500 10px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:#fff;padding:5px 9px;border-radius:999px;background:rgba(0,0,0,.4);opacity:0;transform:translateX(6px);transition:all .3s;pointer-events:none}
+.swn.on{opacity:1;transform:none}
+</style>
+<script>
+/* botón de color: cada visitante puede cambiar los colores solo en su pantalla (no se guarda nada) */
+(function () {
+  const Q = new URLSearchParams(location.search), b = document.getElementById('swc'), n = document.getElementById('swn');
+  if (Q.get('boton') === '0') { b.remove(); n.remove(); return; }
+  const L = Object.keys(SW.pal); let i = Math.max(0, L.indexOf(SW.cur)), t;
+  const dot = k => { const c = SW.dots(k);['--sw1', '--sw2', '--sw3'].forEach((v, j) => b.style.setProperty(v, c[j % c.length])); };
+  dot(L[(i + 1) % L.length]);
+  b.addEventListener('click', e => {
+    e.stopPropagation(); i = (i + 1) % L.length; SW.set(L[i]); dot(L[(i + 1) % L.length]);
+    n.textContent = SW.names && SW.names[L[i]] || L[i]; n.classList.add('on'); clearTimeout(t); t = setTimeout(() => n.classList.remove('on'), 1400);
+  });
+  ['pointerdown', 'mousedown', 'touchstart'].forEach(ev => b.addEventListener(ev, e => e.stopPropagation()));
+})();
+</script>
+</body>
+</html>

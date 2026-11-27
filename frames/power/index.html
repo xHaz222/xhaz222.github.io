@@ -9,15 +9,15 @@
 <style>
 /* Power nuevo — xatframe
    Muestra el power más nuevo de xat en vivo + cuenta regresiva cuando hay lanzamiento.
-   Link: ?p=noche|carmesi|esmeralda|grafito */
+   Link: ?p=noche|gris|carmesi|esmeralda|grafito  ?fondo=0 (sin fondo, solo los cuadros) */
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg1:#070a16;--bg2:#101833;--a:#7aa2ff;--b:#9f7aff}
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg1);color:#eef1fb;font-family:'Outfit',system-ui,sans-serif;user-select:none;-webkit-user-select:none}
 .bg{position:fixed;inset:0;background:radial-gradient(55% 50% at 12% 45%,color-mix(in srgb,var(--a) 16%,transparent),transparent 70%),radial-gradient(50% 45% at 88% 50%,color-mix(in srgb,var(--b) 14%,transparent),transparent 70%),linear-gradient(180deg,var(--bg1),var(--bg2))}
 .dots{position:fixed;inset:0;opacity:.18;background-image:radial-gradient(rgba(255,255,255,.5) 1px,transparent 1px);background-size:28px 28px;mask-image:linear-gradient(180deg,transparent,#000 30%,#000 70%,transparent)}
-.panel{position:fixed;top:50%;transform:translateY(-50%);width:min(22vw,330px);padding:18px;border-radius:20px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 20px 50px rgba(0,0,0,.35);opacity:0;transition:opacity .8s}
+.panel{position:fixed;top:50%;transform:translateY(-50%);width:min(calc((100vw - 728px) / 2 - 36px),330px);padding:18px;border-radius:20px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 20px 50px rgba(0,0,0,.35);opacity:0;transition:opacity .8s}
 .panel.on{opacity:1}
-.panel.l{left:2vw}.panel.r{right:2vw}
+.panel.l{left:18px}.panel.r{right:18px}
 .lab{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:color-mix(in srgb,var(--a) 75%,#fff)}
 .hero{display:flex;align-items:center;gap:14px;margin:12px 0 14px}
 .hero img{width:72px;height:72px;border-radius:16px;background:rgba(255,255,255,.06);padding:6px;flex:none}
@@ -27,11 +27,31 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg1);color:#ee
 .row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-top:1px solid rgba(255,255,255,.07);font-size:13px}
 .row span{color:#9aa3c4;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
 .row b{font-weight:600}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
-.grid div{aspect-ratio:1;border-radius:12px;background:rgba(255,255,255,.05);display:grid;place-items:center;position:relative}
-.grid img{width:78%;height:78%;object-fit:contain}
-.grid small{position:absolute;bottom:-15px;left:0;right:0;text-align:center;font-family:'JetBrains Mono',monospace;font-size:8.5px;color:#9aa3c4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.grid{row-gap:22px}
+.panel.r{display:flex;flex-direction:column;max-height:80vh;width:min(calc((100vw - 728px) / 2 - 36px),360px)}
+.tabs{display:flex;gap:6px;margin-bottom:10px}
+.tabs button{flex:1;font:600 12px 'Outfit',system-ui,sans-serif;color:#c6cbe0;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:999px;padding:7px 0;cursor:pointer;transition:background .2s,border-color .2s}
+.tabs button.on{background:color-mix(in srgb,var(--a) 28%,transparent);color:#fff;border-color:color-mix(in srgb,var(--a) 55%,transparent)}
+#q{width:100%;font:500 12px 'JetBrains Mono',monospace;color:#fff;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:9px 11px;outline:none;margin-bottom:10px;user-select:text;-webkit-user-select:text}
+#q:focus{border-color:color-mix(in srgb,var(--a) 60%,transparent)}
+#q::placeholder{color:#7f88a8}
+.lst{overflow-y:auto;min-height:120px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.2) transparent;padding-right:2px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.cell{border-radius:12px;background:rgba(255,255,255,.05);border:1px solid transparent;padding:8px 4px 6px;text-align:center;cursor:pointer;transition:background .15s,border-color .15s}
+.cell:hover{border-color:color-mix(in srgb,var(--a) 60%,transparent);background:rgba(255,255,255,.09)}
+.cell img{width:52px;height:52px;object-fit:contain;display:block;margin:0 auto 5px}
+.cell code{display:block;font:500 10px 'JetBrains Mono',monospace;color:#d6dbef;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell em{display:block;font-style:normal;font-size:9.5px;color:#8e97b8;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prow{display:grid;grid-template-columns:30px 1fr auto;gap:1px 10px;align-items:center;padding:8px 6px;border-top:1px solid rgba(255,255,255,.07);cursor:pointer;border-radius:8px}
+.prow:hover{background:rgba(255,255,255,.05)}
+.prow img{width:30px;height:30px;grid-row:span 2;object-fit:contain}
+.prow b{font-weight:600;font-size:13px}
+.prow span{font:500 10.5px 'JetBrains Mono',monospace;color:#9aa3c4}
+.prow .v{text-align:right;font-weight:600;font-size:12.5px}
+.prow .v2{text-align:right}
+.tip{font-size:11px;color:#8e97b8;margin-top:8px;text-align:center}
+.empty{font-size:12px;color:#8e97b8;text-align:center;padding:24px 0}
+.toast{position:absolute;left:50%;top:-14px;transform:translate(-50%,-6px);opacity:0;padding:6px 14px;border-radius:999px;background:color-mix(in srgb,var(--a) 80%,#000);color:#fff;font:600 12px 'Outfit',system-ui,sans-serif;white-space:nowrap;transition:opacity .25s,transform .25s;pointer-events:none}
+.toast.on{opacity:1;transform:translate(-50%,0)}
 .cd{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);display:flex;align-items:center;gap:14px;padding:10px 18px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px);white-space:nowrap;opacity:0;transition:opacity .8s}
 .cd.on{opacity:1}
 .cd .lab{color:#9aa3c4}
@@ -40,6 +60,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg1);color:#ee
 @keyframes pl{50%{opacity:.35}}
 body.counting .cd{bottom:22px;padding:14px 26px;gap:18px;background:color-mix(in srgb,var(--a) 14%,rgba(10,12,24,.7));border-color:color-mix(in srgb,var(--a) 45%,transparent);box-shadow:0 12px 40px color-mix(in srgb,var(--a) 25%,transparent)}
 body.counting .cd b{font-size:clamp(22px,2.4vw,34px);letter-spacing:.1em}
+html.clear,body.clear{background:transparent}
+body.clear .bg,body.clear .dots{display:none}
+body.clear .panel,body.clear .cd{background:rgba(14,16,24,.8);border-color:rgba(255,255,255,.12)}
 @media (max-width:760px){.panel.r{display:none}.panel.l{left:50%;transform:translate(-50%,-50%);width:80vw;top:auto;bottom:14vh;transform:translateX(-50%)}}
 </style>
 </head>
@@ -54,28 +77,38 @@ body.counting .cd b{font-size:clamp(22px,2.4vw,34px);letter-spacing:.1em}
   <div class="row"><span>Días</span><b id="pd">—</b></div>
   <div class="row"><span>ID</span><b id="pi">—</b></div>
 </div>
-<div class="panel r" id="pr"><div class="lab">Smileys</div><div class="grid" id="sm"></div></div>
+<div class="panel r" id="pr">
+  <div class="toast" id="toast"></div>
+  <div class="tabs" id="tabs"><button type="button" data-t="sm" class="on">Smileys</button><button type="button" data-t="ht">Hats</button><button type="button" data-t="pc">Precios</button></div>
+  <input id="q" type="search" autocomplete="off" spellcheck="false">
+  <div class="lst" id="lst"></div>
+  <p class="tip" id="tip"></p>
+</div>
 <div class="cd" id="cd"><i></i><span class="lab" id="cdl">Lanzamiento</span><b id="cdt">—</b><span class="lab" id="cdn"></span></div>
 <script>
 const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s);
 const EN = Q.get('lang') ? Q.get('lang') === 'en' : !/^es\b/i.test(navigator.language || 'es'), L = (es, en) => EN ? en : es; document.documentElement.lang = EN ? 'en' : 'es';
+document.addEventListener('error', e => { const t = e.target; if (!t || t.tagName !== 'IMG' || !t.dataset.fb) return; const f = t.dataset.fb; if (f === 'hide') t.style.display = 'none'; else if (f === 'rmp') { if (t.parentNode) t.parentNode.remove(); } else if (f === 'ini') { const n = document.createElement(t.dataset.tag || 'div'); if (n.tagName === 'DIV') n.className = 'ini'; n.textContent = t.dataset.ini || '?'; t.replaceWith(n); } }, true);
 if (EN) { const R = document.querySelectorAll('#pl .row span'); ['Store', 'Trade', 'Days', 'ID'].forEach((t, i) => R[i] && (R[i].textContent = t)); document.querySelector('#pl .lab').textContent = 'New power'; }
 
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-const PAL = { noche: ['#070a16', '#101833', '#7aa2ff', '#9f7aff'], carmesi: ['#12060a', '#2a0c16', '#ff6b81', '#ff9f6b'], esmeralda: ['#05110d', '#0c2a22', '#5ee0b5', '#7ac8ff'], grafito: ['#0b0b0e', '#1b1b22', '#c8ccd8', '#8f95a8'] };
+if (Q.get('fondo') === '0') { document.documentElement.classList.add('clear'); document.body.classList.add('clear'); }
+const PAL = { noche: ['#070a16', '#101833', '#7aa2ff', '#9f7aff'], gris: ['#101113', '#1d1f24', '#aeb4c2', '#d9dde6'], carmesi: ['#12060a', '#2a0c16', '#ff6b81', '#ff9f6b'], esmeralda: ['#05110d', '#0c2a22', '#5ee0b5', '#7ac8ff'], grafito: ['#0b0b0e', '#1b1b22', '#c8ccd8', '#8f95a8'] };
 function setPal(k) { const p = PAL[k];['--bg1', '--bg2', '--a', '--b'].forEach((v, i) => document.documentElement.style.setProperty(v, p[i])); }
 const P0 = PAL[Q.get('p')] ? Q.get('p') : 'noche'; setPal(P0);
 const SM = n => `https://s0.xat.com/web_gear/chat/GetStrip8.php?c=a_(${encodeURIComponent(n)})_80`;
 const ST = EN ? { Limited: 'Limited', Unlimited: 'Unlimited', Hidden: 'Hidden' } : { Limited: 'Limitado', Unlimited: 'Ilimitado', Hidden: 'Oculto' };
+$('#ic').addEventListener('error', () => { const ic = $('#ic'); if (!ic.dataset.f && ic.dataset.name) { ic.dataset.f = 1; ic.src = `https://xat.com/images/smw/${ic.dataset.name}.png`; } });
 function loadPower() {
   fetch('https://illuxat.com/api/latestpower', { cache: 'no-store' }).then(r => r.json()).then(j => {
     const L = j && j.data && j.data.latest; if (!L) return;
     const smi = (L.Smileys || []).filter(s => /^[a-z0-9]+$/i.test(s));
-    $('#ic').src = SM(smi[0] || L.Name); $('#ic').onerror = () => { $('#ic').src = `https://xat.com/images/smw/${L.Name}.png`; };
+    $('#ic').dataset.name = L.Name; delete $('#ic').dataset.f; $('#ic').src = SM(smi[0] || L.Name);
     $('#nm').textContent = L.Name; $('#st').textContent = ST[L.StoreStatus] || ST[L.Status] || L.Status || '';
     $('#ds').textContent = String((L.Descriptions && (L.Descriptions.shortDescription || L.Descriptions.longDescription)) || '').replace(/\$WIKI\.?/g, '').trim();
     const P = L.Prices || {}; $('#ps').textContent = P.store || '—'; $('#px').textContent = P.xats ? P.xats + ' xats' : '—'; $('#pd').textContent = P.days || '—'; $('#pi').textContent = L.Id || '—';
-    $('#sm').innerHTML = smi.slice(1, 13).map(s => `<div><img src="${SM(s)}" alt="" loading="lazy" onerror="this.parentNode.remove()"><small>(${esc(s)})</small></div>`).join('');
+    LATEST = { name: L.Name, smileys: smi, pawns: L.Pawns || {} }; ACTIVE = (j.data.active_pawns && typeof j.data.active_pawns === 'object') ? j.data.active_pawns : {};
+    if (!$('#q').value) render();
     $('#pl').classList.add('on'); $('#pr').classList.add('on');
   }).catch(() => { });
 }
@@ -107,9 +140,66 @@ function tick() {
   const d = s / 86400 | 0, h = s % 86400 / 3600 | 0, m = s % 3600 / 60 | 0, ss = s % 60;
   $('#cdt').textContent = (d ? d + 'd ' : '') + [h, m, ss].map(v => String(v).padStart(2, '0')).join(':');
 }
+
+/* herramientas: smileys, hats y precios (toca para copiar) */
+let LATEST = null, ACTIVE = {}, PRICES = null, TOPSH = null, PNAMES = null, tab = 'sm', qt;
+const J = u => fetch(u, { cache: 'no-store' }).then(r => r.json());
+const HINT = { sm: L('Buscar smileys o power…', 'Search smileys or power…'), ht: L('Buscar hats por power…', 'Search hats by power…'), pc: L('Buscar precio de un power…', 'Search a power price…') };
+if (EN) document.querySelector('#tabs [data-t=pc]').textContent = 'Prices';
+function toast(t) { const e = $('#toast'); e.textContent = t; e.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove('on'), 1500); }
+function copy(txt) {
+  const ok = () => toast(L('Copiado ', 'Copied ') + txt);
+  const fb = () => { const t = document.createElement('textarea'); t.value = txt; t.setAttribute('readonly', ''); t.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0'; document.body.appendChild(t); t.select(); let done = false; try { done = document.execCommand('copy'); } catch (e) { } t.remove(); done ? ok() : toast(txt); };
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(txt).then(ok, fb); else fb();
+}
+function ensureAll() {
+  if (TOPSH) return Promise.resolve();
+  return Promise.all([J('https://xat.com/web_gear/chat/pow2.php'), J('https://xat.com/json/powers.php')]).then(([p2, pw]) => {
+    const t = (p2.find(x => x[0] === 'topsh') || [])[1] || {}; TOPSH = t; PNAMES = {};
+    for (const [id, v] of Object.entries(pw || {})) if (v && v.s) PNAMES[id] = v.s;
+  });
+}
+function ensurePrices() { return PRICES ? Promise.resolve() : J('https://api.xatblog.net/prices').then(j => { PRICES = (j && j.prices) || []; }); }
+const cell = (img, code, sub) => `<div class="cell" data-c="${esc(code)}"><img src="${img}" alt="" loading="lazy" data-fb="hide"><code>${esc(code)}</code>${sub ? `<em>${esc(sub)}</em>` : ''}</div>`;
+const nf = n => Number(n).toLocaleString(EN ? 'en' : 'es');
+function render() {
+  const q = $('#q').value.trim().toLowerCase().replace(/[()]/g, ''), box = $('#lst');
+  $('#q').placeholder = HINT[tab];
+  $('#tip').textContent = tab === 'pc' ? L('Toca un power para copiar su nombre', 'Tap a power to copy its name') : L('Toca un código para copiarlo', 'Tap a code to copy it');
+  const empty = () => box.innerHTML = `<p class="empty">${L('Sin resultados', 'No results')}</p>`;
+  if (tab === 'sm') {
+    if (!q) { if (!LATEST) return; box.innerHTML = '<div class="grid">' + LATEST.smileys.map(s => cell(SM(s), `(${s})`, '')).join('') + '</div>'; return; }
+    box.innerHTML = `<p class="empty">${L('Buscando…', 'Searching…')}</p>`;
+    ensureAll().then(() => {
+      if ($('#q').value.trim().toLowerCase().replace(/[()]/g, '') !== q || tab !== 'sm') return;
+      const out = [];
+      for (const [s, id] of Object.entries(TOPSH)) { const pn = PNAMES[id] || ''; if (s.includes(q) || pn.includes(q)) out.push([s, pn]); if (out.length >= 36) break; }
+      out.length ? box.innerHTML = '<div class="grid">' + out.map(([s, pn]) => cell(SM(s), `(${s})`, pn)).join('') + '</div>' : empty();
+    }).catch(empty);
+  } else if (tab === 'ht') {
+    const list = [];
+    if (LATEST) for (const [k, n] of Object.entries(LATEST.pawns)) list.push([k, n, LATEST.name]);
+    for (const [k, v] of Object.entries(ACTIVE)) if (v && v.name && !list.some(x => x[0] === k)) list.push([k, v.name, v.power || '']);
+    const f = q ? list.filter(([k, n, pw]) => pw.toLowerCase().includes(q) || n.toLowerCase().includes(q) || k.toLowerCase().includes(q)) : list.filter(x => LATEST && x[2] === LATEST.name).concat(list.filter(x => !LATEST || x[2] !== LATEST.name)).slice(0, 12);
+    f.length ? box.innerHTML = '<div class="grid">' + f.slice(0, 36).map(([k, n, pw]) => cell(SM(n), `(hat#${k})`, pw)).join('') + '</div>' : empty();
+  } else {
+    box.innerHTML = `<p class="empty">${L('Cargando precios…', 'Loading prices…')}</p>`;
+    ensurePrices().then(() => {
+      if (tab !== 'pc') return;
+      const f = (q ? PRICES.filter(p => String(p.name).toLowerCase().includes(q)) : PRICES).slice(0, 30);
+      if (!f.length) return empty();
+      box.innerHTML = f.map(p => { const ft = +p.fairtrade_max_xats > 0; return `<div class="prow" data-c="${esc(p.name)}"><img src="https://xat.com/images/smw/${encodeURIComponent(p.name)}.png" alt="" loading="lazy" data-fb="hide"><b>${esc(p.name)}</b><span class="v">${ft ? `${nf(p.fairtrade_min_xats)}–${nf(p.fairtrade_max_xats)} xats` : esc(p.store_price || '—')}</span><span>#${esc(p.id)}${p.type ? ' · ' + esc(p.type) : ''}</span><span class="v2">${ft ? `${nf(p.fairtrade_min_days)}–${nf(p.fairtrade_max_days)} ${L('días', 'days')}` : L('tienda', 'store')}</span></div>`; }).join('');
+    }).catch(empty);
+  }
+}
+$('#tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; tab = b.dataset.t; document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x === b)); render(); });
+$('#q').addEventListener('input', () => { clearTimeout(qt); qt = setTimeout(render, 220); });
+$('#lst').addEventListener('click', e => { const c = e.target.closest('[data-c]'); if (c) copy(c.dataset.c); });
+['pointerdown', 'mousedown', 'keydown'].forEach(ev => $('#pr').addEventListener(ev, e => e.stopPropagation()));
+render();
 loadPower(); loadCountdown(); setInterval(tick, 1000); setInterval(() => { loadPower(); loadCountdown(); }, 5 * 60 * 1000);
 </script>
-<script>var SW = { pal: PAL, cur: P0, set: setPal, dots: k => [PAL[k][2], PAL[k][3], PAL[k][1]], names: EN ? { noche: 'night', carmesi: 'crimson', esmeralda: 'emerald', grafito: 'graphite' } : { carmesi: 'carmesí' } };</script>
+<script>var SW = { pal: PAL, cur: P0, set: setPal, dots: k => [PAL[k][2], PAL[k][3], PAL[k][1]], names: EN ? { noche: 'night', gris: 'gray', carmesi: 'crimson', esmeralda: 'emerald', grafito: 'graphite' } : { carmesi: 'carmesí' } };</script>
 <button class="swc" id="swc" type="button" aria-label="Cambiar color"><span></span></button><div class="swn" id="swn"></div>
 <style>
 .swc{position:fixed;right:14px;bottom:14px;z-index:60;width:30px;height:30px;padding:3px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.25);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);cursor:pointer;opacity:.6;transition:opacity .25s,transform .4s}

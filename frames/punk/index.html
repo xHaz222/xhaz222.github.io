@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Punk · xatframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Punk — xatframe. ?p= colores, ?boton=0 oculta el botón de color */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;user-select:none;-webkit-user-select:none}
+canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
+
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<script>
+const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s);
+const EN = Q.get('lang') ? Q.get('lang') === 'en' : !/^es\b/i.test(navigator.language || 'es'), L = (es, en) => EN ? en : es; document.documentElement.lang = EN ? 'en' : 'es';
+const TAU = Math.PI * 2, rnd = (a, b) => a + Math.random() * (b - a);
+const rgb = h => { h = h.replace('#', ''); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; };
+const rgba = (h, a) => { const [r, g, b] = rgb(h); return `rgba(${r},${g},${b},${a})`; };
+const c = $('#c'), x = c.getContext('2d'); let W = 0, H = 0, DPR = 1;
+let P, PK;
+const PAL = {
+  rosa: { bg: '#ff2e88', ink: '#111111', ac: '#ffe600', pap: '#f4efe6' },
+  amarillo: { bg: '#ffd400', ink: '#111111', ac: '#ff2e88', pap: '#f4efe6' },
+  papel: { bg: '#ece7dc', ink: '#151515', ac: '#e3262b', pap: '#ffffff' },
+  negro: { bg: '#141414', ink: '#f0ece4', ac: '#ff2e88', pap: '#262626' }
+};
+let dots, strips = [], marks = [];
+function palHook() { const d = document.createElement('canvas'); d.width = d.height = 14; const g = d.getContext('2d'); g.fillStyle = P.ink; g.beginPath(); g.arc(7, 7, 2.6, 0, TAU); g.fill(); dots = x.createPattern(d, 'repeat'); }
+function torn(w, h) { const pts = []; const n = Math.round(w / 9); for (let i = 0; i <= n; i++) pts.push([i / n * w, rnd(-5, 5)]); for (let i = n; i >= 0; i--) pts.push([i / n * w, h + rnd(-5, 5)]); return pts; }
+function rsHook() {
+  strips = [[.02, .12, -.08], [.76, .2, .06], [.04, .62, .05], [.78, .7, -.05]].map(([u, v, r]) => ({ x: W * u, y: H * v, w: W * .2, h: H * .1, r, pts: torn(W * .2, H * .1) }));
+  marks = Array.from({ length: 12 }, (_, i) => ({ k: ['star', 'bolt', 'x'][i % 3], x: W * (i % 2 ? rnd(.78, .97) : rnd(.03, .22)), y: H * rnd(.08, .92), r: Math.min(W, H) * rnd(.02, .045), rot: Math.random() * TAU, v: rnd(-.25, .25), f: i % 4 === 0 }));
+}
+function star(r) { x.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, q = i % 2 ? r * .45 : r; x.lineTo(Math.cos(a) * q, Math.sin(a) * q); } x.closePath(); }
+function bolt(r) { x.beginPath(); x.moveTo(-r * .2, -r); x.lineTo(r * .45, -r * .1); x.lineTo(r * .05, -r * .05); x.lineTo(r * .3, r); x.lineTo(-r * .45, r * .05); x.lineTo(-r * .05, 0); x.closePath(); }
+function frame(t) {
+  x.fillStyle = P.bg; x.fillRect(0, 0, W, H);
+  x.save(); x.globalAlpha = .16; x.translate((t * 6) % 14, (t * 4) % 14); x.fillStyle = dots;
+  x.beginPath(); x.moveTo(-20, -20); x.lineTo(W * .32, -20); x.lineTo(W * .12, H + 20); x.lineTo(-20, H + 20); x.closePath(); x.fill();
+  x.beginPath(); x.moveTo(W + 20, -20); x.lineTo(W * .86, -20); x.lineTo(W * .66, H + 20); x.lineTo(W + 20, H + 20); x.closePath(); x.fill(); x.restore(); x.globalAlpha = 1;
+  for (const s of strips) {
+    x.save(); x.translate(s.x + s.w / 2, s.y + s.h / 2); x.rotate(s.r + Math.sin(t * .3 + s.x) * .012); x.translate(-s.w / 2, -s.h / 2);
+    x.fillStyle = 'rgba(0,0,0,.18)'; x.beginPath(); s.pts.forEach(([a, b]) => x.lineTo(a + 4, b + 5)); x.fill();
+    x.fillStyle = P.pap; x.beginPath(); s.pts.forEach(([a, b]) => x.lineTo(a, b)); x.fill();
+    x.fillStyle = rgba(P.ac, .75); x.fillRect(-10, -6, s.w * .18, 16); x.fillRect(s.w - s.w * .18 + 10, s.h - 10, s.w * .18, 16);
+    x.strokeStyle = rgba(P.ink, .7); x.lineWidth = 2; for (let i = 0; i < 3; i++) { x.beginPath(); x.moveTo(s.w * .12, s.h * (.3 + i * .2)); x.lineTo(s.w * (.5 + .3 * ((i * 7) % 3) / 2), s.h * (.3 + i * .2)); x.stroke(); }
+    x.restore();
+  }
+  for (const m of marks) {
+    x.save(); x.translate(m.x, m.y + Math.sin(t * .5 + m.rot) * 6); x.rotate(m.rot + t * m.v); x.lineWidth = 3; x.strokeStyle = P.ink; x.fillStyle = m.f ? P.ac : P.ink;
+    if (m.k === 'star') { star(m.r); m.f ? (x.fill(), x.stroke()) : x.stroke(); }
+    else if (m.k === 'bolt') { bolt(m.r); x.fill(); }
+    else { x.beginPath(); x.moveTo(-m.r * .7, -m.r * .7); x.lineTo(m.r * .7, m.r * .7); x.moveTo(m.r * .7, -m.r * .7); x.lineTo(-m.r * .7, m.r * .7); x.lineWidth = 5; x.stroke(); }
+    x.restore();
+  }
+}
+function setPal(k) { PK = k; P = PAL[k]; if (typeof palHook === 'function') palHook(); }
+const P0 = PAL[Q.get('p')] ? Q.get('p') : 'rosa'; setPal(P0);
+function rs() { DPR = Math.min(window.devicePixelRatio || 1, 1.5); W = innerWidth; H = innerHeight; c.width = Math.round(W * DPR); c.height = Math.round(H * DPR); x.setTransform(DPR, 0, 0, DPR, 0, 0); if (typeof rsHook === 'function') rsHook(); }
+addEventListener('resize', rs); rs();
+let last = performance.now();
+(function loop(t) { const dt = Math.min(50, t - last) / 1000; last = t; if (!document.hidden) frame(t / 1000, dt); requestAnimationFrame(loop); })(last);
+</script>
+<script>var SW = { pal: PAL, cur: P0, set: setPal, dots: k => [PAL[k].bg, PAL[k].ink, PAL[k].ac], names: EN ? {"rosa": "pink", "amarillo": "yellow", "papel": "paper", "negro": "black"} : {} };</script>
+<button class="swc" id="swc" type="button" aria-label="Cambiar color"><span></span></button><div class="swn" id="swn"></div>
+<style>
+.swc{position:fixed;right:14px;bottom:14px;z-index:60;width:30px;height:30px;padding:3px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.25);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);cursor:pointer;opacity:.6;transition:opacity .25s,transform .4s}
+.swc:hover{opacity:1;transform:rotate(120deg)}
+.swc span{display:block;width:100%;height:100%;border-radius:50%;background:conic-gradient(var(--sw1),var(--sw2),var(--sw3),var(--sw1))}
+.swn{position:fixed;right:52px;bottom:19px;z-index:60;font:500 10px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:#fff;padding:5px 9px;border-radius:999px;background:rgba(0,0,0,.4);opacity:0;transform:translateX(6px);transition:all .3s;pointer-events:none}
+.swn.on{opacity:1;transform:none}
+</style>
+<script>
+/* botón de color: cada visitante puede cambiar los colores solo en su pantalla (no se guarda nada) */
+(function () {
+  const Q = new URLSearchParams(location.search), b = document.getElementById('swc'), n = document.getElementById('swn');
+  if (Q.get('boton') === '0') { b.remove(); n.remove(); return; }
+  const L = Object.keys(SW.pal); let i = Math.max(0, L.indexOf(SW.cur)), t;
+  const dot = k => { const c = SW.dots(k);['--sw1', '--sw2', '--sw3'].forEach((v, j) => b.style.setProperty(v, c[j % c.length])); };
+  dot(L[(i + 1) % L.length]);
+  b.addEventListener('click', e => {
+    e.stopPropagation(); i = (i + 1) % L.length; SW.set(L[i]); dot(L[(i + 1) % L.length]);
+    n.textContent = SW.names && SW.names[L[i]] || L[i]; n.classList.add('on'); clearTimeout(t); t = setTimeout(() => n.classList.remove('on'), 1400);
+  });
+  ['pointerdown', 'mousedown', 'touchstart'].forEach(ev => b.addEventListener(ev, e => e.stopPropagation()));
+})();
+</script>
+</body>
+</html>

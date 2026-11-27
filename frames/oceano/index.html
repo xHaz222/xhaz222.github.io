@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Océano · xatframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Océano — xatframe. ?p= colores, ?boton=0 oculta el botón de color */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;user-select:none;-webkit-user-select:none}
+canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
+
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<script>
+const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s);
+const EN = Q.get('lang') ? Q.get('lang') === 'en' : !/^es\b/i.test(navigator.language || 'es'), L = (es, en) => EN ? en : es; document.documentElement.lang = EN ? 'en' : 'es';
+const TAU = Math.PI * 2, rnd = (a, b) => a + Math.random() * (b - a);
+const rgb = h => { h = h.replace('#', ''); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; };
+const rgba = (h, a) => { const [r, g, b] = rgb(h); return `rgba(${r},${g},${b},${a})`; };
+const c = $('#c'), x = c.getContext('2d'); let W = 0, H = 0, DPR = 1;
+let P, PK;
+const PAL = {
+  profundo: { t: '#0e4a6e', b: '#020c18', ray: '#9fd9ff', jf: '#bfe6ff', fish: '#06182a', kelp: '#0b2a2c', sand: '#0a1a22' },
+  turquesa: { t: '#47c1c9', b: '#0a3b52', ray: '#e9fffd', jf: '#ffffff', fish: '#0d4256', kelp: '#145a4a', sand: '#2e5a5e' },
+  abisal: { t: '#05131e', b: '#000307', ray: '#3a6b8a', jf: '#7af0ff', fish: '#020a12', kelp: '#04121a', sand: '#03090e' }
+};
+let rays = [], snow = [], bub = [], jel = [], sch = [], kelp = [];
+function rsHook() {
+  const S = Math.max(150, (W - 728) / 2);
+  rays = Array.from({ length: 7 }, (_, i) => ({ x: W * (i / 6), w: rnd(W * .05, W * .12), p: Math.random() * TAU }));
+  snow = Array.from({ length: Math.round(W * H / 7000) }, () => ({ x: Math.random() * W, y: Math.random() * H, r: rnd(.5, 1.6), v: rnd(3, 10), p: Math.random() * TAU }));
+  bub = Array.from({ length: 26 }, () => ({ x: Math.random() < .5 ? rnd(10, S) : W - rnd(10, S), y: Math.random() * H, r: rnd(1.5, 5), v: rnd(25, 60), p: Math.random() * TAU }));
+  jel = [[.5, .32], [.5, .7], [.5, .5]].map(([u, v], i) => ({ x: i === 2 ? W - S * u : S * u + (i ? 30 : 0), y: H * v, s: rnd(.8, 1.2) * Math.min(H * .07, S * .3), p: i * 2.1, v: rnd(6, 12), side: i === 2 }));
+  sch = [0, 1].map(i => ({ y: H * (i ? .28 : .62), dir: i ? -1 : 1, off: Math.random() * W, fish: Array.from({ length: 14 }, () => ({ dx: rnd(-60, 60), dy: rnd(-25, 25), p: Math.random() * TAU })) }));
+  kelp = Array.from({ length: 14 }, (_, i) => ({ x: i % 2 ? rnd(8, S * .9) : W - rnd(8, S * .9), h: rnd(H * .18, H * .42), p: Math.random() * TAU, w: rnd(4, 9) }));
+}
+function frame(t, dt) {
+  let g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, P.t); g.addColorStop(1, P.b); x.fillStyle = g; x.fillRect(0, 0, W, H);
+  x.globalCompositeOperation = 'lighter';
+  for (const r of rays) { const sx = r.x + Math.sin(t * .15 + r.p) * W * .03; g = x.createLinearGradient(0, 0, 0, H * .85); g.addColorStop(0, rgba(P.ray, .14)); g.addColorStop(1, rgba(P.ray, 0)); x.fillStyle = g; x.beginPath(); x.moveTo(sx - r.w * .3, 0); x.lineTo(sx + r.w * .3, 0); x.lineTo(sx + r.w + W * .08, H * .85); x.lineTo(sx - r.w + W * .08, H * .85); x.closePath(); x.fill(); }
+  // superficie
+  x.strokeStyle = rgba(P.ray, .25); x.lineWidth = 1.5; x.beginPath(); for (let xx = 0; xx <= W; xx += 12) { const yy = 6 + Math.sin(xx * .02 + t * 1.2) * 3 + Math.sin(xx * .007 - t * .7) * 4; xx ? x.lineTo(xx, yy) : x.moveTo(xx, yy); } x.stroke();
+  for (const s of snow) { s.y += s.v * dt; s.x += Math.sin(t * .4 + s.p) * 4 * dt; if (s.y > H) { s.y = -4; s.x = Math.random() * W; } x.fillStyle = rgba(P.ray, .35); x.fillRect(s.x, s.y, s.r, s.r); }
+  for (const j of jel) {
+    j.y -= j.v * dt * (.6 + .4 * Math.max(0, Math.sin(t * 1.4 + j.p))); if (j.y < -j.s * 4) j.y = H + j.s * 2;
+    const pulse = 1 + .12 * Math.sin(t * 1.4 + j.p), w = j.s * pulse, hh = j.s * .8 / pulse, cx = j.x + Math.sin(t * .3 + j.p) * 14, cy = j.y;
+    g = x.createRadialGradient(cx, cy, 0, cx, cy, w * 1.8); g.addColorStop(0, rgba(P.jf, .18)); g.addColorStop(1, rgba(P.jf, 0)); x.fillStyle = g; x.fillRect(cx - w * 2, cy - w * 2, w * 4, w * 4);
+    x.fillStyle = rgba(P.jf, .22); x.strokeStyle = rgba(P.jf, .55); x.lineWidth = 1.2; x.beginPath(); x.ellipse(cx, cy, w, hh, 0, Math.PI, 0); x.closePath(); x.fill(); x.stroke();
+    x.strokeStyle = rgba(P.jf, .3); x.lineWidth = 1; for (let k = 0; k < 6; k++) { const bx = cx - w * .8 + k * w * .32; x.beginPath(); x.moveTo(bx, cy); for (let s = 1; s <= 10; s++) x.lineTo(bx + Math.sin(t * 2 + k + s * .6 + j.p) * 4 * s / 10, cy + s * j.s * .28); x.stroke(); }
+  }
+  for (const b of bub) { b.y -= b.v * dt; b.x += Math.sin(t * 2 + b.p) * 10 * dt; if (b.y < -10) b.y = H + 10; x.strokeStyle = rgba(P.ray, .45); x.lineWidth = 1; x.beginPath(); x.arc(b.x, b.y, b.r, 0, TAU); x.stroke(); }
+  x.globalCompositeOperation = 'source-over';
+  for (const s of sch) {
+    s.off = (s.off + s.dir * 28 * dt + W + 400) % (W + 400); const bx = s.dir > 0 ? s.off - 200 : W + 200 - s.off;
+    x.fillStyle = rgba(P.fish, .75);
+    for (const f of s.fish) { const fx = bx + f.dx + Math.sin(t + f.p) * 6, fy = s.y + f.dy + Math.sin(t * 1.3 + f.p) * 5, L = 9; x.beginPath(); x.ellipse(fx, fy, L, L * .38, 0, 0, TAU); x.fill(); x.beginPath(); x.moveTo(fx - s.dir * L * .8, fy); x.lineTo(fx - s.dir * L * 1.6, fy - L * .45); x.lineTo(fx - s.dir * L * 1.6, fy + L * .45); x.fill(); }
+  }
+  g = x.createLinearGradient(0, H * .88, 0, H); g.addColorStop(0, rgba(P.sand, 0)); g.addColorStop(1, P.sand); x.fillStyle = g; x.fillRect(0, H * .88, W, H * .12);
+  for (const k of kelp) { x.strokeStyle = P.kelp; x.lineWidth = k.w; x.lineCap = 'round'; x.beginPath(); x.moveTo(k.x, H + 4); for (let s = 1; s <= 12; s++) { const q = s / 12; x.lineTo(k.x + Math.sin(t * .8 + k.p + q * 3) * 18 * q, H - k.h * q); } x.stroke(); }
+}
+function setPal(k) { PK = k; P = PAL[k]; if (typeof palHook === 'function') palHook(); }
+const P0 = PAL[Q.get('p')] ? Q.get('p') : 'profundo'; setPal(P0);
+function rs() { DPR = Math.min(window.devicePixelRatio || 1, 1.5); W = innerWidth; H = innerHeight; c.width = Math.round(W * DPR); c.height = Math.round(H * DPR); x.setTransform(DPR, 0, 0, DPR, 0, 0); if (typeof rsHook === 'function') rsHook(); }
+addEventListener('resize', rs); rs();
+let last = performance.now();
+(function loop(t) { const dt = Math.min(50, t - last) / 1000; last = t; if (!document.hidden) frame(t / 1000, dt); requestAnimationFrame(loop); })(last);
+</script>
+<script>var SW = { pal: PAL, cur: P0, set: setPal, dots: k => [PAL[k].t, PAL[k].jf, PAL[k].b], names: EN ? {"profundo": "deep", "turquesa": "turquoise", "abisal": "abyssal"} : {} };</script>
+<button class="swc" id="swc" type="button" aria-label="Cambiar color"><span></span></button><div class="swn" id="swn"></div>
+<style>
+.swc{position:fixed;right:14px;bottom:14px;z-index:60;width:30px;height:30px;padding:3px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.25);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);cursor:pointer;opacity:.6;transition:opacity .25s,transform .4s}
+.swc:hover{opacity:1;transform:rotate(120deg)}
+.swc span{display:block;width:100%;height:100%;border-radius:50%;background:conic-gradient(var(--sw1),var(--sw2),var(--sw3),var(--sw1))}
+.swn{position:fixed;right:52px;bottom:19px;z-index:60;font:500 10px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:#fff;padding:5px 9px;border-radius:999px;background:rgba(0,0,0,.4);opacity:0;transform:translateX(6px);transition:all .3s;pointer-events:none}
+.swn.on{opacity:1;transform:none}
+</style>
+<script>
+/* botón de color: cada visitante puede cambiar los colores solo en su pantalla (no se guarda nada) */
+(function () {
+  const Q = new URLSearchParams(location.search), b = document.getElementById('swc'), n = document.getElementById('swn');
+  if (Q.get('boton') === '0') { b.remove(); n.remove(); return; }
+  const L = Object.keys(SW.pal); let i = Math.max(0, L.indexOf(SW.cur)), t;
+  const dot = k => { const c = SW.dots(k);['--sw1', '--sw2', '--sw3'].forEach((v, j) => b.style.setProperty(v, c[j % c.length])); };
+  dot(L[(i + 1) % L.length]);
+  b.addEventListener('click', e => {
+    e.stopPropagation(); i = (i + 1) % L.length; SW.set(L[i]); dot(L[(i + 1) % L.length]);
+    n.textContent = SW.names && SW.names[L[i]] || L[i]; n.classList.add('on'); clearTimeout(t); t = setTimeout(() => n.classList.remove('on'), 1400);
+  });
+  ['pointerdown', 'mousedown', 'touchstart'].forEach(ev => b.addEventListener(ev, e => e.stopPropagation()));
+})();
+</script>
+</body>
+</html>

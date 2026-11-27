@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Geométrico · xatframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Geométrico — xatframe. ?p= colores, ?boton=0 oculta el botón de color */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;user-select:none;-webkit-user-select:none}
+canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
+
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<script>
+const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s);
+const EN = Q.get('lang') ? Q.get('lang') === 'en' : !/^es\b/i.test(navigator.language || 'es'), L = (es, en) => EN ? en : es; document.documentElement.lang = EN ? 'en' : 'es';
+const TAU = Math.PI * 2, rnd = (a, b) => a + Math.random() * (b - a);
+const rgb = h => { h = h.replace('#', ''); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; };
+const rgba = (h, a) => { const [r, g, b] = rgb(h); return `rgba(${r},${g},${b},${a})`; };
+const c = $('#c'), x = c.getContext('2d'); let W = 0, H = 0, DPR = 1;
+let P, PK;
+const PAL = {
+  tinta: { bg: '#101114', ln: '#e9e6df', ac: '#d9734e' },
+  papel: { bg: '#f2eee6', ln: '#1d1d1f', ac: '#c4532f' },
+  salvia: { bg: '#dfe5dc', ln: '#2e3d33', ac: '#a07a3f' },
+  marino: { bg: '#0f1a2b', ln: '#cfdcf0', ac: '#f2c46d' }
+};
+let sh = [];
+function rsHook() {
+  const m = Math.min(W, H); sh = [];
+  for (let i = 0; i < 16; i++) { const left = i % 2 === 0, u = left ? rnd(.02, .26) : rnd(.74, .98); sh.push({ k: ['c', 't', 's', 'a', 'l'][i % 5], x: W * u, y: H * rnd(.08, .92), r: m * rnd(.035, .11), rot: Math.random() * TAU, vr: rnd(-.12, .12), p: Math.random() * TAU, f: i === 3 || i === 10 }); }
+}
+function frame(t) {
+  x.fillStyle = P.bg; x.fillRect(0, 0, W, H);
+  x.fillStyle = rgba(P.ln, .12); const gs = 34; for (let yy = gs / 2; yy < H; yy += gs) for (let xx = gs / 2; xx < W; xx += gs) x.fillRect(xx, yy, 1.4, 1.4);
+  for (const s of sh) {
+    const yy = s.y + Math.sin(t * .25 + s.p) * 14; x.save(); x.translate(s.x, yy); x.rotate(s.rot + t * s.vr);
+    x.lineWidth = 1.3; x.strokeStyle = rgba(s.f ? P.ac : P.ln, s.f ? .9 : .55); x.fillStyle = rgba(P.ac, .18); x.beginPath();
+    if (s.k === 'c') x.arc(0, 0, s.r, 0, TAU);
+    else if (s.k === 't') { for (let i = 0; i < 3; i++) { const a = -Math.PI / 2 + i * TAU / 3; x.lineTo(Math.cos(a) * s.r, Math.sin(a) * s.r); } x.closePath(); }
+    else if (s.k === 's') x.rect(-s.r * .75, -s.r * .75, s.r * 1.5, s.r * 1.5);
+    else if (s.k === 'a') x.arc(0, 0, s.r, 0, Math.PI);
+    else { x.moveTo(-s.r, 0); x.lineTo(s.r, 0); }
+    if (s.f) x.fill(); x.stroke(); x.restore();
+  }
+}
+function setPal(k) { PK = k; P = PAL[k]; if (typeof palHook === 'function') palHook(); }
+const P0 = PAL[Q.get('p')] ? Q.get('p') : 'tinta'; setPal(P0);
+function rs() { DPR = Math.min(window.devicePixelRatio || 1, 1.5); W = innerWidth; H = innerHeight; c.width = Math.round(W * DPR); c.height = Math.round(H * DPR); x.setTransform(DPR, 0, 0, DPR, 0, 0); if (typeof rsHook === 'function') rsHook(); }
+addEventListener('resize', rs); rs();
+let last = performance.now();
+(function loop(t) { const dt = Math.min(50, t - last) / 1000; last = t; if (!document.hidden) frame(t / 1000, dt); requestAnimationFrame(loop); })(last);
+</script>
+<script>var SW = { pal: PAL, cur: P0, set: setPal, dots: k => [PAL[k].bg, PAL[k].ln, PAL[k].ac], names: EN ? {"tinta": "ink", "papel": "paper", "salvia": "sage", "marino": "navy"} : {} };</script>
+<button class="swc" id="swc" type="button" aria-label="Cambiar color"><span></span></button><div class="swn" id="swn"></div>
+<style>
+.swc{position:fixed;right:14px;bottom:14px;z-index:60;width:30px;height:30px;padding:3px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.25);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);cursor:pointer;opacity:.6;transition:opacity .25s,transform .4s}
+.swc:hover{opacity:1;transform:rotate(120deg)}
+.swc span{display:block;width:100%;height:100%;border-radius:50%;background:conic-gradient(var(--sw1),var(--sw2),var(--sw3),var(--sw1))}
+.swn{position:fixed;right:52px;bottom:19px;z-index:60;font:500 10px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:#fff;padding:5px 9px;border-radius:999px;background:rgba(0,0,0,.4);opacity:0;transform:translateX(6px);transition:all .3s;pointer-events:none}
+.swn.on{opacity:1;transform:none}
+</style>
+<script>
+/* botón de color: cada visitante puede cambiar los colores solo en su pantalla (no se guarda nada) */
+(function () {
+  const Q = new URLSearchParams(location.search), b = document.getElementById('swc'), n = document.getElementById('swn');
+  if (Q.get('boton') === '0') { b.remove(); n.remove(); return; }
+  const L = Object.keys(SW.pal); let i = Math.max(0, L.indexOf(SW.cur)), t;
+  const dot = k => { const c = SW.dots(k);['--sw1', '--sw2', '--sw3'].forEach((v, j) => b.style.setProperty(v, c[j % c.length])); };
+  dot(L[(i + 1) % L.length]);
+  b.addEventListener('click', e => {
+    e.stopPropagation(); i = (i + 1) % L.length; SW.set(L[i]); dot(L[(i + 1) % L.length]);
+    n.textContent = SW.names && SW.names[L[i]] || L[i]; n.classList.add('on'); clearTimeout(t); t = setTimeout(() => n.classList.remove('on'), 1400);
+  });
+  ['pointerdown', 'mousedown', 'touchstart'].forEach(ev => b.addEventListener(ev, e => e.stopPropagation()));
+})();
+</script>
+</body>
+</html>

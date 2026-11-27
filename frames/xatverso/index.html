@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>xatverso · xatframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* xatverso — xatframe. ?p= colores, ?boton=0 oculta el botón de color */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;user-select:none;-webkit-user-select:none}
+canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
+.lay{position:fixed;inset:0;pointer-events:none}
+.bub{position:absolute;left:0;top:0;pointer-events:auto;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.35),rgba(255,255,255,.06) 45%,rgba(255,255,255,.02) 70%);box-shadow:inset 0 0 14px rgba(255,255,255,.15),0 6px 18px rgba(0,0,0,.25);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);display:grid;place-items:center;cursor:pointer;padding:0;transition:scale .35s,opacity .35s}
+.bub img{width:62%;height:62%;object-fit:contain;pointer-events:none}
+.bub.pop{scale:1.35;opacity:0}
+.toast{position:fixed;left:18px;bottom:16px;padding:7px 14px;border-radius:999px;background:rgba(0,0,0,.6);color:#fff;font:600 12px 'Outfit',system-ui,sans-serif;opacity:0;transform:translateY(6px);transition:opacity .25s,transform .25s;pointer-events:none;z-index:70}
+.toast.on{opacity:1;transform:none}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="lay" id="lay"></div><div class="toast" id="toast"></div>
+<script>
+const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s);
+const EN = Q.get('lang') ? Q.get('lang') === 'en' : !/^es\b/i.test(navigator.language || 'es'), L = (es, en) => EN ? en : es; document.documentElement.lang = EN ? 'en' : 'es';
+const TAU = Math.PI * 2, rnd = (a, b) => a + Math.random() * (b - a);
+const rgb = h => { h = h.replace('#', ''); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; };
+const rgba = (h, a) => { const [r, g, b] = rgb(h); return `rgba(${r},${g},${b},${a})`; };
+const c = $('#c'), x = c.getContext('2d'); let W = 0, H = 0, DPR = 1;
+let P, PK;
+const PAL = { violeta: { s1: '#0c0620', s2: '#24104a', g: '#b06bff', g2: '#5fd4ff' }, azul: { s1: '#050b1f', s2: '#0f2357', g: '#4f8bff', g2: '#8ff0ff' }, rosa: { s1: '#170618', s2: '#3a0d36', g: '#ff6bd6', g2: '#ffd36b' }, grafito: { s1: '#0a0a0c', s2: '#1b1c22', g: '#c9ccd6', g2: '#7fd8ff' } };
+const SMI = ['smile', 'wink', 'cool', 'd', 'confused', 'mad', 'kiss', 'omg', 'redface', 'rolleyes', 'sleepy', 'hug', 'music'];
+const IMG = c => `https://s0.xat.com/web_gear/chat/GetStrip8.php?c=a_(${encodeURIComponent(c)})_80`;
+let pool = SMI.slice(), bubs = [], msgs = [], pix = [];
+fetch('https://illuxat.com/api/latestpower', { cache: 'no-store' }).then(r => r.json()).then(j => { const s = j && j.data && j.data.latest && j.data.latest.Smileys; if (Array.isArray(s)) pool = pool.concat(s.filter(v => /^[a-z0-9]+$/i.test(v)).slice(0, 8)); }).catch(() => { });
+const lay = document.getElementById('lay');
+function mkBubble(i) {
+  const el = document.createElement('button'); el.type = 'button'; el.className = 'bub'; const im = document.createElement('img'); im.alt = ''; el.appendChild(im); lay.appendChild(el);
+  const b = { el, im, i, code: '', ph: Math.random() * TAU }; setSm(b); el.addEventListener('click', e => { e.stopPropagation(); pop(b); }); return b;
+}
+function setSm(b) { b.code = pool[Math.random() * pool.length | 0]; b.im.src = IMG(b.code); }
+function pop(b) { b.el.classList.add('pop'); copy('(' + b.code + ')'); setTimeout(() => { setSm(b); b.el.classList.remove('pop'); }, 420); }
+function copy(txt) {
+  const ok = () => toast(L('Copiado ', 'Copied ') + txt), fb = () => { const t = document.createElement('textarea'); t.value = txt; t.style.cssText = 'position:fixed;left:-9999px;opacity:0'; document.body.appendChild(t); t.select(); let d = false; try { d = document.execCommand('copy'); } catch (e) { } t.remove(); d ? ok() : toast(txt); };
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(txt).then(ok, fb); else fb();
+}
+function toast(t) { const e = document.getElementById('toast'); e.textContent = t; e.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove('on'), 1400); }
+for (let i = 0; i < 10; i++) bubs.push(mkBubble(i));
+document.addEventListener('error', e => { const t = e.target; if (t && t.tagName === 'IMG' && t.parentNode && t.parentNode.classList.contains('bub')) { const b = bubs.find(q => q.im === t); if (b) { pool = pool.filter(v => v !== b.code); if (pool.length) setSm(b); } } }, true);
+function rsHook() {
+  const S = Math.max(150, (W - 728) / 2), sz = Math.max(46, Math.min(74, S * .2));
+  bubs.forEach((b, i) => { const left = i % 2 === 0, row = i >> 1; b.bx = left ? S * (.22 + (row % 2) * .4) : W - S * (.22 + (row % 2) * .4); b.by = H * (.14 + row * .17); b.sz = sz; b.el.style.width = b.el.style.height = sz + 'px'; });
+  msgs = Array.from({ length: 6 }, (_, i) => ({ x: i % 2 ? rnd(12, S - 120) : W - rnd(120, S - 12), y: Math.random() * H, w: rnd(70, 120), v: rnd(10, 22), dots: Math.random() < .5 }));
+  pix = Array.from({ length: Math.round(W * H / 12000) }, () => ({ x: Math.random() * W | 0, y: Math.random() * H * .62 | 0, s: Math.random() < .8 ? 2 : 3, p: Math.random() * TAU }));
+}
+function rr(x0, y0, w, h, r) { x.beginPath(); x.moveTo(x0 + r, y0); x.arcTo(x0 + w, y0, x0 + w, y0 + h, r); x.arcTo(x0 + w, y0 + h, x0, y0 + h, r); x.arcTo(x0, y0 + h, x0, y0, r); x.arcTo(x0, y0, x0 + w, y0, r); x.closePath(); }
+function frame(t, dt) {
+  const hz = H * .7; let g = x.createLinearGradient(0, 0, 0, hz); g.addColorStop(0, P.s1); g.addColorStop(1, P.s2); x.fillStyle = g; x.fillRect(0, 0, W, hz);
+  for (const p of pix) { x.fillStyle = rgba(p.s > 2 ? P.g2 : '#ffffff', .25 + .4 * (.5 + .5 * Math.sin(t * 1.2 + p.p))); x.fillRect(p.x, p.y, p.s, p.s); }
+  g = x.createLinearGradient(0, hz, 0, H); g.addColorStop(0, P.s2); g.addColorStop(1, P.s1); x.fillStyle = g; x.fillRect(0, hz, W, H - hz);
+  x.strokeStyle = rgba(P.g, .35); x.lineWidth = 1; const off = (t * .2) % 1; for (let i = 0; i < 10; i++) { const z = (i + off) / 10, yy = hz + (H - hz) * z * z; x.globalAlpha = z; x.beginPath(); x.moveTo(0, yy); x.lineTo(W, yy); x.stroke(); } x.globalAlpha = .45; for (let i = -14; i <= 14; i++) { x.beginPath(); x.moveTo(W / 2 + i * W * .03, hz); x.lineTo(W / 2 + i * W * .2, H); x.stroke(); } x.globalAlpha = 1;
+  for (const m of msgs) { m.y -= m.v * dt; if (m.y < -40) { m.y = H + 40; } const a = Math.min(1, m.y / (H * .3)) * .9; x.globalAlpha = Math.max(0, a); x.fillStyle = 'rgba(255,255,255,.08)'; x.strokeStyle = rgba(P.g, .5); rr(m.x, m.y, m.w, 26, 12); x.fill(); x.stroke(); if (m.dots) for (let k = 0; k < 3; k++) { x.fillStyle = rgba(P.g2, .4 + .5 * Math.max(0, Math.sin(t * 5 - k))); x.beginPath(); x.arc(m.x + 18 + k * 12, m.y + 13, 3, 0, TAU); x.fill(); } else { x.fillStyle = rgba('#ffffff', .35); x.fillRect(m.x + 12, m.y + 9, m.w * .55, 3); x.fillRect(m.x + 12, m.y + 15, m.w * .35, 3); } } x.globalAlpha = 1;
+  for (const b of bubs) { const yy = b.by + Math.sin(t * .9 + b.ph) * 10; b.el.style.transform = `translate(${b.bx - b.sz / 2}px, ${yy - b.sz / 2}px)`; }
+}
+function setPal(k) { PK = k; P = PAL[k]; if (typeof palHook === 'function') palHook(); }
+const P0 = PAL[Q.get('p')] ? Q.get('p') : 'violeta'; setPal(P0);
+function rs() { DPR = Math.min(window.devicePixelRatio || 1, 1.5); W = innerWidth; H = innerHeight; c.width = Math.round(W * DPR); c.height = Math.round(H * DPR); x.setTransform(DPR, 0, 0, DPR, 0, 0); if (typeof rsHook === 'function') rsHook(); }
+addEventListener('resize', rs); rs();
+let last = performance.now();
+(function loop(t) { const dt = Math.min(50, t - last) / 1000; last = t; if (!document.hidden) frame(t / 1000, dt); requestAnimationFrame(loop); })(last);
+</script>
+<script>var SW = { pal: PAL, cur: P0, set: setPal, dots: k => [PAL[k].g, PAL[k].g2, PAL[k].s2], names: EN ? {"violeta": "violet", "azul": "blue", "rosa": "pink", "grafito": "graphite"} : {} };</script>
+<button class="swc" id="swc" type="button" aria-label="Cambiar color"><span></span></button><div class="swn" id="swn"></div>
+<style>
+.swc{position:fixed;right:14px;bottom:14px;z-index:60;width:30px;height:30px;padding:3px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.25);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);cursor:pointer;opacity:.6;transition:opacity .25s,transform .4s}
+.swc:hover{opacity:1;transform:rotate(120deg)}
+.swc span{display:block;width:100%;height:100%;border-radius:50%;background:conic-gradient(var(--sw1),var(--sw2),var(--sw3),var(--sw1))}
+.swn{position:fixed;right:52px;bottom:19px;z-index:60;font:500 10px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:#fff;padding:5px 9px;border-radius:999px;background:rgba(0,0,0,.4);opacity:0;transform:translateX(6px);transition:all .3s;pointer-events:none}
+.swn.on{opacity:1;transform:none}
+</style>
+<script>
+/* botón de color: cada visitante puede cambiar los colores solo en su pantalla (no se guarda nada) */
+(function () {
+  const Q = new URLSearchParams(location.search), b = document.getElementById('swc'), n = document.getElementById('swn');
+  if (Q.get('boton') === '0') { b.remove(); n.remove(); return; }
+  const L = Object.keys(SW.pal); let i = Math.max(0, L.indexOf(SW.cur)), t;
+  const dot = k => { const c = SW.dots(k);['--sw1', '--sw2', '--sw3'].forEach((v, j) => b.style.setProperty(v, c[j % c.length])); };
+  dot(L[(i + 1) % L.length]);
+  b.addEventListener('click', e => {
+    e.stopPropagation(); i = (i + 1) % L.length; SW.set(L[i]); dot(L[(i + 1) % L.length]);
+    n.textContent = SW.names && SW.names[L[i]] || L[i]; n.classList.add('on'); clearTimeout(t); t = setTimeout(() => n.classList.remove('on'), 1400);
+  });
+  ['pointerdown', 'mousedown', 'touchstart'].forEach(ev => b.addEventListener(ev, e => e.stopPropagation()));
+})();
+</script>
+</body>
+</html>

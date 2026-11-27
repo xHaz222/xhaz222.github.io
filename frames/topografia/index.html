@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Topografía · xatframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Topografía — xatframe. ?p= colores, ?boton=0 oculta el botón de color */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;user-select:none;-webkit-user-select:none}
+canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
+
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<script>
+const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s);
+const EN = Q.get('lang') ? Q.get('lang') === 'en' : !/^es\b/i.test(navigator.language || 'es'), L = (es, en) => EN ? en : es; document.documentElement.lang = EN ? 'en' : 'es';
+const TAU = Math.PI * 2, rnd = (a, b) => a + Math.random() * (b - a);
+const rgb = h => { h = h.replace('#', ''); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; };
+const rgba = (h, a) => { const [r, g, b] = rgb(h); return `rgba(${r},${g},${b},${a})`; };
+const c = $('#c'), x = c.getContext('2d'); let W = 0, H = 0, DPR = 1;
+let P, PK;
+const NP = new Uint8Array(512); { const p = [...Array(256).keys()]; for (let i = 255; i > 0; i--) { const j = Math.random() * (i + 1) | 0;[p[i], p[j]] = [p[j], p[i]]; } for (let i = 0; i < 512; i++) NP[i] = p[i & 255]; }
+const fade = t => t * t * (3 - 2 * t), lerp = (a, b, t) => a + (b - a) * t;
+function n3(xx, yy, zz) {
+  const X = Math.floor(xx) & 255, Y = Math.floor(yy) & 255, Z = Math.floor(zz) & 255; xx -= Math.floor(xx); yy -= Math.floor(yy); zz -= Math.floor(zz);
+  const u = fade(xx), v = fade(yy), w = fade(zz), h = (a, b, c) => NP[NP[NP[a] + b] + c] / 255;
+  return lerp(lerp(lerp(h(X, Y, Z), h(X + 1, Y, Z), u), lerp(h(X, Y + 1, Z), h(X + 1, Y + 1, Z), u), v), lerp(lerp(h(X, Y, Z + 1), h(X + 1, Y, Z + 1), u), lerp(h(X, Y + 1, Z + 1), h(X + 1, Y + 1, Z + 1), u), v), w);
+}
+
+const PAL = { grafito: { bg: '#0b0b0d', ln: '#e8e8e8', hi: '#ffffff' }, papel: { bg: '#efebe3', ln: '#2a2a2a', hi: '#000000' }, oro: { bg: '#0d0b08', ln: '#d9b56a', hi: '#ffe2a6' }, verde: { bg: '#0a120e', ln: '#8fd1a8', hi: '#d9ffe8' } };
+let cs = 12, gw = 0, gh = 0, F = null, acc = 1;
+function rsHook() { cs = Math.max(10, Math.round(W / 150)); gw = Math.ceil(W / cs) + 1; gh = Math.ceil(H / cs) + 1; F = new Float32Array(gw * gh); acc = 1; }
+function frame(t, dt) {
+  acc += dt; if (acc < 1 / 24) return; acc = 0;
+  for (let j = 0; j < gh; j++) for (let i = 0; i < gw; i++) F[j * gw + i] = n3(i * cs / 260, j * cs / 260, t * .04) * .7 + n3(i * cs / 90, j * cs / 90, t * .05 + 9) * .3;
+  x.fillStyle = P.bg; x.fillRect(0, 0, W, H);
+  const LV = 16;
+  for (let l = 1; l < LV; l++) {
+    const th = l / LV; x.beginPath();
+    for (let j = 0; j < gh - 1; j++) for (let i = 0; i < gw - 1; i++) {
+      const a = F[j * gw + i], b = F[j * gw + i + 1], c2 = F[(j + 1) * gw + i + 1], d = F[(j + 1) * gw + i];
+      const k = (a > th ? 8 : 0) | (b > th ? 4 : 0) | (c2 > th ? 2 : 0) | (d > th ? 1 : 0); if (k === 0 || k === 15) continue;
+      const X0 = i * cs, Y0 = j * cs, it = (p, q) => (th - p) / (q - p);
+      const T = [X0 + cs * it(a, b), Y0], R = [X0 + cs, Y0 + cs * it(b, c2)], B = [X0 + cs * it(d, c2), Y0 + cs], Lf = [X0, Y0 + cs * it(a, d)];
+      const seg = (p, q) => { x.moveTo(p[0], p[1]); x.lineTo(q[0], q[1]); };
+      switch (k) { case 1: case 14: seg(Lf, B); break; case 2: case 13: seg(B, R); break; case 3: case 12: seg(Lf, R); break; case 4: case 11: seg(T, R); break; case 5: seg(Lf, T); seg(B, R); break; case 6: case 9: seg(T, B); break; case 7: case 8: seg(Lf, T); break; case 10: seg(T, R); seg(Lf, B); break; }
+    }
+    const major = l % 4 === 0; x.strokeStyle = rgba(major ? P.hi : P.ln, major ? .7 : .28); x.lineWidth = major ? 1.3 : .8; x.stroke();
+  }
+}
+function setPal(k) { PK = k; P = PAL[k]; if (typeof palHook === 'function') palHook(); }
+const P0 = PAL[Q.get('p')] ? Q.get('p') : 'grafito'; setPal(P0);
+function rs() { DPR = Math.min(window.devicePixelRatio || 1, 1.5); W = innerWidth; H = innerHeight; c.width = Math.round(W * DPR); c.height = Math.round(H * DPR); x.setTransform(DPR, 0, 0, DPR, 0, 0); if (typeof rsHook === 'function') rsHook(); }
+addEventListener('resize', rs); rs();
+let last = performance.now();
+(function loop(t) { const dt = Math.min(50, t - last) / 1000; last = t; if (!document.hidden) frame(t / 1000, dt); requestAnimationFrame(loop); })(last);
+</script>
+<script>var SW = { pal: PAL, cur: P0, set: setPal, dots: k => [PAL[k].bg, PAL[k].ln, PAL[k].hi], names: EN ? {"grafito": "graphite", "papel": "paper", "oro": "gold", "verde": "green"} : {"grafito": "grafito"} };</script>
+<button class="swc" id="swc" type="button" aria-label="Cambiar color"><span></span></button><div class="swn" id="swn"></div>
+<style>
+.swc{position:fixed;right:14px;bottom:14px;z-index:60;width:30px;height:30px;padding:3px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.25);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);cursor:pointer;opacity:.6;transition:opacity .25s,transform .4s}
+.swc:hover{opacity:1;transform:rotate(120deg)}
+.swc span{display:block;width:100%;height:100%;border-radius:50%;background:conic-gradient(var(--sw1),var(--sw2),var(--sw3),var(--sw1))}
+.swn{position:fixed;right:52px;bottom:19px;z-index:60;font:500 10px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:#fff;padding:5px 9px;border-radius:999px;background:rgba(0,0,0,.4);opacity:0;transform:translateX(6px);transition:all .3s;pointer-events:none}
+.swn.on{opacity:1;transform:none}
+</style>
+<script>
+/* botón de color: cada visitante puede cambiar los colores solo en su pantalla (no se guarda nada) */
+(function () {
+  const Q = new URLSearchParams(location.search), b = document.getElementById('swc'), n = document.getElementById('swn');
+  if (Q.get('boton') === '0') { b.remove(); n.remove(); return; }
+  const L = Object.keys(SW.pal); let i = Math.max(0, L.indexOf(SW.cur)), t;
+  const dot = k => { const c = SW.dots(k);['--sw1', '--sw2', '--sw3'].forEach((v, j) => b.style.setProperty(v, c[j % c.length])); };
+  dot(L[(i + 1) % L.length]);
+  b.addEventListener('click', e => {
+    e.stopPropagation(); i = (i + 1) % L.length; SW.set(L[i]); dot(L[(i + 1) % L.length]);
+    n.textContent = SW.names && SW.names[L[i]] || L[i]; n.classList.add('on'); clearTimeout(t); t = setTimeout(() => n.classList.remove('on'), 1400);
+  });
+  ['pointerdown', 'mousedown', 'touchstart'].forEach(ev => b.addEventListener(ev, e => e.stopPropagation()));
+})();
+</script>
+</body>
+</html>

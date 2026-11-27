@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Niebla · xatframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/* Niebla — xatframe. ?p= colores, ?boton=0 oculta el botón de color */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;user-select:none;-webkit-user-select:none}
+canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
+
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<script>
+const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s);
+const EN = Q.get('lang') ? Q.get('lang') === 'en' : !/^es\b/i.test(navigator.language || 'es'), L = (es, en) => EN ? en : es; document.documentElement.lang = EN ? 'en' : 'es';
+const TAU = Math.PI * 2, rnd = (a, b) => a + Math.random() * (b - a);
+const rgb = h => { h = h.replace('#', ''); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; };
+const rgba = (h, a) => { const [r, g, b] = rgb(h); return `rgba(${r},${g},${b},${a})`; };
+const c = $('#c'), x = c.getContext('2d'); let W = 0, H = 0, DPR = 1;
+let P, PK;
+const PAL = { gris: { sky: '#cfd2d4', near: '#141719', fog: '#e9ebec' }, musgo: { sky: '#c6cec4', near: '#111813', fog: '#e4e9e1' }, azul: { sky: '#b6c3d1', near: '#0d141c', fog: '#dfe7ef' }, noche: { sky: '#151a22', near: '#040507', fog: '#4a5361' } };
+const DEP = [[.5, .25, 1.6, .1, .2], [.6, .4, 1.3, .14, .26], [.71, .55, 1.1, .2, .34], [.84, .75, .95, .26, .44], [1.02, 1, .8, .34, .6]];
+let layers = [], fog = [];
+function trees(base, hmin, hmax, sd, edgeOnly) { const out = []; let xx = rnd(-30, 0); while (xx < W + 30) { const h = rnd(hmin, hmax), w = h * rnd(.24, .32); if (!edgeOnly || xx < W * .3 || xx > W * .7) out.push({ x: xx, h, w, b: base + rnd(-8, 8) }); xx += w * rnd(.6, 1.4) * sd; } return out; }
+function rsHook() { layers = DEP.map(([b, , sd, h0, h1], i) => trees(H * b, H * h0, H * h1, sd, i === 4)); fog = Array.from({ length: 6 }, (_, i) => ({ y: H * (.48 + i * .09), h: H * rnd(.06, .1), x: Math.random() * W, v: rnd(5, 12) * (i % 2 ? 1 : -1), a: rnd(.35, .6) })); }
+const mix = (a, b, k) => { const A = rgb(a), B = rgb(b); return `rgb(${A.map((v, i) => Math.round(v + (B[i] - v) * k)).join(',')})`; };
+function pine(tr, col) { x.fillStyle = col; x.beginPath(); const tiers = 7; for (let k = 0; k < tiers; k++) { const y0 = tr.b - tr.h + tr.h * k / tiers * .92, y1 = tr.b - tr.h + tr.h * (k + 1.7) / tiers * .92, ww = tr.w * (k + 1.2) / tiers; x.moveTo(tr.x, y0); x.lineTo(tr.x + ww / 2, y1); x.lineTo(tr.x - ww / 2, y1); x.closePath(); } x.fill(); x.fillRect(tr.x - tr.w * .035, tr.b - tr.h * .12, tr.w * .07, tr.h * .12 + 12); }
+function frame(t, dt) {
+  let g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, P.sky); g.addColorStop(.7, P.fog); x.fillStyle = g; x.fillRect(0, 0, W, H);
+  g = x.createRadialGradient(W * .72, H * .22, 0, W * .72, H * .22, H * .55); g.addColorStop(0, rgba(P.fog, .9)); g.addColorStop(1, rgba(P.fog, 0)); x.fillStyle = g; x.fillRect(0, 0, W, H);
+  layers.forEach((L, i) => {
+    const col = mix(P.fog, P.near, DEP[i][1]); for (const tr of L) pine(tr, col);
+    if (i < 4) { const b = H * DEP[i][0]; g = x.createLinearGradient(0, b - H * .2, 0, b + H * .04); g.addColorStop(0, rgba(P.fog, 0)); g.addColorStop(1, rgba(P.fog, .75)); x.fillStyle = g; x.fillRect(0, b - H * .2, W, H * .24); x.fillStyle = rgba(P.fog, .75); x.fillRect(0, b + H * .04, W, H); }
+    const f = fog[i]; if (f) { f.x += f.v * dt; const fx = ((f.x % (W * 1.5)) + W * 1.5) % (W * 1.5) - W * .25; g = x.createLinearGradient(0, f.y - f.h, 0, f.y + f.h); g.addColorStop(0, rgba(P.fog, 0)); g.addColorStop(.5, rgba(P.fog, f.a)); g.addColorStop(1, rgba(P.fog, 0)); x.fillStyle = g; x.fillRect(fx - W * .5, f.y - f.h, W, f.h * 2); x.fillRect(fx + W * .7, f.y - f.h, W * .6, f.h * 2); }
+  });
+}
+function setPal(k) { PK = k; P = PAL[k]; if (typeof palHook === 'function') palHook(); }
+const P0 = PAL[Q.get('p')] ? Q.get('p') : 'gris'; setPal(P0);
+function rs() { DPR = Math.min(window.devicePixelRatio || 1, 1.5); W = innerWidth; H = innerHeight; c.width = Math.round(W * DPR); c.height = Math.round(H * DPR); x.setTransform(DPR, 0, 0, DPR, 0, 0); if (typeof rsHook === 'function') rsHook(); }
+addEventListener('resize', rs); rs();
+let last = performance.now();
+(function loop(t) { const dt = Math.min(50, t - last) / 1000; last = t; if (!document.hidden) frame(t / 1000, dt); requestAnimationFrame(loop); })(last);
+</script>
+<script>var SW = { pal: PAL, cur: P0, set: setPal, dots: k => [PAL[k].sky, PAL[k].near, PAL[k].fog], names: EN ? {"gris": "gray", "musgo": "moss", "azul": "blue", "noche": "night"} : {} };</script>
+<button class="swc" id="swc" type="button" aria-label="Cambiar color"><span></span></button><div class="swn" id="swn"></div>
+<style>
+.swc{position:fixed;right:14px;bottom:14px;z-index:60;width:30px;height:30px;padding:3px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.25);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);cursor:pointer;opacity:.6;transition:opacity .25s,transform .4s}
+.swc:hover{opacity:1;transform:rotate(120deg)}
+.swc span{display:block;width:100%;height:100%;border-radius:50%;background:conic-gradient(var(--sw1),var(--sw2),var(--sw3),var(--sw1))}
+.swn{position:fixed;right:52px;bottom:19px;z-index:60;font:500 10px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:#fff;padding:5px 9px;border-radius:999px;background:rgba(0,0,0,.4);opacity:0;transform:translateX(6px);transition:all .3s;pointer-events:none}
+.swn.on{opacity:1;transform:none}
+</style>
+<script>
+/* botón de color: cada visitante puede cambiar los colores solo en su pantalla (no se guarda nada) */
+(function () {
+  const Q = new URLSearchParams(location.search), b = document.getElementById('swc'), n = document.getElementById('swn');
+  if (Q.get('boton') === '0') { b.remove(); n.remove(); return; }
+  const L = Object.keys(SW.pal); let i = Math.max(0, L.indexOf(SW.cur)), t;
+  const dot = k => { const c = SW.dots(k);['--sw1', '--sw2', '--sw3'].forEach((v, j) => b.style.setProperty(v, c[j % c.length])); };
+  dot(L[(i + 1) % L.length]);
+  b.addEventListener('click', e => {
+    e.stopPropagation(); i = (i + 1) % L.length; SW.set(L[i]); dot(L[(i + 1) % L.length]);
+    n.textContent = SW.names && SW.names[L[i]] || L[i]; n.classList.add('on'); clearTimeout(t); t = setTimeout(() => n.classList.remove('on'), 1400);
+  });
+  ['pointerdown', 'mousedown', 'touchstart'].forEach(ev => b.addEventListener(ev, e => e.stopPropagation()));
+})();
+</script>
+</body>
+</html>
