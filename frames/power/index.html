@@ -104,7 +104,7 @@ function loadPower() {
   fetch('https://illuxat.com/api/latestpower', { cache: 'no-store' }).then(r => r.json()).then(j => {
     const L = j && j.data && j.data.latest; if (!L) return;
     const smi = (L.Smileys || []).filter(s => /^[a-z0-9]+$/i.test(s));
-    $('#ic').dataset.name = L.Name; delete $('#ic').dataset.f; $('#ic').src = SM(smi[0] || L.Name);
+    $('#ic').dataset.name = L.Name; $('#ic').dataset.f = ''; $('#ic').src = SM(smi[0] || L.Name);
     $('#nm').textContent = L.Name; $('#st').textContent = ST[L.StoreStatus] || ST[L.Status] || L.Status || '';
     $('#ds').textContent = String((L.Descriptions && (L.Descriptions.shortDescription || L.Descriptions.longDescription)) || '').replace(/\$WIKI\.?/g, '').trim();
     const P = L.Prices || {}; $('#ps').textContent = P.store || '—'; $('#px').textContent = P.xats ? P.xats + ' xats' : '—'; $('#pd').textContent = P.days || '—'; $('#pi').textContent = L.Id || '—';
@@ -181,7 +181,7 @@ function render() {
     const list = [];
     if (LATEST) for (const [k, n] of Object.entries(LATEST.pawns)) list.push([k, n, LATEST.name]);
     for (const [k, v] of Object.entries(ACTIVE)) if (v && v.name && !list.some(x => x[0] === k)) list.push([k, v.name, v.power || '']);
-    const f = q ? list.filter(([k, n, pw]) => pw.toLowerCase().includes(q) || n.toLowerCase().includes(q) || k.toLowerCase().includes(q)) : list.filter(x => LATEST && x[2] === LATEST.name).concat(list.filter(x => !LATEST || x[2] !== LATEST.name)).slice(0, 12);
+    const f = q ? list.filter(([k, n, pw]) => pw.toLowerCase().includes(q) || n.toLowerCase().includes(q) || k.toLowerCase().includes(q)) : [...list.filter(x => LATEST && x[2] === LATEST.name), ...list.filter(x => !LATEST || x[2] !== LATEST.name)].slice(0, 12);
     f.length ? box.innerHTML = '<div class="grid">' + f.slice(0, 36).map(([k, n, pw]) => cell(SM(n), `(hat#${k})`, pw)).join('') + '</div>' : empty();
   } else {
     box.innerHTML = `<p class="empty">${L('Cargando precios…', 'Loading prices…')}</p>`;
@@ -211,7 +211,7 @@ loadPower(); loadCountdown(); setInterval(tick, 1000); setInterval(() => { loadP
 </style>
 <script>
 /* botón de color: cada visitante puede cambiar los colores solo en su pantalla (no se guarda nada) */
-(function () {
+function swInit() {
   const Q = new URLSearchParams(location.search), b = document.getElementById('swc'), n = document.getElementById('swn');
   if (Q.get('boton') === '0') { b.remove(); n.remove(); return; }
   const L = Object.keys(SW.pal); let i = Math.max(0, L.indexOf(SW.cur)), t;
@@ -222,7 +222,8 @@ loadPower(); loadCountdown(); setInterval(tick, 1000); setInterval(() => { loadP
     n.textContent = SW.names && SW.names[L[i]] || L[i]; n.classList.add('on'); clearTimeout(t); t = setTimeout(() => n.classList.remove('on'), 1400);
   });
   ['pointerdown', 'mousedown', 'touchstart'].forEach(ev => b.addEventListener(ev, e => e.stopPropagation()));
-})();
+}
+swInit();
 </script>
 </body>
 </html>

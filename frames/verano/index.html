@@ -61,7 +61,8 @@ function frame(t) {
   x.globalAlpha = 1;
 }
 addEventListener('resize', size); size();
-(function loop(t) { x.clearRect(0, 0, W, H); frame(t || 0); requestAnimationFrame(loop); })();
+function loop(t) { x.clearRect(0, 0, W, H); frame(t || 0); requestAnimationFrame(loop); }
+loop();
 </script>
 <div class="sig fx">xHaz Frame Design</div>
 </body>

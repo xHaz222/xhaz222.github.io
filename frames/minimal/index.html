@@ -18,7 +18,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .blobs i:nth-child(2){width:45vw;height:45vw;right:0;top:35%;background:var(--b);animation-duration:34s;animation-delay:-8s}
 .blobs i:nth-child(3){width:30vw;height:30vw;left:40%;top:60%;background:var(--c);opacity:.55;animation-duration:40s;animation-delay:-16s}
 @keyframes mv{0%{transform:translate(0,0) scale(1)}50%{transform:translate(8vw,-6vh) scale(1.12)}100%{transform:translate(-6vw,5vh) scale(.92)}}
-.grain{position:fixed;inset:0;opacity:.07;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.grain{position:fixed;inset:0;opacity:.07;mix-blend-mode:overlay;background-image:radial-gradient(rgba(255,255,255,.55) .6px,transparent .9px),radial-gradient(rgba(0,0,0,.5) .6px,transparent .9px);background-size:3px 3px,5px 5px;background-position:0 0,1px 2px}
 .vig{position:fixed;inset:0;background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.45))}
 .lines{position:fixed;inset:0;opacity:.06;background-image:linear-gradient(var(--tx) 1px,transparent 1px);background-size:100% 64px}
 .title{position:fixed;left:3vw;bottom:5vh}
@@ -63,7 +63,7 @@ tick(); setInterval(tick, 10000);
 </style>
 <script>
 /* botón de color: cada visitante puede cambiar los colores solo en su pantalla (no se guarda nada) */
-(function () {
+function swInit() {
   const Q = new URLSearchParams(location.search), b = document.getElementById('swc'), n = document.getElementById('swn');
   if (Q.get('boton') === '0') { b.remove(); n.remove(); return; }
   const L = Object.keys(SW.pal); let i = Math.max(0, L.indexOf(SW.cur)), t;
@@ -74,7 +74,8 @@ tick(); setInterval(tick, 10000);
     n.textContent = SW.names && SW.names[L[i]] || L[i]; n.classList.add('on'); clearTimeout(t); t = setTimeout(() => n.classList.remove('on'), 1400);
   });
   ['pointerdown', 'mousedown', 'touchstart'].forEach(ev => b.addEventListener(ev, e => e.stopPropagation()));
-})();
+}
+swInit();
 </script>
 <div class="sig fx">xHaz Frame Design</div>
 </body>

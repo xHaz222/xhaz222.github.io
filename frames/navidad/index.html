@@ -161,14 +161,15 @@ let AC; function jingle() { try { AC = AC || new (window.AudioContext || window.
 const cv = $('#c'), x = cv.getContext('2d'); let W, H, F = [], P = [];
 function size() { const d = Math.min(devicePixelRatio || 1, 1.5); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); F = Array.from({ length: Math.round(Math.min(170, W * H / 9000)) }, () => ({ x: Math.random() * W, y: Math.random() * H, r: .8 + Math.random() * 2.4, v: .3 + Math.random() * .9, p: Math.random() * 6 })); }
 function burst(g) { const r = g.getBoundingClientRect(); for (let i = 0; i < 34; i++) { const a = -Math.PI / 2 + (Math.random() - .5) * 2.2, v = 2 + Math.random() * 4; P.push({ x: r.left + r.width / 2, y: r.top + r.height * .4, vx: Math.cos(a) * v, vy: Math.sin(a) * v, c: ['#d6b06a', '#f4ead7', '#7a1f2e', '#3f6d63'][i % 4], t: 0, s: 3 + Math.random() * 4, rot: Math.random() * 6 }); } }
-(function loop() {
+function loop() {
   x.clearRect(0, 0, W, H);
   x.fillStyle = 'rgba(255,255,255,.85)';
   for (const f of F) { f.p += .012; f.y += f.v; f.x += Math.sin(f.p) * .35; if (f.y > H + 5) { f.y = -5; f.x = Math.random() * W; } x.globalAlpha = .45 + f.r / 5; x.beginPath(); x.arc(f.x, f.y, f.r, 0, 6.283); x.fill(); }
   x.globalAlpha = 1;
   for (let i = P.length - 1; i >= 0; i--) { const p = P[i]; p.t++; p.vy += .12; p.x += p.vx; p.y += p.vy; p.rot += .2; if (p.t > 90) { P.splice(i, 1); continue; } x.save(); x.translate(p.x, p.y); x.rotate(p.rot); x.fillStyle = p.c; x.globalAlpha = 1 - p.t / 90; x.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); x.restore(); }
   requestAnimationFrame(loop);
-})();
+}
+loop();
 addEventListener('resize', size); size();
 </script>
 <div class="sig fx">xHaz Frame Design</div>

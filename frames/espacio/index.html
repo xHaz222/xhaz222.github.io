@@ -52,13 +52,14 @@ const cv = $('#c'), x = cv.getContext('2d'); let W, H, S = [], M = [];
 function size() { const d = Math.min(devicePixelRatio || 1, 1.5); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); S = Array.from({ length: Math.round(Math.min(380, W * H / 4000)) }, () => ({ x: Math.random() * W, y: Math.random() * H, z: Math.random(), p: Math.random() * 6.28, c: Math.random() < .15 ? (Math.random() < .5 ? '#ffd9b0' : '#b9d4ff') : '#ffffff' })); }
 function meteor(x0, y0, up) { const a = up ? -Math.PI / 2 + (Math.random() - .5) * .8 : Math.PI * (.15 + Math.random() * .2); M.push({ x: x0, y: y0, vx: Math.cos(a) * 9, vy: Math.sin(a) * 9, t: 0 }); }
 let next = 4000;
-(function loop(t) {
+function loop(t) {
   t = t || 0; x.clearRect(0, 0, W, H);
   for (const s of S) { s.p += .01 + s.z * .02; s.x -= .02 + s.z * .08; if (s.x < -2) s.x = W + 2; const a = (.35 + s.z * .65) * (.6 + .4 * Math.sin(s.p)); x.globalAlpha = a; x.fillStyle = s.c; x.beginPath(); x.arc(s.x, s.y, .4 + s.z * 1.3, 0, 6.283); x.fill(); }
   if (t > next) { meteor(Math.random() * W * .7, Math.random() * H * .3, false); next = t + 5000 + Math.random() * 7000; }
   for (let i = M.length - 1; i >= 0; i--) { const m = M[i]; m.t++; m.x += m.vx; m.y += m.vy; const k = 1 - m.t / 70; if (k <= 0) { M.splice(i, 1); continue; } const g = x.createLinearGradient(m.x, m.y, m.x - m.vx * 10, m.y - m.vy * 10); g.addColorStop(0, `rgba(255,255,255,${k})`); g.addColorStop(1, 'rgba(255,255,255,0)'); x.globalAlpha = 1; x.strokeStyle = g; x.lineWidth = 2; x.beginPath(); x.moveTo(m.x, m.y); x.lineTo(m.x - m.vx * 10, m.y - m.vy * 10); x.stroke(); }
   x.globalAlpha = 1; requestAnimationFrame(loop);
-})();
+}
+loop();
 /* abajo (zona clickeable): toca y sale una estrella fugaz */
 addEventListener('pointerdown', e => meteor(e.clientX, e.clientY, true));
 addEventListener('resize', size); size();
@@ -74,7 +75,7 @@ addEventListener('resize', size); size();
 </style>
 <script>
 /* botón de color: cada visitante puede cambiar los colores solo en su pantalla (no se guarda nada) */
-(function () {
+function swInit() {
   const Q = new URLSearchParams(location.search), b = document.getElementById('swc'), n = document.getElementById('swn');
   if (Q.get('boton') === '0') { b.remove(); n.remove(); return; }
   const L = Object.keys(SW.pal); let i = Math.max(0, L.indexOf(SW.cur)), t;
@@ -85,7 +86,8 @@ addEventListener('resize', size); size();
     n.textContent = SW.names && SW.names[L[i]] || L[i]; n.classList.add('on'); clearTimeout(t); t = setTimeout(() => n.classList.remove('on'), 1400);
   });
   ['pointerdown', 'mousedown', 'touchstart'].forEach(ev => b.addEventListener(ev, e => e.stopPropagation()));
-})();
+}
+swInit();
 </script>
 <div class="sig fx">xHaz Frame Design</div>
 </body>

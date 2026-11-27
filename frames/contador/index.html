@@ -131,7 +131,7 @@ $('#ic').addEventListener('error', () => { const ic = $('#ic'); if (!ic.dataset.
 $('#ic').addEventListener('load', () => { $('#ic').hidden = false; });
 function setIcon(name) {
   const ic = $('#ic'); if (!name) { ic.hidden = true; return; }
-  ic.dataset.name = name; delete ic.dataset.f;
+  ic.dataset.name = name; ic.dataset.f = '';
   ic.src = `https://s0.xat.com/web_gear/chat/GetStrip8.php?c=a_(${encodeURIComponent(name)})_80`;
 }
 function tick() {
@@ -154,7 +154,7 @@ load(); setInterval(tick, 1000); setInterval(load, 3 * 60 * 1000);
 </style>
 <script>
 /* botón de color: cada visitante puede cambiar los colores solo en su pantalla (no se guarda nada) */
-(function () {
+function swInit() {
   const Q = new URLSearchParams(location.search), b = document.getElementById('swc'), n = document.getElementById('swn');
   if (Q.get('boton') === '0') { b.remove(); n.remove(); return; }
   const L = Object.keys(SW.pal); let i = Math.max(0, L.indexOf(SW.cur)), t;
@@ -165,7 +165,8 @@ load(); setInterval(tick, 1000); setInterval(load, 3 * 60 * 1000);
     n.textContent = SW.names && SW.names[L[i]] || L[i]; n.classList.add('on'); clearTimeout(t); t = setTimeout(() => n.classList.remove('on'), 1400);
   });
   ['pointerdown', 'mousedown', 'touchstart'].forEach(ev => b.addEventListener(ev, e => e.stopPropagation()));
-})();
+}
+swInit();
 </script>
 </body>
 </html>

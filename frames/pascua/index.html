@@ -41,6 +41,8 @@ canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
 .pw b{display:block;font-family:'Outfit',sans-serif;font-weight:600;font-size:16px;text-transform:capitalize;line-height:1.2}
 .pw em{display:block;font-style:normal;font-family:'JetBrains Mono',monospace;font-size:11px;opacity:.85}
 .hint{position:fixed;left:50%;bottom:calc(min(24vh,190px) - 4px);transform:translateX(-50%);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.7;pointer-events:none;white-space:nowrap}
+u.ph{display:none}
+.pwi{border-radius:8px;background:#1c2133;padding:3px}
 </style>
 <style>.sig{font:500 9px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.16em;color:#fff;opacity:.32;mix-blend-mode:difference;pointer-events:none;white-space:nowrap;z-index:55}.sig.fx{position:fixed;left:16px;bottom:12px}.sig.fr{position:fixed;right:56px;bottom:22px;left:auto}.sig.in{position:absolute;left:0;right:0;bottom:-22px;text-align:center}</style>
 </head>
@@ -53,7 +55,9 @@ canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
 <script>
 const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s);
 const EN = Q.get('lang') ? Q.get('lang') === 'en' : !/^es\b/i.test(navigator.language || 'es'), L = (es, en) => EN ? en : es; document.documentElement.lang = EN ? 'en' : 'es';
-document.addEventListener('error', e => { const t = e.target; if (!t || t.tagName !== 'IMG' || !t.dataset.fb) return; const f = t.dataset.fb; if (f === 'hide') t.style.display = 'none'; else if (f === 'rmp') { if (t.parentNode) t.parentNode.remove(); } else if (f === 'ini') { const n = document.createElement(t.dataset.tag || 'div'); if (n.tagName === 'DIV') n.className = 'ini'; n.textContent = t.dataset.ini || '?'; t.replaceWith(n); } }, true);
+document.addEventListener('error', e => { const t = e.target; if (!t || t.tagName !== 'IMG' || !t.dataset.fb) return; const f = t.dataset.fb; if (f === 'hide') t.style.display = 'none'; else if (f === 'rmp') { if (t.parentElement) t.parentElement.remove(); } else if (f === 'ini') { const n = document.createElement(t.dataset.tag || 'div'); if (n.tagName === 'DIV') n.className = 'ini'; n.textContent = t.dataset.ini || '?'; t.replaceWith(n); } }, true);
+const setH = (el, s) => { el.textContent = ''; el.insertAdjacentHTML('beforeend', s); };
+function hydrate(root) { root.querySelectorAll('u.ph').forEach(u => { const m = new Image(); m.alt = ''; Object.keys(u.dataset).forEach(k => { if (k !== 's') m.dataset[k] = u.dataset[k]; }); if (u.dataset.k) m.className = u.dataset.k; u.replaceWith(m); m.src = u.dataset.s; }); }
 if (EN) document.querySelector('.hint').textContent = 'open a surprise egg';
 
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -65,15 +69,17 @@ const MSG = (Q.get('m') || L('¡Felices Pascuas!', 'Happy Easter!')).slice(0, 40
 const EGG = [['#f6d6de', '#e9a9b8'], ['#d8e8f5', '#9fc3e0'], ['#fbefc6', '#ecd27f'], ['#dcefe0', '#a6d1b2'], ['#e7dcf3', '#bda6dd'], ['#fde2cf', '#f2b48c']];
 /* flores */
 const FL = ['#f3c6d2', '#fbe7a6', '#c9b8ec', '#ffffff', '#bfe0f2'];
-const fl = [[50, 150], [100, 110], [150, 160], [200, 125], [80, 200], [180, 205]].map(([cx, cy], i) => { let p = ''; for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3; p += `<ellipse cx="${(cx + Math.cos(a) * 9).toFixed(1)}" cy="${(cy + Math.sin(a) * 9).toFixed(1)}" rx="8" ry="5" transform="rotate(${k * 60} ${(cx + Math.cos(a) * 9).toFixed(1)} ${(cy + Math.sin(a) * 9).toFixed(1)})" fill="${FL[i % FL.length]}"/>`; } return `<g style="animation-delay:${-i * .7}s"><path d="M${cx} ${cy}Q${cx + 6} ${cy + 50} ${cx - 4} 260" stroke="#8fbf98" stroke-width="3" fill="none"/>${p}<circle cx="${cx}" cy="${cy}" r="5" fill="#f2c14e"/></g>`; }).join('');
-$('#fl').innerHTML = fl; $('#fr').innerHTML = fl;
+const NS = 'http://www.w3.org/2000/svg', S = (t, a, kids) => { const n = document.createElementNS(NS, t); for (const k in a) n.setAttribute(k, a[k]); (kids || []).forEach(c => n.appendChild(c)); return n; };
+function flowers() { return [[50, 150], [100, 110], [150, 160], [200, 125], [80, 200], [180, 205]].map(([cx, cy], i) => { const kids = [S('path', { d: `M${cx} ${cy}Q${cx + 6} ${cy + 50} ${cx - 4} 260`, stroke: '#8fbf98', 'stroke-width': 3, fill: 'none' })]; for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3, px = (cx + Math.cos(a) * 9).toFixed(1), py = (cy + Math.sin(a) * 9).toFixed(1); kids.push(S('ellipse', { cx: px, cy: py, rx: 8, ry: 5, transform: `rotate(${k * 60} ${px} ${py})`, fill: FL[i % FL.length] })); } kids.push(S('circle', { cx, cy, r: 5, fill: '#f2c14e' })); const g = S('g', {}, kids); g.style.animationDelay = (-i * .7) + 's'; return g; }); }
+flowers().forEach(g => $('#fl').appendChild(g)); flowers().forEach(g => $('#fr').appendChild(g));
 /* huevitos */
 users.forEach((u, i) => {
   const [a, b] = EGG[i % EGG.length], e = document.createElement('button'); e.className = 'egg'; e.type = 'button'; e.dataset.u = u; e.dataset.i = i;
-  const deco = i % 3 === 0 ? `<path d="M10 52Q30 44 50 52T90 52" stroke="${b}" stroke-width="5" fill="none"/><path d="M12 70Q30 62 50 70T88 70" stroke="#fff" stroke-width="3" fill="none" opacity=".8"/>` : i % 3 === 1 ? `<circle cx="34" cy="56" r="5" fill="${b}"/><circle cx="58" cy="48" r="4" fill="#fff"/><circle cx="62" cy="72" r="5" fill="${b}"/><circle cx="38" cy="80" r="3.5" fill="#fff"/>` : `<path d="M14 60L30 50 46 60 62 50 78 60 88 54" stroke="${b}" stroke-width="4" fill="none"/>`;
-  e.innerHTML = `<svg viewBox="0 0 100 130"><defs><clipPath id="cb${i}"><rect x="0" y="62" width="100" height="70"/></clipPath><clipPath id="ct${i}"><path d="M0 0H100V58L88 64 76 56 64 64 52 56 40 64 28 56 16 64 0 58Z"/></clipPath></defs>
-    <g clip-path="url(#cb${i})"><ellipse cx="50" cy="70" rx="40" ry="54" fill="${a}"/></g>
-    <g class="top" clip-path="url(#ct${i})"><ellipse cx="50" cy="70" rx="40" ry="54" fill="${a}"/>${deco}</g></svg>${u ? `<span class="tag">${esc(u)}</span>` : ''}`;
+  const deco = i % 3 === 0 ? [S('path', { d: 'M10 52Q30 44 50 52T90 52', stroke: b, 'stroke-width': 5, fill: 'none' }), S('path', { d: 'M12 70Q30 62 50 70T88 70', stroke: '#fff', 'stroke-width': 3, fill: 'none', opacity: '.8' })] : i % 3 === 1 ? [S('circle', { cx: 34, cy: 56, r: 5, fill: b }), S('circle', { cx: 58, cy: 48, r: 4, fill: '#fff' }), S('circle', { cx: 62, cy: 72, r: 5, fill: b }), S('circle', { cx: 38, cy: 80, r: 3.5, fill: '#fff' })] : [S('path', { d: 'M14 60L30 50 46 60 62 50 78 60 88 54', stroke: b, 'stroke-width': 4, fill: 'none' })];
+  const shell = () => S('ellipse', { cx: 50, cy: 70, rx: 40, ry: 54, fill: a });
+  const top = S('g', { 'clip-path': `url(#ct${i})` }, [shell(), ...deco]); top.classList.add('top');
+  e.appendChild(S('svg', { viewBox: '0 0 100 130' }, [S('defs', {}, [S('clipPath', { id: 'cb' + i }, [S('rect', { x: 0, y: 62, width: 100, height: 70 })]), S('clipPath', { id: 'ct' + i }, [S('path', { d: 'M0 0H100V58L88 64 76 56 64 64 52 56 40 64 28 56 16 64 0 58Z' })])]), S('g', { 'clip-path': `url(#cb${i})` }, [shell()]), top]));
+  if (u) { const tg = document.createElement('span'); tg.className = 'tag'; tg.textContent = u; e.appendChild(tg); }
   $('#eggs').appendChild(e);
 });
 const info = {};
@@ -100,24 +106,25 @@ function powerFor(i, n) {
 }
 function powerHTML(pw) {
   if (!pw) return '';
-  return `<div class="pw"><img src="https://xat.com/images/smw/${pw.s}.png" alt="" data-fb="hide"><div><small>${pw.jack ? L('★ ¡Premio mayor! El power más nuevo', '★ Jackpot! The newest power') : L('Tu power de la suerte', 'Your lucky power')}</small><b>${pw.s}</b><em>${pw.sm.map(c => '(' + c + ')').join(' ')}</em></div></div>`;
+  return `<div class="pw"><u class="ph" data-s="https://xat.com/images/smw/${pw.s}.png" data-fb="hide"></u><div><small>${pw.jack ? L('★ ¡Premio mayor! El power más nuevo', '★ Jackpot! The newest power') : L('Tu power de la suerte', 'Your lucky power')}</small><b>${pw.s}</b><em>${pw.sm.map(c => '(' + c + ')').join(' ')}</em></div></div>`;
 }
 let hideT, AC;
 function chime() { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); const t = AC.currentTime;[784, 988, 1175].forEach((f, i) => { const o = AC.createOscillator(), g = AC.createGain(); o.type = 'sine'; o.frequency.value = f; g.gain.setValueAtTime(0.0001, t + i * .08); g.gain.exponentialRampToValueAtTime(.07, t + i * .08 + .01); g.gain.exponentialRampToValueAtTime(0.0001, t + i * .08 + .5); o.connect(g); g.connect(AC.destination); o.start(t + i * .08); o.stop(t + i * .08 + .55); }); } catch (e) { } }
 $('#eggs').addEventListener('click', ev => {
   const g = ev.target.closest('.egg'); if (!g) return; document.querySelectorAll('.egg.open').forEach(o => o !== g && o.classList.remove('open')); g.classList.add('open'); chime(); burst(g);
-  Promise.all([lookup(g.dataset.u, +g.dataset.i), powerFor(+g.dataset.i, document.querySelectorAll('.egg').length)]).then(([d, pw]) => { const c = $('#card'); const ini = esc((d.nick || '?')[0].toUpperCase()); c.innerHTML = d.wish ? `<div class="ini">✿</div><div><b>${esc(MSG)}</b><span>${L('te deseamos', 'wishing you')} ${esc(d.nick)}</span>${powerHTML(pw)}</div>` : (d.avatar ? `<img src="${esc(d.avatar)}" alt="" data-fb="ini" data-ini="${ini}">` : `<div class="ini">${ini}</div>`) + `<div><b>${esc(MSG)}</b><span>${esc(d.nick)}${d.id ? ' · ' + d.id : ''}</span>${powerHTML(pw)}</div>`; c.classList.add('on'); clearTimeout(hideT); hideT = setTimeout(() => { c.classList.remove('on'); g.classList.remove('open'); }, 7000); });
+  Promise.all([lookup(g.dataset.u, +g.dataset.i), powerFor(+g.dataset.i, document.querySelectorAll('.egg').length)]).then(([d, pw]) => { const c = $('#card'); const ini = esc((d.nick || '?')[0].toUpperCase()); setH(c, d.wish ? `<div class="ini">✿</div><div><b>${esc(MSG)}</b><span>${L('te deseamos', 'wishing you')} ${esc(d.nick)}</span>${powerHTML(pw)}</div>` : (d.avatar ? `<u class="ph" data-s="${esc(d.avatar)}" data-fb="ini" data-ini="${ini}"></u>` : `<div class="ini">${ini}</div>`) + `<div><b>${esc(MSG)}</b><span>${esc(d.nick)}${d.id ? ' · ' + d.id : ''}</span>${powerHTML(pw)}</div>`); hydrate(c); c.classList.add('on'); clearTimeout(hideT); hideT = setTimeout(() => { c.classList.remove('on'); g.classList.remove('open'); }, 7000); });
 });
 /* pétalos y mariposas suaves */
 const cv = $('#c'), x = cv.getContext('2d'); let W, H, P = [], C2 = [];
 function size() { const d = Math.min(devicePixelRatio || 1, 1.5); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); P = Array.from({ length: 40 }, () => ({ x: Math.random() * W, y: Math.random() * H, s: 3 + Math.random() * 4, v: .3 + Math.random() * .6, p: Math.random() * 6, c: FL[Math.random() * FL.length | 0] })); }
 function burst(g) { const r = g.getBoundingClientRect(); for (let i = 0; i < 26; i++) { const a = -Math.PI / 2 + (Math.random() - .5) * 2, v = 2 + Math.random() * 3.5; C2.push({ x: r.left + r.width / 2, y: r.top + r.height * .4, vx: Math.cos(a) * v, vy: Math.sin(a) * v, c: EGG[i % EGG.length][1], t: 0, s: 3 + Math.random() * 3 }); } }
-(function loop(t) {
+function loop(t) {
   x.clearRect(0, 0, W, H);
   for (const p of P) { p.p += .02; p.y += p.v; p.x += Math.sin(p.p) * .5 + .2; if (p.y > H + 10) { p.y = -10; p.x = Math.random() * W; } x.globalAlpha = .8; x.fillStyle = p.c; x.beginPath(); x.ellipse(p.x, p.y, p.s, p.s * .6 * Math.abs(Math.sin(p.p)) + 1, p.p, 0, 6.283); x.fill(); }
   for (let i = C2.length - 1; i >= 0; i--) { const p = C2[i]; p.t++; p.vy += .1; p.x += p.vx; p.y += p.vy; if (p.t > 80) { C2.splice(i, 1); continue; } x.globalAlpha = 1 - p.t / 80; x.fillStyle = p.c; x.beginPath(); x.arc(p.x, p.y, p.s, 0, 6.283); x.fill(); }
   x.globalAlpha = 1; requestAnimationFrame(loop);
-})();
+}
+loop();
 addEventListener('resize', size); size();
 </script>
 <div class="sig fx">xHaz Frame Design</div>

@@ -65,7 +65,8 @@ const P0 = PAL[Q.get('p')] ? Q.get('p') : 'fuego'; setPal(P0);
 function rs() { DPR = Math.min(window.devicePixelRatio || 1, 1.5); W = innerWidth; H = innerHeight; c.width = Math.round(W * DPR); c.height = Math.round(H * DPR); x.setTransform(DPR, 0, 0, DPR, 0, 0); if (typeof rsHook === 'function') rsHook(); }
 addEventListener('resize', rs); rs();
 let last = performance.now();
-(function loop(t) { const dt = Math.min(50, t - last) / 1000; last = t; if (!document.hidden) frame(t / 1000, dt); requestAnimationFrame(loop); })(last);
+function loop(t) { const dt = Math.min(50, t - last) / 1000; last = t; if (!document.hidden) frame(t / 1000, dt); requestAnimationFrame(loop); }
+loop(last);
 </script>
 <script>var SW = { pal: PAL, cur: P0, set: setPal, dots: k => [PAL[k].l1, PAL[k].l2, PAL[k].e], names: EN ? {"fuego": "fire", "sangre": "blood", "acero": "steel"} : {} };</script>
 <button class="swc" id="swc" type="button" aria-label="Cambiar color"><span></span></button><div class="swn" id="swn"></div>
@@ -78,7 +79,7 @@ let last = performance.now();
 </style>
 <script>
 /* botón de color: cada visitante puede cambiar los colores solo en su pantalla (no se guarda nada) */
-(function () {
+function swInit() {
   const Q = new URLSearchParams(location.search), b = document.getElementById('swc'), n = document.getElementById('swn');
   if (Q.get('boton') === '0') { b.remove(); n.remove(); return; }
   const L = Object.keys(SW.pal); let i = Math.max(0, L.indexOf(SW.cur)), t;
@@ -89,7 +90,8 @@ let last = performance.now();
     n.textContent = SW.names && SW.names[L[i]] || L[i]; n.classList.add('on'); clearTimeout(t); t = setTimeout(() => n.classList.remove('on'), 1400);
   });
   ['pointerdown', 'mousedown', 'touchstart'].forEach(ev => b.addEventListener(ev, e => e.stopPropagation()));
-})();
+}
+swInit();
 </script>
 <div class="sig fx">xHaz Frame Design</div>
 </body>

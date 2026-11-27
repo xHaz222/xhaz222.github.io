@@ -40,20 +40,21 @@ const cv = $('#c'), x = cv.getContext('2d'); let W, H, P = [];
 const rnd = (a, b) => a + Math.random() * (b - a);
 function size() { const d = Math.min(devicePixelRatio || 1, 1.5); W = innerWidth; H = innerHeight; cv.width = W * d; cv.height = H * d; x.setTransform(d, 0, 0, d, 0, 0); init(); }
 const BK = ['#ffcf8a', '#f7a86b', '#9fd1d4', '#e8e2c9', '#c9a46b'];
-(function () { const b = $('#bokeh'); for (let i = 0; i < 16; i++) { const e = document.createElement('i'), s = rnd(40, 120); Object.assign(e.style, { width: s + 'px', height: s + 'px', left: rnd(0, 100) + '%', top: rnd(35, 100) + '%', background: BK[i % BK.length], opacity: rnd(.12, .32), animationDelay: rnd(-9, 0) + 's' }); b.appendChild(e); } })();
+function swInit() { const b = $('#bokeh'); for (let i = 0; i < 16; i++) { const e = document.createElement('i'), s = rnd(40, 120); Object.assign(e.style, { width: s + 'px', height: s + 'px', left: rnd(0, 100) + '%', top: rnd(35, 100) + '%', background: BK[i % BK.length], opacity: rnd(.12, .32), animationDelay: rnd(-9, 0) + 's' }); b.appendChild(e); } }
+swInit();
 let D = [];
 function init() {
   P = Array.from({ length: Math.round(Math.min(260, W * H / 6000)) }, () => ({ x: rnd(0, W), y: rnd(0, H), l: rnd(10, 26), v: rnd(9, 16), a: rnd(.12, .35) }));
-  D = Array.from({ length: Math.round(Math.min(60, W * H / 30000)) }, () => drop(true));
+  D = Array.from({ length: Math.round(Math.min(60, W * H / 30000)) }, () => mkDrop(true));
 }
-function drop(any) { return { x: rnd(0, W), y: any ? rnd(0, H) : rnd(-50, H * .4), r: rnd(2, 5.5), v: 0, wait: rnd(30, 400), trail: [] }; }
+function mkDrop(any) { return { x: rnd(0, W), y: any ? rnd(0, H) : rnd(-50, H * .4), r: rnd(2, 5.5), v: 0, wait: rnd(30, 400), trail: [] }; }
 function frame() {
   x.strokeStyle = 'rgba(200,225,230,1)'; x.lineCap = 'round';
   for (const p of P) { p.y += p.v; p.x += p.v * .12; if (p.y > H) { p.y = -p.l; p.x = rnd(-50, W); } x.globalAlpha = p.a; x.lineWidth = 1; x.beginPath(); x.moveTo(p.x, p.y); x.lineTo(p.x - p.l * .12, p.y - p.l); x.stroke(); }
   /* gotas en el vidrio que se deslizan */
   for (const d of D) {
     if (d.wait > 0) d.wait--; else { d.v = Math.min(d.v + .04 * d.r, 1.8 + d.r * .3); d.y += d.v; d.x += Math.sin(d.y / 23) * .15; d.trail.push([d.x, d.y]); if (d.trail.length > 40) d.trail.shift(); if (Math.random() < .01) { d.wait = rnd(20, 90); d.v = 0; } }
-    if (d.y > H + 10) Object.assign(d, drop(false));
+    if (d.y > H + 10) Object.assign(d, mkDrop(false));
     x.globalAlpha = .22; x.lineWidth = d.r * .7; x.strokeStyle = 'rgba(210,235,240,1)'; x.beginPath(); d.trail.forEach(([a, b], i) => i ? x.lineTo(a, b) : x.moveTo(a, b)); x.stroke();
     const g = x.createRadialGradient(d.x - d.r * .3, d.y - d.r * .3, .5, d.x, d.y, d.r); g.addColorStop(0, 'rgba(255,255,255,.85)'); g.addColorStop(.6, 'rgba(190,220,225,.35)'); g.addColorStop(1, 'rgba(120,150,160,.15)');
     x.globalAlpha = 1; x.fillStyle = g; x.beginPath(); x.arc(d.x, d.y, d.r, 0, 6.283); x.fill();
@@ -61,7 +62,8 @@ function frame() {
   x.globalAlpha = 1;
 }
 addEventListener('resize', size); size();
-(function loop(t) { x.clearRect(0, 0, W, H); frame(t || 0); requestAnimationFrame(loop); })();
+function loop(t) { x.clearRect(0, 0, W, H); frame(t || 0); requestAnimationFrame(loop); }
+loop();
 </script>
 <div class="sig fx">xHaz Frame Design</div>
 </body>

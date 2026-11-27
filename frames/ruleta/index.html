@@ -14,7 +14,7 @@
 :root{--a:#7aa2ff;--b:#b388ff;--bg1:#0a0b10;--bg2:#141725}
 html,body{width:100%;height:100%;overflow:hidden;background:var(--bg1);color:#e8f6ff;font-family:'Rajdhani',system-ui,sans-serif;user-select:none;-webkit-user-select:none}
 .bg{position:fixed;inset:0;background:radial-gradient(60% 50% at 85% 50%,color-mix(in srgb,var(--a) 14%,transparent),transparent 70%),radial-gradient(50% 45% at 12% 55%,color-mix(in srgb,var(--b) 10%,transparent),transparent 70%),linear-gradient(180deg,var(--bg1),var(--bg2))}
-.hex{position:fixed;inset:-60px;opacity:.05;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='97' viewBox='0 0 56 97'%3E%3Cpath d='M28 0 56 16v32L28 64 0 48V16Z M28 64v33 M0 48l-28 16 M56 48l28 16' fill='none' stroke='%23ffffff' stroke-width='1'/%3E%3C/svg%3E");animation:drift 40s linear infinite}
+.hex{position:fixed;inset:-60px;opacity:.05;background-image:repeating-linear-gradient(60deg,#fff 0 1px,transparent 1px 28px),repeating-linear-gradient(-60deg,#fff 0 1px,transparent 1px 28px),repeating-linear-gradient(0deg,#fff 0 1px,transparent 1px 48.5px);animation:drift 40s linear infinite}
 @keyframes drift{to{transform:translate(56px,97px)}}
 .scan{display:none}
 .side{position:fixed;top:50%;transform:translateY(-50%);width:min(22vw,330px);display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:none}
@@ -38,6 +38,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg1);color:#e8
 .res b{display:block;font-family:'Orbitron';font-weight:600;letter-spacing:.06em;font-size:clamp(14px,1.3vw,19px);color:#fff}
 .res span{display:block;font-size:clamp(14px,1.2vw,18px);color:#cfe9ff;max-width:44vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (max-width:700px){.side.l{display:none}.side.r{right:50%;transform:translate(50%,-62%);width:60vw}.wheelbox{width:46vw}}
+.cap{text-transform:capitalize}
+.nw{color:var(--a)}
+.pwi{border-radius:8px;background:#1c2133;padding:3px}
 </style>
 <style>.sig{font:500 9px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.16em;color:#fff;opacity:.32;mix-blend-mode:difference;pointer-events:none;white-space:nowrap;z-index:55}.sig.fx{position:fixed;left:16px;bottom:12px}.sig.fr{position:fixed;right:56px;bottom:22px;left:auto}.sig.in{position:absolute;left:0;right:0;bottom:-22px;text-align:center}</style>
 </head>
@@ -49,10 +52,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg1);color:#e8
 <script>
 const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s);
 const EN = Q.get('lang') ? Q.get('lang') === 'en' : !/^es\b/i.test(navigator.language || 'es'), L = (es, en) => EN ? en : es; document.documentElement.lang = EN ? 'en' : 'es';
-document.addEventListener('error', e => { const t = e.target; if (!t || t.tagName !== 'IMG' || !t.dataset.fb) return; const f = t.dataset.fb; if (f === 'hide') t.style.display = 'none'; else if (f === 'rmp') { if (t.parentNode) t.parentNode.remove(); } else if (f === 'ini') { const n = document.createElement(t.dataset.tag || 'div'); if (n.tagName === 'DIV') n.className = 'ini'; n.textContent = t.dataset.ini || '?'; t.replaceWith(n); } }, true);
+document.addEventListener('error', e => { const t = e.target; if (!t || t.tagName !== 'IMG' || !t.dataset.fb) return; const f = t.dataset.fb; if (f === 'hide') t.style.display = 'none'; else if (f === 'rmp') { if (t.parentElement) t.parentElement.remove(); } else if (f === 'ini') { const n = document.createElement(t.dataset.tag || 'div'); if (n.tagName === 'DIV') n.className = 'ini'; n.textContent = t.dataset.ini || '?'; t.replaceWith(n); } }, true);
 if (EN) { document.querySelector('.side.l .hd').textContent = 'PLAYERS'; document.querySelector('.hub').textContent = 'ROOM'; document.getElementById('go').textContent = 'SPIN'; }
 
-const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const cleanNick = n => String(n || '').replace(/\([^)]*\)/g, '').trim().slice(0, 20);
 const THEMES = { azul: ['#7aa2ff', '#b388ff'], ambar: ['#ffb86b', '#ff7a8a'], menta: ['#6ee7c8', '#7aa2ff'] };
 let th; function setTh(k) { th = THEMES[k]; document.documentElement.style.setProperty('--a', th[0]); document.documentElement.style.setProperty('--b', th[1]); try { draw(); } catch (e) { } }
@@ -71,8 +73,10 @@ function lookup(i) {
     Object.assign(info[i], { nick: cleanNick(m.nick) || m.Name || info[i].u, avatar: /^https:\/\//.test(av) ? av : '', id: m.id }); renderList(); draw();
   }).catch(() => { });
 }
-const face = (d, cls) => d.pw ? `<img src="https://xat.com/images/smw/${d.nick}.png" alt="" style="border-radius:8px;background:#1c2133;padding:3px">` : d.reto ? '<i>✦</i>' : d.avatar ? `<img src="${esc(d.avatar)}" alt="" data-fb="ini" data-tag="i" data-ini="${esc(d.nick[0].toUpperCase())}">` : `<i>${esc(d.nick[0].toUpperCase())}</i>`;
-function renderList(win) { $('#list').innerHTML = info.map((d, i) => `<div class="pl ${i === win ? 'win' : ''}">${d.reto || (demo && MODE === 'sorteo') ? `<i>${d.reto ? i + 1 : esc(d.nick)}</i>` : face(d)}<span>${esc(d.nick)}${d.jack ? ' <small style="color:var(--a)">' + L('★ NUEVO', '★ NEW') + '</small>' : ''}</span></div>`).join(''); }
+const E = (t, cls, txt) => { const n = document.createElement(t); if (cls) n.className = cls; if (txt != null) n.textContent = txt; return n; };
+function pic(src, cls, ini) { const m = new Image(); m.alt = ''; if (cls) m.className = cls; if (ini) { m.dataset.fb = 'ini'; m.dataset.tag = 'i'; m.dataset.ini = ini; } m.src = src; return m; }
+const face = d => d.pw ? pic(`https://xat.com/images/smw/${d.nick}.png`, 'pwi') : d.reto ? E('i', '', '✦') : d.avatar ? pic(d.avatar, '', d.nick[0].toUpperCase()) : E('i', '', d.nick[0].toUpperCase());
+function renderList(win) { const l = $('#list'); l.textContent = ''; info.forEach((d, i) => { const row = E('div', 'pl' + (i === win ? ' win' : '')); row.appendChild(d.reto || (demo && MODE === 'sorteo') ? E('i', '', d.reto ? i + 1 : d.nick) : face(d)); const sp = E('span', '', d.nick); if (d.jack) { sp.append(' '); sp.appendChild(E('small', 'nw', L('★ NUEVO', '★ NEW'))); } row.appendChild(sp); l.appendChild(row); }); }
 
 /* rueda */
 const cv = $('#wheel'), x = cv.getContext('2d'); let ang = 0; const IMG = [];
@@ -99,14 +103,15 @@ $('#go').addEventListener('click', () => {
   const n = info.length; if (!n) { spinning = false; $('#go').disabled = false; return; } const seg = Math.PI * 2 / n, win = Math.random() * n | 0;
   const target = Math.PI * 2 * (5 + Math.random() * 2) + (Math.PI * 2 - (win + .5) * seg) - (ang % (Math.PI * 2)) + (Math.random() - .5) * seg * .6;
   const a0 = ang, t0 = performance.now(), dur = 4200;
-  (function step(t) {
+  function step(t) {
     const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3.4); ang = a0 + target * e; draw();
     const cur = Math.floor((((-ang) % (Math.PI * 2)) + Math.PI * 4) % (Math.PI * 2) / seg); if (cur !== lastSeg) { lastSeg = cur; tick(900, .04); }
     if (k < 1) return requestAnimationFrame(step);
     spinning = false; $('#go').disabled = false; const d = info[win]; renderList(win); tick(1400, .08); setTimeout(() => tick(1900, .08), 120);
-    $('#res').innerHTML = (demo && MODE === 'sorteo' ? `<i>${esc(d.nick)}</i>` : face(d)) + `<div><b style="${d.pw ? 'text-transform:capitalize' : ''}">${esc(d.reto ? L('Reto ', 'Dare ') + (win + 1) + ': ' + d.nick : d.nick)}</b><span>${d.pw ? (d.jack ? L('★ ¡El power más nuevo de xat! ', '★ The newest xat power! ') : L('Tu power de la suerte · ', 'Your lucky power · ')) + esc(d.sm.map(c => '(' + c + ')').join(' ')) : d.reto ? L('Le toca a quien escribió último en la sala', 'Whoever chatted last has to do it') : MODE === 'sorteo' ? (demo ? L('¡Salió este número!', 'This number came up!') : L('¡Ganó el sorteo! 🎉', 'Won the giveaway! 🎉')) : esc(RETOS[Math.random() * RETOS.length | 0])}</span></div>`;
+    const r = $('#res'); r.textContent = ''; if (demo && MODE === 'sorteo') { const n = document.createElement('i'); n.textContent = d.nick; r.appendChild(n); } else { r.appendChild(face(d)); } const box = document.createElement('div'), bb = document.createElement('b'), sp = document.createElement('span'); if (d.pw) bb.className = 'cap'; bb.textContent = d.reto ? `${L('Reto ', 'Dare ')}${win + 1}: ${d.nick}` : d.nick; sp.textContent = d.pw ? (d.jack ? L('★ ¡El power más nuevo de xat! ', '★ The newest xat power! ') : L('Tu power de la suerte · ', 'Your lucky power · ')) + d.sm.map(c => `(${c})`).join(' ') : d.reto ? L('Le toca a quien escribió último en la sala', 'Whoever chatted last has to do it') : MODE === 'sorteo' ? (demo ? L('¡Salió este número!', 'This number came up!') : L('¡Ganó el sorteo! 🎉', 'Won the giveaway! 🎉')) : RETOS[Math.random() * RETOS.length | 0]; box.append(bb, sp); r.appendChild(box);
     $('#res').classList.add('on');
-  })(t0);
+  }
+step(t0);
 });
 addEventListener('resize', size);
 function loadPowers() {
@@ -136,7 +141,7 @@ renderList(); size(); info.forEach((_, i) => lookup(i));
 </style>
 <script>
 /* botón de color: cada visitante puede cambiar los colores solo en su pantalla (no se guarda nada) */
-(function () {
+function swInit() {
   const Q = new URLSearchParams(location.search), b = document.getElementById('swc'), n = document.getElementById('swn');
   if (Q.get('boton') === '0') { b.remove(); n.remove(); return; }
   const L = Object.keys(SW.pal); let i = Math.max(0, L.indexOf(SW.cur)), t;
@@ -147,7 +152,8 @@ renderList(); size(); info.forEach((_, i) => lookup(i));
     n.textContent = SW.names && SW.names[L[i]] || L[i]; n.classList.add('on'); clearTimeout(t); t = setTimeout(() => n.classList.remove('on'), 1400);
   });
   ['pointerdown', 'mousedown', 'touchstart'].forEach(ev => b.addEventListener(ev, e => e.stopPropagation()));
-})();
+}
+swInit();
 </script>
 <div class="sig fx">xHaz Frame Design</div>
 </body>
