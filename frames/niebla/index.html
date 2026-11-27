@@ -13,6 +13,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000;user-select:non
 canvas#c{position:fixed;inset:0;width:100%;height:100%;display:block}
 
 </style>
+<style>.sig{font:500 9px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.16em;color:#fff;opacity:.32;mix-blend-mode:difference;pointer-events:none;white-space:nowrap;z-index:55}.sig.fx{position:fixed;left:16px;bottom:12px}.sig.fr{position:fixed;right:56px;bottom:22px;left:auto}.sig.in{position:absolute;left:0;right:0;bottom:-22px;text-align:center}</style>
 </head>
 <body>
 <canvas id="c"></canvas>
@@ -72,5 +73,6 @@ let last = performance.now();
   ['pointerdown', 'mousedown', 'touchstart'].forEach(ev => b.addEventListener(ev, e => e.stopPropagation()));
 })();
 </script>
+<div class="sig fx">xHaz Frame Design</div>
 </body>
 </html>

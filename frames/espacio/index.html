@@ -32,16 +32,18 @@ canvas{position:fixed;inset:0;width:100%;height:100%}
 .title span{display:block;margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:clamp(10px,.8vw,12px);letter-spacing:.22em;text-transform:uppercase;color:#a9b2e0}
 @media (max-width:640px){.xat{width:26vw;top:auto;bottom:27vh;right:4vw}.orbit{display:none}.small{width:34px;top:auto;bottom:31vh}}
 </style>
+<style>.sig{font:500 9px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.16em;color:#fff;opacity:.32;mix-blend-mode:difference;pointer-events:none;white-space:nowrap;z-index:55}.sig.fx{position:fixed;left:16px;bottom:12px}.sig.fr{position:fixed;right:56px;bottom:22px;left:auto}.sig.in{position:absolute;left:0;right:0;bottom:-22px;text-align:center}</style>
 </head>
 <body>
 <div class="space"></div><div class="neb"><i></i><i></i><i></i></div>
 <canvas id="c"></canvas>
 <div class="small"></div>
-<div class="xat" id="xat"><img src="https://xat.com/content/web/R00261/img/xatplanet.svg" alt="" onerror="document.getElementById('xat').remove();document.querySelector('.orbit').remove()"></div>
+<div class="xat" id="xat"><img src="https://xat.com/content/web/R00261/img/xatplanet.svg" alt=""></div>
 <div class="orbit"><i></i></div>
 <div class="title"><b id="tt"></b><span id="ts"></span></div>
 <script>
 const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s), clean = s => String(s || '').replace(/[<>]/g, '').slice(0, 40);
+{ const xi = document.querySelector('#xat img'); const gone = () => { const a = document.getElementById('xat'), o = document.querySelector('.orbit'); if (a) a.remove(); if (o) o.remove(); }; if (xi.complete && !xi.naturalWidth) gone(); else xi.addEventListener('error', gone); }
 const PAL = { violeta: ['#6b3fa0', '#1f6f8b', '#a33a7a'], azul: ['#2a4fa8', '#1f8b8b', '#4a3fa0'], rosa: ['#a33a7a', '#6b3fa0', '#d9785a'] };
 function setPal(k) { const pl = PAL[k];['--n1', '--n2', '--n3'].forEach((v, i) => document.documentElement.style.setProperty(v, pl[i])); }
 const P0 = PAL[Q.get('p')] ? Q.get('p') : 'violeta'; setPal(P0);
@@ -85,5 +87,6 @@ addEventListener('resize', size); size();
   ['pointerdown', 'mousedown', 'touchstart'].forEach(ev => b.addEventListener(ev, e => e.stopPropagation()));
 })();
 </script>
+<div class="sig fx">xHaz Frame Design</div>
 </body>
 </html>

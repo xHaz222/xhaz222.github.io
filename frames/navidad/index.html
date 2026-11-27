@@ -50,6 +50,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
 .pw em{display:block;font-style:normal;font-family:'JetBrains Mono',monospace;font-size:11px;opacity:.85}
 .hint{position:fixed;left:50%;bottom:calc(min(24vh,190px) - 4px);transform:translateX(-50%);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.7;pointer-events:none;white-space:nowrap}
 </style>
+<style>.sig{font:500 9px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.16em;color:#fff;opacity:.32;mix-blend-mode:difference;pointer-events:none;white-space:nowrap;z-index:55}.sig.fx{position:fixed;left:16px;bottom:12px}.sig.fr{position:fixed;right:56px;bottom:22px;left:auto}.sig.in{position:absolute;left:0;right:0;bottom:-22px;text-align:center}</style>
 </head>
 <body>
 <div class="sky"></div><div class="moon"></div>
@@ -79,6 +80,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none}
 <script>
 const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s);
 const EN = Q.get('lang') ? Q.get('lang') === 'en' : !/^es\b/i.test(navigator.language || 'es'), L = (es, en) => EN ? en : es; document.documentElement.lang = EN ? 'en' : 'es';
+document.addEventListener('error', e => { const t = e.target; if (!t || t.tagName !== 'IMG' || !t.dataset.fb) return; const f = t.dataset.fb; if (f === 'hide') t.style.display = 'none'; else if (f === 'rmp') { if (t.parentNode) t.parentNode.remove(); } else if (f === 'ini') { const n = document.createElement(t.dataset.tag || 'div'); if (n.tagName === 'DIV') n.className = 'ini'; n.textContent = t.dataset.ini || '?'; t.replaceWith(n); } }, true);
 if (EN) document.querySelector('.hint').textContent = 'open a surprise gift';
 
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -124,7 +126,7 @@ $('#gifts').addEventListener('click', e => {
   g.classList.toggle('open', true); jingle(); burst(g);
   Promise.all([lookup(g.dataset.u, +g.dataset.i), powerFor(+g.dataset.i, document.querySelectorAll('.gift').length)]).then(([d, pw]) => {
     const card = $('#card');
-    card.innerHTML = d.wish ? `<div class="ini">✦</div><div><b>${esc(MSG)}</b><span>${L('te deseamos', 'wishing you')} ${esc(d.nick)}</span>${powerHTML(pw)}</div>` : (d.avatar ? `<img src="${esc(d.avatar)}" alt="" onerror="this.outerHTML='<div class=ini>${esc((d.nick || '?')[0].toUpperCase())}</div>'">` : `<div class="ini">${esc((d.nick || '?')[0].toUpperCase())}</div>`) +
+    card.innerHTML = d.wish ? `<div class="ini">✦</div><div><b>${esc(MSG)}</b><span>${L('te deseamos', 'wishing you')} ${esc(d.nick)}</span>${powerHTML(pw)}</div>` : (d.avatar ? `<img src="${esc(d.avatar)}" alt="" data-fb="ini" data-ini="${esc((d.nick || '?')[0].toUpperCase())}">` : `<div class="ini">${esc((d.nick || '?')[0].toUpperCase())}</div>`) +
       `<div><b>${esc(MSG)}</b><span>${esc(d.nick)}${d.id ? ' · ' + d.id : ''}</span>${powerHTML(pw)}</div>`;
     card.classList.add('on'); clearTimeout(hideT); hideT = setTimeout(() => { card.classList.remove('on'); g.classList.remove('open'); }, 7000);
   });
@@ -144,13 +146,13 @@ function powerFor(i, n) {
   return powers().then(P => {
     if (!P || !P.list.length) return null;
     if (JACK < 0) JACK = Math.random() * n | 0;
-    if (!PICK[i]) { if (i === JACK) PICK[i] = Object.assign({ jack: true }, P.last); else { const used = new Set(Object.values(PICK).map(v => v.id)); let v; do { v = P.list[Math.random() * P.list.length | 0]; } while (used.has(v.id) && used.size < P.list.length - 1); PICK[i] = v; } }
+    if (!PICK[i]) { if (i === JACK) PICK[i] = Object.assign({ jack: true }, P.last); else { const used = new Set(Object.values(PICK).map(v => v.id)); let v; do { v = P.list[Math.random() * P.list.length | 0]; } while ((used.has(v.id) || v.id === P.last.id) && used.size < P.list.length - 2); PICK[i] = v; } }
     return PICK[i];
   });
 }
 function powerHTML(pw) {
   if (!pw) return '';
-  return `<div class="pw"><img src="https://xat.com/images/smw/${pw.s}.png" alt="" onerror="this.style.display='none'"><div><small>${pw.jack ? L('★ ¡Premio mayor! El power más nuevo', '★ Jackpot! The newest power') : L('Tu power de la suerte', 'Your lucky power')}</small><b>${pw.s}</b><em>${pw.sm.map(c => '(' + c + ')').join(' ')}</em></div></div>`;
+  return `<div class="pw"><img src="https://xat.com/images/smw/${pw.s}.png" alt="" data-fb="hide"><div><small>${pw.jack ? L('★ ¡Premio mayor! El power más nuevo', '★ Jackpot! The newest power') : L('Tu power de la suerte', 'Your lucky power')}</small><b>${pw.s}</b><em>${pw.sm.map(c => '(' + c + ')').join(' ')}</em></div></div>`;
 }
 /* sonidito de campanitas (solo al tocar) */
 let AC; function jingle() { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); const t = AC.currentTime;[1319, 1568, 1976, 2637].forEach((f, i) => { const o = AC.createOscillator(), g = AC.createGain(); o.type = 'sine'; o.frequency.value = f; g.gain.setValueAtTime(0.0001, t + i * .07); g.gain.exponentialRampToValueAtTime(.08, t + i * .07 + .01); g.gain.exponentialRampToValueAtTime(0.0001, t + i * .07 + .6); o.connect(g); g.connect(AC.destination); o.start(t + i * .07); o.stop(t + i * .07 + .65); }); } catch (e) { } }
@@ -169,5 +171,6 @@ function burst(g) { const r = g.getBoundingClientRect(); for (let i = 0; i < 34;
 })();
 addEventListener('resize', size); size();
 </script>
+<div class="sig fx">xHaz Frame Design</div>
 </body>
 </html>

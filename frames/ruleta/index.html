@@ -39,6 +39,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg1);color:#e8
 .res span{display:block;font-size:clamp(14px,1.2vw,18px);color:#cfe9ff;max-width:44vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (max-width:700px){.side.l{display:none}.side.r{right:50%;transform:translate(50%,-62%);width:60vw}.wheelbox{width:46vw}}
 </style>
+<style>.sig{font:500 9px/1 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.16em;color:#fff;opacity:.32;mix-blend-mode:difference;pointer-events:none;white-space:nowrap;z-index:55}.sig.fx{position:fixed;left:16px;bottom:12px}.sig.fr{position:fixed;right:56px;bottom:22px;left:auto}.sig.in{position:absolute;left:0;right:0;bottom:-22px;text-align:center}</style>
 </head>
 <body>
 <div class="bg"></div><div class="hex"></div><div class="scan"></div>
@@ -48,6 +49,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg1);color:#e8
 <script>
 const Q = new URLSearchParams(location.search), $ = s => document.querySelector(s);
 const EN = Q.get('lang') ? Q.get('lang') === 'en' : !/^es\b/i.test(navigator.language || 'es'), L = (es, en) => EN ? en : es; document.documentElement.lang = EN ? 'en' : 'es';
+document.addEventListener('error', e => { const t = e.target; if (!t || t.tagName !== 'IMG' || !t.dataset.fb) return; const f = t.dataset.fb; if (f === 'hide') t.style.display = 'none'; else if (f === 'rmp') { if (t.parentNode) t.parentNode.remove(); } else if (f === 'ini') { const n = document.createElement(t.dataset.tag || 'div'); if (n.tagName === 'DIV') n.className = 'ini'; n.textContent = t.dataset.ini || '?'; t.replaceWith(n); } }, true);
 if (EN) { document.querySelector('.side.l .hd').textContent = 'PLAYERS'; document.querySelector('.hub').textContent = 'ROOM'; document.getElementById('go').textContent = 'SPIN'; }
 
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -69,7 +71,7 @@ function lookup(i) {
     Object.assign(info[i], { nick: cleanNick(m.nick) || m.Name || info[i].u, avatar: /^https:\/\//.test(av) ? av : '', id: m.id }); renderList(); draw();
   }).catch(() => { });
 }
-const face = (d, cls) => d.pw ? `<img src="https://xat.com/images/smw/${d.nick}.png" alt="" style="border-radius:8px;background:#1c2133;padding:3px">` : d.reto ? '<i>✦</i>' : d.avatar ? `<img src="${esc(d.avatar)}" alt="" onerror="this.outerHTML='<i>${esc(d.nick[0].toUpperCase())}</i>'">` : `<i>${esc(d.nick[0].toUpperCase())}</i>`;
+const face = (d, cls) => d.pw ? `<img src="https://xat.com/images/smw/${d.nick}.png" alt="" style="border-radius:8px;background:#1c2133;padding:3px">` : d.reto ? '<i>✦</i>' : d.avatar ? `<img src="${esc(d.avatar)}" alt="" data-fb="ini" data-tag="i" data-ini="${esc(d.nick[0].toUpperCase())}">` : `<i>${esc(d.nick[0].toUpperCase())}</i>`;
 function renderList(win) { $('#list').innerHTML = info.map((d, i) => `<div class="pl ${i === win ? 'win' : ''}">${d.reto || (demo && MODE === 'sorteo') ? `<i>${d.reto ? i + 1 : esc(d.nick)}</i>` : face(d)}<span>${esc(d.nick)}${d.jack ? ' <small style="color:var(--a)">' + L('★ NUEVO', '★ NEW') + '</small>' : ''}</span></div>`).join(''); }
 
 /* rueda */
@@ -92,7 +94,7 @@ function draw() {
 /* tick */
 let AC; function tick(f, v) { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain(); o.type = 'square'; o.frequency.value = f; g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.0001, t + .05); o.connect(g); g.connect(AC.destination); o.start(t); o.stop(t + .06); } catch (e) { } }
 let spinning = false, lastSeg = -1;
-$('#go').onclick = () => {
+$('#go').addEventListener('click', () => {
   if (spinning) return; spinning = true; $('#go').disabled = true; $('#res').classList.remove('on'); renderList();
   const n = info.length; if (!n) { spinning = false; $('#go').disabled = false; return; } const seg = Math.PI * 2 / n, win = Math.random() * n | 0;
   const target = Math.PI * 2 * (5 + Math.random() * 2) + (Math.PI * 2 - (win + .5) * seg) - (ang % (Math.PI * 2)) + (Math.random() - .5) * seg * .6;
@@ -105,7 +107,7 @@ $('#go').onclick = () => {
     $('#res').innerHTML = (demo && MODE === 'sorteo' ? `<i>${esc(d.nick)}</i>` : face(d)) + `<div><b style="${d.pw ? 'text-transform:capitalize' : ''}">${esc(d.reto ? L('Reto ', 'Dare ') + (win + 1) + ': ' + d.nick : d.nick)}</b><span>${d.pw ? (d.jack ? L('★ ¡El power más nuevo de xat! ', '★ The newest xat power! ') : L('Tu power de la suerte · ', 'Your lucky power · ')) + esc(d.sm.map(c => '(' + c + ')').join(' ')) : d.reto ? L('Le toca a quien escribió último en la sala', 'Whoever chatted last has to do it') : MODE === 'sorteo' ? (demo ? L('¡Salió este número!', 'This number came up!') : L('¡Ganó el sorteo! 🎉', 'Won the giveaway! 🎉')) : esc(RETOS[Math.random() * RETOS.length | 0])}</span></div>`;
     $('#res').classList.add('on');
   })(t0);
-};
+});
 addEventListener('resize', size);
 function loadPowers() {
   Promise.all([fetch('https://xat.com/json/powers.php').then(r => r.json()), fetch('https://xat.com/web_gear/chat/pow2.php').then(r => r.json())]).then(([p, a]) => {
@@ -116,7 +118,7 @@ function loadPowers() {
     if (newest) pick.push(Object.assign({ jack: true }, newest));
     while (pick.length < 10 && pick.length < list.length) { const v = list[Math.random() * list.length | 0]; if (!pick.some(q => q.id === v.id)) pick.push(v); }
     pick.sort(() => Math.random() - .5); info.push(...pick);
-    info.forEach((d, i) => { const im = new Image(); im.onload = draw; im.src = 'https://xat.com/images/smw/' + d.nick + '.png'; IMG[i] = im; });
+    info.forEach((d, i) => { const im = new Image(); im.addEventListener('load', draw); im.src = 'https://xat.com/images/smw/' + d.nick + '.png'; IMG[i] = im; });
     renderList(); draw(); $('#go').disabled = false;
   }).catch(() => { $('#mode').textContent = L('SIN CONEXIÓN CON XAT', 'NO CONNECTION TO XAT'); });
 }
@@ -147,5 +149,6 @@ renderList(); size(); info.forEach((_, i) => lookup(i));
   ['pointerdown', 'mousedown', 'touchstart'].forEach(ev => b.addEventListener(ev, e => e.stopPropagation()));
 })();
 </script>
+<div class="sig fx">xHaz Frame Design</div>
 </body>
 </html>
