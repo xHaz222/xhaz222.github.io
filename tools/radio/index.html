@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Radio gratis para xat · xHaz Tools</title>
+<link rel="stylesheet" href="../assets/base.css">
+<style>
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px;display:flex;flex-direction:column;gap:12px}
+.box h2{font-size:20px}
+.player{display:flex;align-items:center;gap:12px}
+.eq{display:flex;gap:3px;align-items:flex-end;height:22px}
+.eq i{width:4px;background:var(--peach);border-radius:2px;height:4px}
+.eq.on i{animation:eq .9s ease-in-out infinite}
+.eq.on i:nth-child(2){animation-delay:.15s}.eq.on i:nth-child(3){animation-delay:.3s}.eq.on i:nth-child(4){animation-delay:.45s}
+@keyframes eq{0%,100%{height:4px}50%{height:22px}}
+.status{font-size:14px}
+.status.ok{color:#7ee0c3}.status.bad{color:var(--peach)}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{border:1px solid var(--line);border-radius:var(--r-md);padding:12px 14px;background:var(--ink)}
+.opt b{font-size:16px}
+.opt .tag{font-size:11px;padding:2px 8px;border-radius:99px;margin-left:6px;vertical-align:2px}
+.tag.free{background:#173a33;color:#7ee0c3}.tag.warn{background:#3a2a17;color:var(--peach)}
+.opt ul{margin:6px 0 0 18px;color:var(--mute);font-size:14px}
+.opt a{color:#cfe0ff}
+.steps{margin-left:18px;color:var(--mute);font-size:14px;display:flex;flex-direction:column;gap:4px}
+.steps b{color:var(--text)}
+@media (max-width:980px){.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="top"></header>
+<main>
+  <div class="head">
+    <h1 data-en="Free radio for xat">Radio gratis para xat</h1>
+    <p data-en="xat plays any radio whose link starts with https. Test your link here, get the codes and see the options that cost nothing.">xat reproduce cualquier radio cuyo link empiece con https. Prueba tu link aquí, saca los códigos y mira las opciones que no cuestan nada.</p>
+  </div>
+  <div class="grid2">
+    <section class="box">
+      <h2 data-en="1. Test your link">1. Prueba tu link</h2>
+      <label class="f"><span data-en="Your radio link (stream)">Link de tu radio (stream)</span><input type="text" id="url" placeholder="https://stream.zeno.fm/…" spellcheck="false"></label>
+      <div class="player">
+        <button class="btn" id="play" data-en="Play">Escuchar</button>
+        <div class="eq" id="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <span class="status" id="st" role="status"></span>
+      </div>
+      <audio id="au" preload="none"></audio>
+      <h2 style="margin-top:6px" data-en="2. Codes for xat">2. Códigos para xat</h2>
+      <div class="group">
+        <span class="gt" data-en="In your name (Radio power)">En tu nombre (power Radio)</span>
+        <div class="codebox"><code id="c1">(radio#https://…)</code><button class="btn" data-copy="#c1" data-en="Copy">Copiar</button></div>
+        <p class="hint" data-en="A radio smiley appears in your name; others tap it to listen in any room.">En tu nombre aparece un smiley de radio; los demás lo tocan para escucharla en cualquier sala.</p>
+      </div>
+      <div class="group">
+        <span class="gt" data-en="For your whole room">Para toda tu sala</span>
+        <div class="codebox"><code id="c2">https://…</code><button class="btn" data-copy="#c2" data-en="Copy">Copiar</button></div>
+        <ol class="steps">
+          <li data-en="In your room: group → customize → enter the group password.">En tu sala: <b>grupo → customize</b> → escribe la contraseña del grupo.</li>
+          <li data-en="Settings tab → paste the link in the radio station field → save.">Pestaña <b>settings</b> → pega el link en el campo <b>radio station</b> → guardar.</li>
+          <li data-en="If it does not play, try adding /; or /: at the end of the link.">Si no suena, prueba agregando <b>/;</b> o <b>/:</b> al final del link.</li>
+        </ol>
+      </div>
+    </section>
+    <section class="box">
+      <h2 data-en="Options without a monthly fee">Opciones sin mensualidad</h2>
+      <div class="opts">
+        <div class="opt"><b>Caster.fm</b><span class="tag free" data-en="free plan">plan gratis</span>
+          <ul>
+            <li data-en="Icecast server with https, up to 400 listeners and 96 kbps.">Servidor Icecast con https, hasta 400 oyentes y 96 kbps.</li>
+            <li data-en="You broadcast live from VirtualDJ, BUTT or Mixxx.">Transmites en vivo desde VirtualDJ, BUTT o Mixxx.</li>
+            <li data-en="No AutoDJ on the free plan, and the server turns off after 15 minutes without anyone broadcasting.">Sin AutoDJ en el plan gratis, y el servidor se apaga tras 15 minutos sin nadie transmitiendo.</li>
+            <li data-en="The free plan limits listening to their page and widgets: test your link above before using it on xat.">El plan gratis limita la escucha a su página y widgets: prueba tu link arriba antes de usarlo en xat.</li>
+          </ul></div>
+        <div class="opt"><b>AzuraCast + Oracle Cloud</b><span class="tag free" data-en="free, more technical">gratis, más técnico</span>
+          <ul>
+            <li data-en="AzuraCast is free software to run your own radio: AutoDJ with your songs, live broadcasting and https.">AzuraCast es un programa gratuito para tener tu propia radio: AutoDJ con tus canciones, transmisión en vivo y https.</li>
+            <li data-en="It runs on Oracle's always-free server (2 cores and 12 GB since June 2026).">Se instala en el servidor gratis para siempre de Oracle (2 núcleos y 12 GB desde junio de 2026).</li>
+            <li data-en="Oracle asks for a card to verify you and takes back servers that sit unused.">Oracle pide una tarjeta para verificarte y recupera los servidores que quedan sin uso.</li>
+          </ul></div>
+        <div class="opt"><b>Zeno.fm</b><span class="tag warn" data-en="paid for new accounts">pagado para cuentas nuevas</span>
+          <ul>
+            <li data-en="It ended its free plans in January 2025. Older accounts that kept the free plan still work.">Terminó sus planes gratis en enero de 2025. Las cuentas antiguas que conservaron el plan gratis siguen funcionando.</li>
+          </ul></div>
+      </div>
+      <h2 style="margin-top:4px" data-en="Free programs to broadcast">Programas gratis para transmitir</h2>
+      <ul class="steps" style="list-style:disc">
+        <li><b>BUTT</b> · <span data-en="simple, sends your computer's sound">sencillo, envía el sonido de tu computadora</span></li>
+        <li><b>Mixxx</b> · <span data-en="free DJ software with live streaming">programa de DJ gratis con transmisión en vivo</span></li>
+        <li><b>VirtualDJ</b> · <span data-en="has a free version for home use">tiene versión gratis para uso en casa</span></li>
+      </ul>
+      <p class="hint" data-en="Checked in November 2026. Plans change: confirm on each site before you start.">Revisado en noviembre de 2026. Los planes cambian: confírmalo en cada sitio antes de empezar.</p>
+    </section>
+  </div>
+</main>
+<footer class="foot"></footer>
+
+<script type="module">
+import { shell, L } from '../assets/core.js';
+shell('radio');
+const $ = id => document.getElementById(id);
+const au = $('au');
+
+function codes() {
+  const u = $('url').value.trim() || 'https://…';
+  $('c1').textContent = `(radio#${u})`;
+  $('c2').textContent = u;
+}
+$('url').addEventListener('input', () => { codes(); stop(); });
+
+function stop() { au.pause(); au.removeAttribute('src'); $('eq').classList.remove('on'); $('play').textContent = L('Escuchar', 'Play'); }
+$('play').onclick = async () => {
+  if (!au.paused) { stop(); $('st').textContent = ''; return; }
+  const u = $('url').value.trim();
+  const st = $('st');
+  if (!/^https:\/\//i.test(u)) { st.className = 'status bad'; st.textContent = L('El link tiene que empezar con https://', 'The link has to start with https://'); return; }
+  st.className = 'status'; st.textContent = L('Conectando…', 'Connecting…');
+  au.src = u;
+  try {
+    await au.play();
+    $('eq').classList.add('on'); $('play').textContent = L('Detener', 'Stop');
+    st.className = 'status ok'; st.textContent = L('¡Suena! Este link sirve para xat.', 'It plays! This link works for xat.');
+  } catch (e) {
+    st.className = 'status bad';
+    st.textContent = L('No suena. Revisa que la radio esté transmitiendo o prueba con /; al final.', 'It does not play. Check the radio is on air or try /; at the end.');
+  }
+};
+au.addEventListener('error', () => { if (au.getAttribute('src')) { $('st').className = 'status bad'; $('st').textContent = L('No suena. Revisa que la radio esté transmitiendo o prueba con /; al final.', 'It does not play. Check the radio is on air or try /; at the end.'); $('eq').classList.remove('on'); } });
+codes();
+</script>
+</body>
+</html>

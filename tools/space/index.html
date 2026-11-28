@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Generador de xatspace · xHaz Tools</title>
+<link rel="stylesheet" href="../assets/base.css">
+<style>
+.work{grid-template-columns:minmax(320px,400px) 1fr}
+.tpl{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:6px}
+.tp{font:inherit;text-align:left;font-size:13px;color:#cfd3f5;background:var(--ink);border:1px solid var(--line);border-radius:var(--r-md);padding:8px 10px;cursor:pointer;line-height:1.25}
+.tp small{display:block;color:var(--mute);font-size:11px;margin-top:2px}
+.tp[aria-pressed="true"]{border-color:var(--blue);background:#1f2a5c;color:#fff}
+details.sec{border-top:1px solid var(--line);padding-top:12px}
+details.sec > summary{cursor:pointer;font-weight:600;font-size:14px;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details.sec > summary::-webkit-details-marker{display:none}
+details.sec > summary::after{content:'+';color:var(--mute);font-size:18px}
+details.sec[open] > summary::after{content:'–'}
+details.sec > .group{margin-top:10px}
+.rows{display:flex;flex-direction:column;gap:6px}
+.rw{display:flex;gap:6px}
+.rw input{min-width:0}
+.rw input:first-child{flex:.8}
+.rw input:nth-child(2){flex:1.4}
+.rw button{flex:none;width:30px;border:0;background:var(--raise);color:var(--mute);border-radius:var(--r-sm);cursor:pointer}
+.addrow{font:inherit;font-size:13px;background:transparent;border:1px dashed #4a5199;color:var(--mute);border-radius:var(--r-sm);padding:7px;cursor:pointer}
+.up{font-size:12px;color:#cfe0ff}
+.screen{position:relative;width:100%;border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--line);background:#000}
+.screen.pc{aspect-ratio:16/10}
+.screen.phone{width:min(100%,390px);aspect-ratio:390/760;margin:0 auto}
+.screen iframe{position:absolute;left:0;top:0;border:0;transform-origin:0 0}
+.out code{white-space:nowrap}
+.guide ol{margin:6px 0 0 18px;display:flex;flex-direction:column;gap:4px}
+.warn{color:var(--peach)}
+</style>
+</head>
+<body>
+<header class="top"></header>
+<main>
+  <div class="head">
+    <h1 data-en="xatspace generator">Generador de xatspace</h1>
+    <p data-en="Make your own xatspace with your photos, your songs and your links. You get a link ready to paste into the xatframe field of your xatspace.">Arma tu propio xatspace con tus fotos, tus canciones y tus links. Al final te da el link listo para pegar en el campo xatframe de tu xatspace.</p>
+  </div>
+  <div class="work">
+    <aside class="controls">
+      <div class="group">
+        <span class="gt" data-en="Design">Diseño</span>
+        <div class="tpl" id="tpl"></div>
+      </div>
+
+      <details class="sec" open><summary data-en="About you">Sobre ti</summary>
+        <div class="group">
+          <div class="row"><label class="f"><span data-en="Name">Nombre</span><input type="text" id="n" maxlength="40"></label><label class="f" style="flex:.7"><span>ID xat</span><input type="text" id="i" maxlength="12"></label></div>
+          <label class="f"><span data-en="Phrase or status">Frase o status</span><input type="text" id="s" maxlength="90"></label>
+          <label class="f"><span data-en="Place (optional)">Lugar (opcional)</span><input type="text" id="l" maxlength="40"></label>
+          <label class="f"><span data-en="Your photo or avatar (direct link)">Tu foto o avatar (link directo)</span><input type="text" id="a" placeholder="https://…" spellcheck="false"></label>
+          <label class="f"><span data-en="About me">Sobre mí</span><textarea id="b" maxlength="600" rows="4"></textarea></label>
+        </div>
+      </details>
+
+      <details class="sec" open><summary data-en="Background and style">Fondo y estilo</summary>
+        <div class="group">
+          <div class="chips" id="bgt">
+            <button class="chip" data-v="art" aria-pressed="true" data-en="Animated art">Arte animado</button>
+            <button class="chip" data-v="img" aria-pressed="false" data-en="My photo">Mi foto</button>
+            <button class="chip" data-v="pattern" aria-pressed="false" data-en="Pattern">Patrón</button>
+            <button class="chip" data-v="color" aria-pressed="false">Color</button>
+          </div>
+          <div class="row" data-bg="art"><select id="art" aria-label="Estilo"></select><select id="pal" aria-label="Colores"></select></div>
+          <div data-bg="img" class="group"><input type="text" id="bgimg" placeholder="https://… (link directo de tu foto)" data-en-ph="https://… (direct link to your photo)" spellcheck="false">
+            <label class="f"><span data-en="Darken the photo">Oscurecer la foto</span><input type="range" id="tint" min="0" max="80" value="35"></label></div>
+          <div class="row" data-bg="pattern"><select id="pat" aria-label="Patrón">
+            <option value="dots" data-en="Dots">Puntos</option><option value="hearts" data-en="Hearts">Corazones</option><option value="stars" data-en="Stars">Estrellas</option><option value="checks" data-en="Checks">Cuadros</option><option value="stripes" data-en="Stripes">Rayas</option></select></div>
+          <div class="row" data-bg="pattern color"><label class="f"><span data-en="Background color">Color de fondo</span><input type="color" id="bgc" value="#fff4ec"></label></div>
+          <div class="row">
+            <label class="f"><span data-en="Accent color">Color de acento</span><input type="color" id="ac" value="#4d7cff"></label>
+            <label class="f"><span data-en="Letters">Letra</span><select id="f">
+              <option value="Outfit">Outfit</option><option value="Bricolage Grotesque">Bricolage</option><option value="Space Grotesk">Space Grotesk</option>
+              <option value="JetBrains Mono">JetBrains Mono</option><option value="Playfair Display">Playfair</option><option value="Bungee">Bungee</option></select></label>
+            <label class="f"><span data-en="Panels">Paneles</span><select id="th"><option value="dark" data-en="Dark">Oscuros</option><option value="light" data-en="Light">Claros</option></select></label>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec"><summary>Links</summary>
+        <div class="group"><div class="rows" id="ln"></div><button class="addrow" data-add="ln" data-en="+ add link">+ agregar link</button></div>
+      </details>
+
+      <details class="sec"><summary data-en="Photos">Fotos</summary>
+        <div class="group"><div class="rows" id="ph"></div><button class="addrow" data-add="ph" data-en="+ add photo">+ agregar foto</button>
+          <a class="up" href="https://xatimg.com/" target="_blank" rel="noopener" data-en="Upload your photos to xatimg and paste the direct link">Sube tus fotos a xatimg y pega el link directo</a></div>
+      </details>
+
+      <details class="sec"><summary data-en="Friends">Amigos</summary>
+        <div class="group"><div class="rows" id="fr"></div><button class="addrow" data-add="fr" data-en="+ add friend">+ agregar amigo</button></div>
+      </details>
+
+      <details class="sec"><summary data-en="Music and video">Música y video</summary>
+        <div class="group">
+          <div class="rows" id="mu"></div><button class="addrow" data-add="mu" data-en="+ add song">+ agregar canción</button>
+          <p class="hint" data-en="A YouTube link or a direct link to an .mp3 file. Use official uploads or music you have the right to share.">Un link de YouTube o un link directo a un archivo .mp3. Usa videos oficiales o música que tengas derecho a compartir.</p>
+          <label class="chip" style="display:flex;gap:6px;align-items:center;width:max-content"><input type="checkbox" id="e" checked> <span data-en="Entry screen (starts the music)">Pantalla de entrada (inicia la música)</span></label>
+          <p class="hint" data-en="Browsers only let music play after a click: the entry screen is that click.">Los navegadores solo dejan sonar la música después de un clic: la pantalla de entrada es ese clic.</p>
+          <label class="f"><span data-en="Featured video (YouTube, optional)">Video destacado (YouTube, opcional)</span><input type="text" id="yt" placeholder="https://youtube.com/watch?v=…" spellcheck="false"></label>
+        </div>
+      </details>
+    </aside>
+
+    <section class="stage">
+      <div class="bar">
+        <div class="chips" id="dev"><button class="chip" data-v="pc" aria-pressed="true" data-en="Computer">Computadora</button><button class="chip" data-v="phone" aria-pressed="false" data-en="Phone">Celular</button></div>
+        <span class="hint" data-en="The preview updates as you type.">La vista previa cambia mientras escribes.</span>
+      </div>
+      <div class="screen pc" id="screen"><iframe id="pv" title="Vista previa" src="ver/?preview=1"></iframe></div>
+      <div class="note out">
+        <b data-en="Your xatspace link">El link de tu xatspace</b>
+        <div class="codebox" style="margin-top:8px"><code id="link"></code><button class="btn" data-copy="#link" data-en="Copy">Copiar</button><a class="btn ghost" id="open" target="_blank" rel="noopener" data-en="Open">Abrir</a></div>
+        <p class="hint" id="len" style="margin-top:6px"></p>
+      </div>
+      <div class="note guide">
+        <b data-en="How to put it on your xatspace">Cómo ponerlo en tu xatspace</b>
+        <ol>
+          <li data-en="Go to xat.com/editme and log in.">Entra a <b>xat.com/editme</b> e inicia sesión.</li>
+          <li data-en="Paste the link in the xatframe field (you need the Me power).">Pega el link en el campo <b>xatframe</b> (necesitas el power <b>Me</b>).</li>
+          <li data-en="Turn on hide inner so only your design shows, then save.">Activa <b>hide inner</b> para que solo se vea tu diseño, y guarda.</li>
+          <li data-en="It can take up to 30 minutes to go live; the preview button shows it right away.">Puede tardar hasta 30 minutos en verse; el botón preview te lo muestra al momento.</li>
+        </ol>
+      </div>
+      <div class="note">
+        <b data-en="Edit a link you already have">Editar un link que ya tienes</b>
+        <div class="codebox" style="margin-top:8px"><input type="text" id="imp" placeholder="https://xhaz222.github.io/tools/space/ver/?d=…" spellcheck="false" style="flex:1"><button class="btn ghost" id="impb" data-en="Load">Cargar</button></div>
+        <p class="hint" data-en="Nothing is saved on our side: everything lives inside your link. Keep it somewhere safe.">No guardamos nada: todo vive dentro de tu link. Guárdalo en un lugar seguro.</p>
+      </div>
+    </section>
+  </div>
+</main>
+<footer class="foot"></footer>
+
+<script type="module">
+import { shell, L, toast } from '../assets/core.js';
+import { STYLES, PALETTES } from '../assets/art.js';
+shell('space');
+const $ = id => document.getElementById(id);
+const VIEW = new URL('ver/', location.href).href;
+
+const TPL = [
+  ['card', 'Tarjeta', 'Card', 'Foto, datos, links y fotos', 'Photo, info, links, photos'],
+  ['hero', 'Portada', 'Cover', 'Tu nombre en grande', 'Your name, big'],
+  ['windows', 'Ventanitas', 'Little windows', 'Estilo escritorio retro', 'Retro desktop look'],
+  ['gallery', 'Galería', 'Gallery', 'Perfil al lado y tus fotos', 'Profile aside, your photos'],
+  ['simple', 'Simple', 'Simple', 'Solo fondo y nombre', 'Just background and name'],
+];
+const MAX = { ln: 8, ph: 12, fr: 8, mu: 8 };
+const PH = { ln: [L('Texto', 'Text'), 'https://…'], fr: [L('Nombre', 'Name'), L('Link de su avatar', 'Avatar link')], mu: [L('Título', 'Title'), L('Link de YouTube o .mp3', 'YouTube or .mp3 link')], ph: [null, L('Link directo de la foto', 'Direct photo link')] };
+let D = {
+  t: 'card', n: 'xHaz', i: '1004002', s: 'xat.com/xHaz', l: '', a: '', b: '',
+  bg: { t: 'art', v: 'aurora', p: 'noche', c: '#fff4ec', k: 35 }, ac: '#4d7cff', f: 'Outfit', th: 'dark', e: true,
+  ln: [['xat', 'https://xat.com/xHaz']], ph: [], fr: [], mu: [], yt: '',
+};
+
+// ---------- interfaz ----------
+$('tpl').innerHTML = TPL.map(([k, es, en, des, den]) => `<button class="tp" data-t="${k}" aria-pressed="${k === D.t}">${L(es, en)}<small>${L(des, den)}</small></button>`).join('');
+$('art').innerHTML = Object.entries(STYLES).map(([k, v]) => `<option value="${k}">${L(v.es, v.en)}</option>`).join('');
+$('pal').innerHTML = Object.keys(PALETTES).map(k => `<option value="${k}">${k}</option>`).join('');
+
+function rowHTML(kind, v = []) {
+  const [p1, p2] = PH[kind];
+  const a = p1 ? `<input type="text" value="${esc(v[0] || '')}" placeholder="${p1}" maxlength="40">` : '';
+  return `<div class="rw" data-k="${kind}">${a}<input type="text" value="${esc(p1 ? v[1] || '' : v || '')}" placeholder="${p2}" spellcheck="false"><button type="button" aria-label="${L('Quitar', 'Remove')}">×</button></div>`;
+}
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+function fill() {
+  ['n', 'i', 's', 'l', 'a', 'b', 'yt'].forEach(k => ($(k).value = D[k] || ''));
+  $('e').checked = !!D.e; $('ac').value = D.ac; $('f').value = D.f; $('th').value = D.th;
+  $('art').value = D.bg.v && STYLES[D.bg.v] ? D.bg.v : 'aurora'; $('pal').value = D.bg.p || 'noche';
+  $('bgimg').value = D.bg.t === 'img' ? D.bg.v : ''; $('tint').value = D.bg.k ?? 35; $('bgc').value = D.bg.c || '#fff4ec';
+  if (D.bg.t === 'pattern') $('pat').value = D.bg.v;
+  ['ln', 'ph', 'fr', 'mu'].forEach(k => ($(k).innerHTML = (D[k] || []).map(v => rowHTML(k, v)).join('')));
+  document.querySelectorAll('#tpl .tp').forEach(b => b.setAttribute('aria-pressed', b.dataset.t === D.t));
+  document.querySelectorAll('#bgt .chip').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === D.bg.t));
+  showBg();
+}
+function showBg() { document.querySelectorAll('[data-bg]').forEach(g => (g.hidden = !g.dataset.bg.split(' ').includes(D.bg.t))); }
+
+function read() {
+  ['n', 'i', 's', 'l', 'a', 'b', 'yt'].forEach(k => (D[k] = $(k).value.trim()));
+  D.e = $('e').checked; D.ac = $('ac').value; D.f = $('f').value; D.th = $('th').value;
+  const t = D.bg.t;
+  D.bg = { t, c: $('bgc').value, k: +$('tint').value };
+  if (t === 'art') { D.bg.v = $('art').value; D.bg.p = $('pal').value; }
+  if (t === 'img') D.bg.v = $('bgimg').value.trim();
+  if (t === 'pattern') D.bg.v = $('pat').value;
+  for (const k of ['ln', 'fr', 'mu']) D[k] = [...$(k).querySelectorAll('.rw')].map(r => [...r.querySelectorAll('input')].map(i => i.value.trim())).filter(v => v[0] || v[1]);
+  D.ph = [...$('ph').querySelectorAll('.rw input')].map(i => i.value.trim()).filter(Boolean);
+}
+
+// datos compactos: sin campos vacíos
+function compact(o) {
+  const c = {};
+  for (const [k, v] of Object.entries(o)) {
+    if (v === '' || v == null || (Array.isArray(v) && !v.length)) continue;
+    c[k] = v;
+  }
+  if (!c.e) delete c.e;
+  return c;
+}
+async function encode(o) {
+  const bytes = new TextEncoder().encode(JSON.stringify(compact(o)));
+  const stream = new Blob([bytes]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+  const buf = new Uint8Array(await new Response(stream).arrayBuffer());
+  let s = ''; buf.forEach(b => (s += String.fromCharCode(b)));
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+async function decode(s) {
+  const b = atob(s.replace(/-/g, '+').replace(/_/g, '/'));
+  const stream = new Blob([Uint8Array.from(b, c => c.charCodeAt(0))]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+  return JSON.parse(await new Response(stream).text());
+}
+
+let ut;
+function update() {
+  read();
+  $('pv').contentWindow && $('pv').contentWindow.postMessage({ xhazSpace: compact(D) }, location.origin);
+  clearTimeout(ut);
+  ut = setTimeout(async () => {
+    const link = VIEW + '?d=' + await encode(D);
+    $('link').textContent = link; $('open').href = link;
+    const bad = [D.a, D.bg.t === 'img' ? D.bg.v : '', ...D.ph].filter(u => u && !/^https:\/\//i.test(u));
+    $('len').innerHTML = `${link.length.toLocaleString()} ${L('caracteres', 'characters')}`
+      + (bad.length ? ` · <span class="warn">${L('Algún link no empieza con https:// y no se mostrará.', 'Some link does not start with https:// and will not show.')}</span>` : '')
+      + (link.length > 4000 ? ` · <span class="warn">${L('Es un link muy largo: quita algunas fotos o acorta el texto si xat no lo acepta.', 'This link is very long: remove some photos or shorten the text if xat does not accept it.')}</span>` : '');
+  }, 250);
+}
+
+// ---------- eventos ----------
+document.querySelector('.controls').addEventListener('input', update);
+document.querySelector('.controls').addEventListener('change', update);
+$('tpl').addEventListener('click', e => { const b = e.target.closest('.tp'); if (!b) return; D.t = b.dataset.t; document.querySelectorAll('#tpl .tp').forEach(x => x.setAttribute('aria-pressed', x === b)); update(); });
+$('bgt').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; D.bg.t = b.dataset.v; document.querySelectorAll('#bgt .chip').forEach(x => x.setAttribute('aria-pressed', x === b)); showBg(); update(); });
+document.addEventListener('click', e => {
+  const a = e.target.closest('[data-add]');
+  if (a) { const k = a.dataset.add, box = $(k); if (box.children.length >= MAX[k]) return toast(L('Llegaste al máximo', 'You reached the limit')); box.insertAdjacentHTML('beforeend', rowHTML(k)); box.lastElementChild.querySelector('input').focus(); }
+  const x = e.target.closest('.rw button');
+  if (x) { x.parentElement.remove(); update(); }
+});
+document.querySelectorAll('#dev .chip').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#dev .chip').forEach(x => x.setAttribute('aria-pressed', x === b));
+  $('screen').className = 'screen ' + b.dataset.v; fit();
+});
+$('impb').onclick = async () => {
+  try {
+    const u = new URL($('imp').value.trim());
+    D = { ...D, ...(await decode(u.searchParams.get('d'))) };
+    D.bg = { t: 'art', v: 'aurora', p: 'noche', c: '#fff4ec', k: 35, ...(D.bg || {}) };
+    fill(); update(); toast(L('Link cargado', 'Link loaded'));
+  } catch (err) { toast(L('Ese link no es de este generador.', 'That link is not from this generator.')); }
+};
+
+// vista previa escalada (una computadora de 1280 px o un celular de 390 px)
+function fit() {
+  const sc = $('screen'), pv = $('pv');
+  const W = sc.classList.contains('phone') ? 390 : 1280, k = sc.clientWidth / W;
+  pv.style.width = W + 'px'; pv.style.height = sc.clientHeight / k + 'px'; pv.style.transform = `scale(${k})`;
+}
+new ResizeObserver(fit).observe($('screen'));
+$('pv').addEventListener('load', update);
+
+const qd = new URLSearchParams(location.search).get('d');
+if (qd) decode(qd).then(v => { D = { ...D, ...v }; fill(); update(); }).catch(() => {});
+fill(); fit(); update();
+</script>
+</body>
+</html>

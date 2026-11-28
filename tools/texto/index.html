@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Texto animado 2D/3D · xHaz Tools</title>
+<link rel="stylesheet" href="../assets/base.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Orbitron:wght@800&family=Rubik+Mono+One&family=Space+Grotesk:wght@700&family=Archivo+Black&display=swap">
+<style>
+.fxgroup{display:flex;flex-direction:column;gap:6px}
+.fxgroup > span{font-size:12px;color:var(--mute)}
+.sizes{display:flex;flex-wrap:wrap;gap:6px}
+.size{font:inherit;font-size:13px;color:#cfd3f5;background:var(--ink);border:1px solid var(--line);border-radius:var(--r-md);padding:6px 10px;cursor:pointer;line-height:1.25;text-align:left}
+.size small{display:block;color:var(--mute);font-size:11px}
+.size[aria-pressed="true"]{border-color:var(--blue);background:#1f2a5c;color:#fff}
+.checker{background-color:#2a2e52;background-image:linear-gradient(45deg,#353a66 25%,transparent 25%,transparent 75%,#353a66 75%),linear-gradient(45deg,#353a66 25%,transparent 25%,transparent 75%,#353a66 75%);background-size:16px 16px;background-position:0 0,8px 8px}
+.stagebox{display:flex;align-items:center;justify-content:center;min-height:320px;width:100%}
+.stagebox canvas{image-rendering:auto;border-radius:6px;max-width:100%}
+.result{display:none;flex-direction:column;gap:12px}
+.result.on{display:flex}
+.result img{border-radius:8px;border:1px solid var(--line);align-self:flex-start;max-width:100%}
+.hosts{display:flex;flex-wrap:wrap;gap:8px}
+.hosts a{font-size:13px;text-decoration:none;background:var(--raise);border:1px solid var(--line);border-radius:999px;padding:6px 12px}
+</style>
+</head>
+<body>
+<header class="top"></header>
+<main>
+  <div class="head">
+    <h1 data-en="2D/3D animated text">Texto animado 2D/3D</h1>
+    <p data-en="Your name or any word, with 2D, 3D or hologram motion. It becomes a GIF for your avatar, a banner or your Pstyle.">Tu nombre o cualquier palabra, con movimiento 2D, 3D u holograma. Sale como GIF para tu avatar, un banner o tu Pstyle.</p>
+  </div>
+  <div class="work">
+    <aside class="controls" aria-label="Opciones">
+      <div class="group">
+        <label class="f"><span data-en="Text">Texto</span><input type="text" id="txt" value="xHaz" maxlength="24"></label>
+        <select id="font" aria-label="Letra">
+          <option value="Bricolage Grotesque">Bricolage</option>
+          <option value="Archivo Black">Archivo Black</option>
+          <option value="Space Grotesk">Space Grotesk</option>
+          <option value="Outfit">Outfit</option>
+          <option value="Orbitron">Orbitron</option>
+          <option value="Bungee">Bungee</option>
+          <option value="Rubik Mono One">Rubik Mono</option>
+          <option value="JetBrains Mono">JetBrains Mono</option>
+        </select>
+      </div>
+      <div class="group">
+        <span class="gt" data-en="Motion">Movimiento</span>
+        <div class="fxgroup"><span>2D</span><div class="chips" data-dim="2d"></div></div>
+        <div class="fxgroup"><span>3D</span><div class="chips" data-dim="3d"></div></div>
+        <div class="fxgroup"><span data-en="Hologram">Holograma</span><div class="chips" data-dim="holo"></div></div>
+        <div class="fxgroup"><span data-en="With a character">Con personaje</span><div class="chips" data-dim="char"></div></div>
+      </div>
+      <div class="group">
+        <span class="gt" data-en="Drawing or your image">Dibujito o tu imagen</span>
+        <div class="chips" id="stk"></div>
+        <label class="btn ghost" style="cursor:pointer;width:max-content"><input type="file" id="upl" accept="image/*" hidden><span data-en="Upload my image">Subir mi imagen</span></label>
+        <p class="hint" data-en="Your image never leaves your computer. Use only pictures you are allowed to use.">Tu imagen no sale de tu computadora. Usa solo imágenes que tengas permiso de usar.</p>
+        <div class="row">
+          <label class="f"><span data-en="Where">Dónde</span><select id="spos">
+            <option value="left" data-en="Left">Izquierda</option><option value="right" data-en="Right">Derecha</option>
+            <option value="top" data-en="Above">Arriba</option><option value="back" data-en="Behind the text">Detrás del texto</option></select></label>
+          <label class="f"><span data-en="Motion">Movimiento</span><select id="smot">
+            <option value="float" data-en="Float">Flota</option><option value="bounce" data-en="Bounce">Rebota</option>
+            <option value="spin" data-en="Spin">Gira</option><option value="beat" data-en="Beat">Late</option><option value="still" data-en="Still">Quieta</option></select></label>
+        </div>
+        <label class="f"><span data-en="Drawing size">Tamaño del dibujo</span><input type="range" id="ssize" min="0.3" max="1" step="0.05" value="0.7"></label>
+        <label class="chip" style="display:flex;gap:6px;align-items:center;width:max-content"><input type="checkbox" id="spark"> <span data-en="Sparkles around">Destellos alrededor</span></label>
+      </div>
+      <div class="group">
+        <span class="gt" data-en="Size">Tamaño</span>
+        <div class="sizes" id="sizes"></div>
+      </div>
+      <div class="group">
+        <span class="gt" data-en="Letter color">Color de las letras</span>
+        <div class="chips" id="fill">
+          <button class="chip" data-v="grad" aria-pressed="true" data-en="Gradient">Degradado</button>
+          <button class="chip" data-v="solid" aria-pressed="false" data-en="Solid">Sólido</button>
+          <button class="chip" data-v="rainbow" aria-pressed="false" data-en="Rainbow">Arcoíris</button>
+        </div>
+        <div class="row" style="justify-content:flex-start">
+          <input type="color" id="c1" value="#ffffff" aria-label="Color 1" style="flex:none">
+          <input type="color" id="c2" value="#7fa2ff" aria-label="Color 2" style="flex:none">
+          <label class="f" style="flex:1"><span data-en="Glow">Brillo</span><input type="range" id="glow" min="0" max="1" step="0.05" value="0.5"></label>
+          <input type="color" id="gc" value="#4d7cff" aria-label="Color del brillo" style="flex:none">
+        </div>
+        <label class="chip" style="display:flex;gap:6px;align-items:center;width:max-content"><input type="checkbox" id="outline"> <span data-en="Dark outline">Contorno oscuro</span></label>
+      </div>
+      <div class="group">
+        <span class="gt" data-en="Background">Fondo</span>
+        <select id="bg" aria-label="Fondo"></select>
+        <div class="row" style="justify-content:flex-start"><input type="color" id="bgc" value="#141629" aria-label="Color de fondo" style="flex:none"><span class="hint" id="bghint"></span></div>
+      </div>
+      <div class="group">
+        <label class="f"><span data-en="Loop length">Duración del bucle</span>
+          <select id="dur"><option value="1.6">1,6 s</option><option value="2.4" selected>2,4 s</option><option value="3.2">3,2 s</option></select></label>
+      </div>
+    </aside>
+    <section class="stage" aria-label="Vista previa">
+      <div class="frame"><div class="stagebox checker" id="box"><canvas id="cv"></canvas></div></div>
+      <div class="note">
+        <div class="bar">
+          <button class="btn" id="gif" data-en="Make GIF">Crear GIF</button>
+          <button class="btn ghost" id="png" data-en="Still image (PNG)">Imagen fija (PNG)</button>
+          <div class="progress" aria-hidden="true"><i id="prog"></i></div>
+        </div>
+        <p class="hint" id="hint" style="margin-top:8px"></p>
+      </div>
+      <div class="result note" id="result">
+        <b id="rtitle"></b>
+        <img id="rimg" alt="">
+        <div class="bar"><button class="btn" id="rdl" data-en="Download again">Descargar de nuevo</button><span class="hint" id="rsize"></span></div>
+        <div id="guide"></div>
+      </div>
+    </section>
+  </div>
+</main>
+<footer class="foot"></footer>
+
+<script type="module">
+import { shell, L, toast, download, makeGIF, canvasPNG, fmtBytes } from '../assets/core.js';
+import { STYLES, PALETTES, rgba } from '../assets/art.js';
+shell('texto');
+const $ = id => document.getElementById(id);
+const TAU = Math.PI * 2;
+
+const SIZES = [
+  { id: 'avatar', w: 80, h: 80, es: 'Avatar', en: 'Avatar', zoom: 3 },
+  { id: 'avatar2', w: 160, h: 160, es: 'Avatar grande', en: 'Big avatar', zoom: 2 },
+  { id: 'banner', w: 728, h: 90, es: 'Banner', en: 'Banner', zoom: 1 },
+  { id: 'pstyle', w: 760, h: 200, es: 'Pstyle', en: 'Pstyle', zoom: 1 },
+  { id: 'square', w: 300, h: 300, es: 'Cuadrado', en: 'Square', zoom: 1 },
+];
+
+// ---------- efectos ----------
+// Cada efecto recibe el contexto, las letras ya medidas y la fase p (0..1, bucle exacto)
+const FX = {
+  onda:    { dim: '2d', es: 'Onda', en: 'Wave' },
+  rebote:  { dim: '2d', es: 'Rebote', en: 'Bounce' },
+  brillo:  { dim: '2d', es: 'Destello', en: 'Shine' },
+  pulso:   { dim: '2d', es: 'Latido', en: 'Heartbeat' },
+  escribir:{ dim: '2d', es: 'Máquina de escribir', en: 'Typewriter' },
+  glitch:  { dim: '2d', es: 'Glitch suave', en: 'Soft glitch' },
+  humo:    { dim: '2d', es: 'Humo', en: 'Smoke' },
+  pluma:   { dim: '2d', es: 'Escribir con pluma', en: 'Pen writing' },
+  giro3d:  { dim: '3d', es: 'Giro con volumen', en: 'Turn with depth' },
+  volteo:  { dim: '3d', es: 'Volteo de letras', en: 'Letter flip' },
+  orbita:  { dim: '3d', es: 'Órbita', en: 'Orbit' },
+  ola3d:   { dim: '3d', es: 'Ola en 3D', en: '3D swell' },
+  holo:    { dim: 'holo', es: 'Holograma', en: 'Hologram' },
+  scan:    { dim: 'holo', es: 'Escáner', en: 'Scanner' },
+  borrar:  { dim: 'char', es: 'Borrar al pasar', en: 'Erase as it walks' },
+  revelar: { dim: 'char', es: 'Escribir al pasar', en: 'Write as it walks' },
+  saltar:  { dim: 'char', es: 'Saltar letras', en: 'Hop on letters' },
+};
+const S = { fx: 'giro3d', size: SIZES[0], fill: 'grad', seed: 11 };
+
+document.querySelectorAll('[data-dim]').forEach(box => {
+  box.innerHTML = Object.entries(FX).filter(([, f]) => f.dim === box.dataset.dim)
+    .map(([k, f]) => `<button class="chip" data-fx="${k}" aria-pressed="${k === S.fx}">${L(f.es, f.en)}</button>`).join('');
+});
+$('sizes').innerHTML = SIZES.map((s, i) => `<button class="size" data-i="${i}" aria-pressed="${i === 0}">${L(s.es, s.en)}<small>${s.w}×${s.h}</small></button>`).join('');
+$('bg').innerHTML = `<option value="transparent">${L('Transparente', 'Transparent')}</option><option value="color">${L('Color liso', 'Solid color')}</option>`
+  + Object.entries(STYLES).map(([k, v]) => `<option value="${k}">${L(v.es, v.en)}</option>`).join('');
+$('bg').value = 'color';
+
+document.addEventListener('click', e => {
+  const f = e.target.closest('[data-fx]');
+  if (f) { S.fx = f.dataset.fx; document.querySelectorAll('[data-fx]').forEach(b => b.setAttribute('aria-pressed', b === f)); }
+  const s = e.target.closest('.size');
+  if (s) { S.size = SIZES[+s.dataset.i]; document.querySelectorAll('.size').forEach(b => b.setAttribute('aria-pressed', b === s)); layout(); }
+  const fl = e.target.closest('#fill .chip');
+  if (fl) { S.fill = fl.dataset.v; document.querySelectorAll('#fill .chip').forEach(b => b.setAttribute('aria-pressed', b === fl)); }
+});
+
+// ---------- dibujo ----------
+function fitFont(ctx, text, w, h, fam) {
+  ctx.font = `800 100px "${fam}", "Outfit", system-ui, sans-serif`;
+  const tw = ctx.measureText(text).width || 1;
+  const ch = FX[S.fx].dim === 'char';
+  const k = S.fx === 'orbita' ? .55 : ch ? .66 : .86;
+  const hk = S.fx === 'orbita' ? .32 : S.fx === 'saltar' ? .36 : ch ? .5 : .62;
+  return Math.max(8, Math.min(h * hk, w * k / tw * 100));
+}
+function fillFor(ctx, x0, x1, p, i, n) {
+  const c1 = $('c1').value, c2 = $('c2').value;
+  if (S.fill === 'solid') return c1;
+  if (S.fill === 'rainbow') {
+    const g = ctx.createLinearGradient(x0, 0, x1, 0);
+    for (let k = 0; k <= 6; k++) g.addColorStop(k / 6, `hsl(${(k * 60 + p * 360) % 360},90%,65%)`);
+    return g;
+  }
+  const g = ctx.createLinearGradient(x0, 0, x1, 0);
+  g.addColorStop(0, c1); g.addColorStop(1, c2);
+  return g;
+}
+function glyphs(ctx, text, fs, fam, cx) {
+  ctx.font = `800 ${fs}px "${fam}", "Outfit", system-ui, sans-serif`;
+  const chars = [...text], ws = chars.map(c => ctx.measureText(c).width);
+  const total = ws.reduce((a, b) => a + b, 0);
+  let x = cx - total / 2;
+  return { chars, total, list: chars.map((c, i) => { const g = { c, x: x + ws[i] / 2, w: ws[i], i }; x += ws[i]; return g; }) };
+}
+function paintLetter(ctx, ch, x, y, fill, glow) {
+  if (glow > 0) { ctx.shadowColor = rgba($('gc').value, .9); ctx.shadowBlur = glow; }
+  if ($('outline').checked) { ctx.lineWidth = Math.max(2, parseFloat(ctx.font) * .08); ctx.strokeStyle = 'rgba(8,10,24,.9)'; ctx.lineJoin = 'round'; ctx.strokeText(ch, x, y); }
+  ctx.fillStyle = fill; ctx.fillText(ch, x, y);
+  ctx.shadowBlur = 0;
+}
+function darker(hex, k) {
+  const n = parseInt(hex.slice(1), 16), r = (n >> 16) * k, g = (n >> 8 & 255) * k, b = (n & 255) * k;
+  return `rgb(${r | 0},${g | 0},${b | 0})`;
+}
+
+function background(ctx, w, h, p) {
+  const v = $('bg').value;
+  if (v === 'transparent') return;
+  if (v === 'color') { ctx.fillStyle = $('bgc').value; ctx.fillRect(0, 0, w, h); return; }
+  const pal = PALETTES.noche;
+  STYLES[v].draw(ctx, w, h, p, { bg: $('bgc').value, c: [$('c2').value, $('gc').value, pal[3]], density: .5, speed: 1, seed: S.seed });
+}
+
+// el texto va en su propia capa: así el destello y el holograma no tocan el fondo
+const LAYER = document.createElement('canvas');
+function render(ctx, p, w, h) {
+  background(ctx, w, h, p);
+  if (LAYER.width !== w || LAYER.height !== h) { LAYER.width = w; LAYER.height = h; }
+  const lc = LAYER.getContext('2d');
+  lc.clearRect(0, 0, w, h);
+  const has = FX[S.fx].dim !== 'char' && ST.k !== 'none' && (ST.k !== 'img' || ST.img || ST.frames), pos = $('spos').value;
+  const k = +$('ssize').value, sq = Math.min(w, h);
+  if (has && pos === 'back') sticker(ctx, p, w / 2, h / 2, sq * k);
+  lc.save();
+  if (has && (pos === 'left' || pos === 'right')) {
+    const side = Math.min(h * k, w * .45);
+    if (pos === 'left') { sticker(ctx, p, side / 2 + w * .02, h / 2, side); lc.translate(side + w * .02, 0); }
+    else sticker(ctx, p, w - side / 2 - w * .02, h / 2, side);
+    renderText(lc, p, w - side - w * .02, h);
+  } else if (has && pos === 'top') {
+    const side = h * .5 * k + h * .1;
+    sticker(ctx, p, w / 2, side / 2 + h * .03, side * .9);
+    lc.translate(0, side); renderText(lc, p, w, h - side);
+  } else renderText(lc, p, w, h);
+  lc.restore();
+  ctx.drawImage(LAYER, 0, 0);
+  if ($('spark').checked) sparkles(ctx, p, w, h);
+}
+function renderText(ctx, p, w, h) {
+  const text = $('txt').value || ' ', fam = $('font').value;
+  const fs = fitFont(ctx, text, w, h, fam), cx = w / 2, cy = h / 2;
+  const G = glyphs(ctx, text, fs, fam, cx), n = G.list.length;
+  const glow = +$('glow').value * fs * .35, x0 = cx - G.total / 2, x1 = cx + G.total / 2;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const a = TAU * p, fx = S.fx;
+
+  if (fx === 'onda' || fx === 'rebote' || fx === 'pulso' || fx === 'escribir' || fx === 'brillo') {
+    const fill = fillFor(ctx, x0, x1, p);
+    const shown = fx === 'escribir' ? Math.floor(Math.min(1, Math.sin(p * Math.PI) * 1.35) * n + .0001) : n;
+    for (const g of G.list) {
+      if (g.i >= shown) continue;
+      let y = cy, sc = 1;
+      if (fx === 'onda') y += Math.sin(a + g.i * .7) * fs * .14;
+      if (fx === 'rebote') { const t = ((p * 2 - g.i / Math.max(n, 1) * .6) % 1 + 1) % 1; y -= Math.max(0, Math.sin(t * Math.PI * 2)) * fs * .22 * (t < .5 ? 1 : 0); }
+      if (fx === 'pulso') sc = 1 + .08 * Math.max(0, Math.sin(a * 2)) ** 3;
+      ctx.save(); ctx.translate(g.x, y); ctx.scale(sc, sc);
+      paintLetter(ctx, g.c, 0, 0, fill, glow * (fx === 'pulso' ? .6 + .6 * Math.max(0, Math.sin(a * 2)) : 1));
+      ctx.restore();
+    }
+    if (fx === 'escribir' && shown < n && Math.sin(a * 6) > -.2) {
+      const gx = shown < n ? G.list[shown].x - G.list[shown].w / 2 : x1;
+      ctx.fillStyle = $('c1').value; ctx.fillRect(gx + 2, cy - fs * .38, Math.max(2, fs * .06), fs * .76);
+    }
+    if (fx === 'brillo') {
+      // franja de luz que cruza solo por dentro de las letras
+      ctx.save(); ctx.globalCompositeOperation = 'source-atop';
+      const sx = x0 - fs + (x1 - x0 + fs * 2) * p;
+      const lg = ctx.createLinearGradient(sx - fs * .6, 0, sx + fs * .6, 0);
+      lg.addColorStop(0, 'rgba(255,255,255,0)'); lg.addColorStop(.5, 'rgba(255,255,255,.85)'); lg.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = lg; ctx.fillRect(0, 0, w, h); ctx.restore();
+    }
+    return;
+  }
+
+  if (fx === 'humo') {
+    // 0–.35 las letras salen del humo · .35–.68 quietas · .68–1 se deshacen subiendo
+    const fill = fillFor(ctx, x0, x1, p), canBlur = 'filter' in ctx;
+    for (const g of G.list) {
+      const off = g.i / Math.max(n, 1) * .12;
+      const inT = Math.min(1, Math.max(0, (p - off) / .3)), outT = Math.min(1, Math.max(0, (p - .68 - off) / .26));
+      const vis = inT * (1 - outT);
+      // bocanadas de humo
+      for (let k = 0; k < 4; k++) {
+        const seed = (g.i * 7 + k * 13) % 17 / 17, phase = outT > 0 ? outT : 1 - inT;
+        if (phase <= 0 || phase >= 1) continue;
+        const rr = fs * (.18 + .3 * phase) * (.7 + seed * .6);
+        const px = g.x + (seed - .5) * fs * .6, py = cy - fs * (.1 + phase * .7) + k * fs * .08;
+        const sg = ctx.createRadialGradient(px, py, 0, px, py, rr);
+        sg.addColorStop(0, rgba($('c1').value, .28 * Math.sin(phase * Math.PI))); sg.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = sg; ctx.beginPath(); ctx.arc(px, py, rr, 0, TAU); ctx.fill();
+      }
+      if (vis <= .01) continue;
+      ctx.save(); ctx.globalAlpha = vis;
+      ctx.translate(g.x, cy - outT * fs * .35);
+      const sc = 1 + (1 - inT) * .25 + outT * .15; ctx.scale(sc, sc);
+      if (canBlur) ctx.filter = `blur(${((1 - vis) * fs * .08).toFixed(1)}px)`;
+      paintLetter(ctx, g.c, 0, 0, fill, glow * vis);
+      ctx.restore();
+    }
+    return;
+  }
+
+  if (fx === 'pluma') {
+    // la pluma escribe de izquierda a derecha, se queda y se borra suave al final del bucle
+    const wr = Math.min(1, p / .72), fade = p > .9 ? 1 - (p - .9) / .1 : 1;
+    const edge = x0 - fs * .05 + (G.total + fs * .1) * wr;
+    ctx.save(); ctx.globalAlpha = fade;
+    ctx.beginPath(); ctx.rect(0, 0, edge, h); ctx.clip();
+    ctx.font = `800 ${fs}px "${fam}", "Outfit", system-ui, sans-serif`;
+    paintLetter(ctx, text, cx, cy, fillFor(ctx, x0, x1, p), glow);
+    ctx.restore();
+    if (wr < 1) {
+      const py = cy + Math.sin(p * TAU * 9) * fs * .28, L2 = fs * 1.1;
+      ctx.save(); ctx.translate(edge, py); ctx.rotate(-.75);
+      const pg = ctx.createLinearGradient(0, -fs * .06, 0, fs * .06);
+      pg.addColorStop(0, $('c2').value); pg.addColorStop(1, darker($('c2').value, .45));
+      ctx.fillStyle = pg; ctx.beginPath(); ctx.roundRect(fs * .12, -fs * .07, L2, fs * .14, fs * .05); ctx.fill();
+      ctx.fillStyle = '#e8e9f5'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(fs * .14, -fs * .07); ctx.lineTo(fs * .14, fs * .07); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = darker($('c2').value, .3); ctx.fillRect(fs * .12, -fs * .075, fs * .05, fs * .15);
+      ctx.restore();
+    }
+    return;
+  }
+
+  if (fx === 'glitch') {
+    const fill = fillFor(ctx, x0, x1, p), k = Math.floor(p * 24);
+    const hit = (k % 8 === 3 || k % 8 === 4), off = hit ? fs * .05 : fs * .012;
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    ctx.font = `800 ${fs}px "${fam}", "Outfit", system-ui, sans-serif`;
+    ctx.fillStyle = 'rgba(255,40,90,.7)'; ctx.fillText(text, cx - off, cy);
+    ctx.fillStyle = 'rgba(40,220,255,.7)'; ctx.fillText(text, cx + off, cy);
+    ctx.restore();
+    paintLetter(ctx, text, cx, cy, fill, glow * .5);
+    if (hit) { ctx.save(); ctx.globalCompositeOperation = 'destination-out'; ctx.fillRect(0, cy - fs * .05 + (k % 3) * fs * .1, w, fs * .04); ctx.restore(); }
+    return;
+  }
+
+  if (fx === 'giro3d') {
+    const ang = Math.sin(a) * .65, depth = Math.max(3, Math.round(fs * .16));
+    const base = S.fill === 'solid' ? $('c1').value : $('c2').value;
+    ctx.save(); ctx.translate(cx, cy);
+    ctx.transform(Math.cos(ang), Math.sin(ang) * .12, 0, 1, 0, 0);
+    ctx.font = `800 ${fs}px "${fam}", "Outfit", system-ui, sans-serif`;
+    for (let d = depth; d > 0; d--) {
+      ctx.fillStyle = darker(base, .25 + .45 * (1 - d / depth));
+      ctx.fillText(text, -Math.sin(ang) * d * .9, d * .7);
+    }
+    paintLetter(ctx, text, 0, 0, fillFor(ctx, -G.total / 2, G.total / 2, p), glow);
+    ctx.restore();
+    return;
+  }
+
+  if (fx === 'volteo') {
+    const fill = fillFor(ctx, x0, x1, p);
+    for (const g of G.list) {
+      const t = ((p - g.i / Math.max(n, 1) * .5) % 1 + 1) % 1;
+      const ang = t < .5 ? t * 2 * Math.PI : 0, sy = Math.cos(ang);
+      ctx.save(); ctx.translate(g.x, cy); ctx.scale(1, Math.abs(sy) < .04 ? .04 : sy);
+      const f2 = sy < 0 ? darker($('c2').value, .6) : fill;
+      paintLetter(ctx, g.c, 0, 0, f2, glow * Math.abs(sy));
+      ctx.restore();
+    }
+    return;
+  }
+
+  if (fx === 'ola3d') {
+    const fill = fillFor(ctx, x0, x1, p);
+    for (const g of G.list) {
+      const z = Math.sin(a + g.i * .55), sc = .82 + .25 * (z + 1) / 2;
+      ctx.save(); ctx.translate(g.x, cy - z * fs * .1); ctx.scale(sc, sc);
+      ctx.globalAlpha = .55 + .45 * (z + 1) / 2;
+      ctx.fillStyle = darker($('c2').value, .35);
+      ctx.fillText(g.c, fs * .03 * sc, fs * .06 * sc);
+      ctx.globalAlpha = 1;
+      paintLetter(ctx, g.c, 0, 0, fill, glow * (z + 1) / 2);
+      ctx.restore();
+    }
+    return;
+  }
+
+  if (fx === 'orbita') {
+    const R = Math.min(w * .38, h * .36 * 1.6), tilt = .32;
+    const items = G.list.map(g => {
+      const th = a + g.i / n * TAU;
+      return { g, x: cx + Math.cos(th) * R, z: Math.sin(th), th };
+    }).sort((p1, p2) => p1.z - p2.z);
+    ctx.save(); ctx.strokeStyle = rgba($('gc').value, .25); ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.ellipse(cx, cy, R, R * tilt, 0, 0, TAU); ctx.stroke(); ctx.restore();
+    for (const it of items) {
+      const sc = .62 + .5 * (it.z + 1) / 2;
+      ctx.save(); ctx.translate(it.x, cy + it.z * R * tilt); ctx.scale(sc, sc);
+      ctx.globalAlpha = .45 + .55 * (it.z + 1) / 2;
+      paintLetter(ctx, it.g.c, 0, 0, fillFor(ctx, -fs, fs, p), glow * (it.z + 1) / 2);
+      ctx.restore();
+    }
+    return;
+  }
+
+  if (fx === 'borrar' || fx === 'revelar' || fx === 'saltar') {
+    const fill = fillFor(ctx, x0, x1, p), size = Math.min(h * .62, fs * 1.05);
+    const left = x0 - size, right = x1 + size;
+    let ax, dir = 1, ay = cy, visible;
+    if (fx === 'borrar') {
+      // ida: borra lo que deja atrás · vuelta: lo escribe de nuevo
+      if (p < .5) { ax = left + (right - left) * (p / .5); visible = g => g.x > ax; }
+      else { ax = right - (right - left) * ((p - .5) / .5); dir = -1; visible = g => g.x > ax; }
+    } else if (fx === 'revelar') {
+      const q = Math.min(1, p / .72);
+      ax = left + (right - left) * q; visible = g => g.x < ax;
+      if (p > .72) ax = right + size * 2; // ya salió de la escena
+    } else {
+      const n1 = Math.max(n, 1), q = p * (n1 + 1);
+      const k = Math.floor(q), f = q - k;
+      const fromX = k === 0 ? left : G.list[Math.min(k - 1, n1 - 1)].x, toX = k >= n1 ? right : G.list[k].x;
+      ax = fromX + (toX - fromX) * f;
+      ay = cy + fs * .1 - fs * .62 - Math.sin(f * Math.PI) * fs * .5;
+      visible = () => true;
+      var landed = f < .18 ? k - 1 : -1, sink = f < .18 ? (1 - f / .18) : 0;
+    }
+    for (const g of G.list) {
+      if (!visible(g)) {
+        // pequeña nube donde estaba la letra, solo cerca del personaje
+        const d = Math.abs(g.x - ax);
+        if (d < size * 1.2) { ctx.fillStyle = rgba($('c1').value, .25 * (1 - d / (size * 1.2))); ctx.beginPath(); ctx.arc(g.x, cy, fs * .18 * (1 - d / (size * 1.2)) + 1, 0, TAU); ctx.fill(); }
+        continue;
+      }
+      const dy = (fx === 'saltar' && g.i === landed) ? fs * .12 * sink : 0;
+      paintLetter(ctx, g.c, g.x, cy + dy, fill, glow);
+    }
+    actor(ctx, p, ax, fx === 'saltar' ? ay : cy + fs * .05, size, dir);
+    return;
+  }
+
+  if (fx === 'holo' || fx === 'scan') {
+    const col = $('c2').value;
+    ctx.save(); ctx.font = `800 ${fs}px "${fam}", "Outfit", system-ui, sans-serif`;
+    const flick = fx === 'holo' ? .82 + .18 * Math.sin(a * 3) * Math.sin(a * 7) : 1;
+    ctx.globalAlpha = .35 * flick; ctx.fillStyle = rgba(col, 1);
+    ctx.fillText(text, cx + fs * .02, cy); ctx.fillText(text, cx - fs * .02, cy);
+    ctx.globalAlpha = flick;
+    paintLetter(ctx, text, cx, cy, fillFor(ctx, x0, x1, p), glow);
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.globalAlpha = .45;
+    const gap = Math.max(2, Math.round(fs * .07)), shift = (p * gap * 4) % gap;
+    for (let y = -gap + shift; y < h; y += gap) ctx.fillRect(0, y, w, Math.max(1, gap * .35));
+    ctx.restore();
+    if (fx === 'scan') {
+      const sy = cy - fs * .55 + fs * 1.1 * (.5 - .5 * Math.cos(a));
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      const lg = ctx.createLinearGradient(0, sy - fs * .12, 0, sy + fs * .12);
+      lg.addColorStop(0, 'rgba(0,0,0,0)'); lg.addColorStop(.5, rgba(col, .7)); lg.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = lg; ctx.fillRect(x0 - fs * .2, sy - fs * .12, G.total + fs * .4, fs * .24); ctx.restore();
+    }
+  }
+}
+
+
+// ---------- dibujitos y tu imagen ----------
+const PIX = {
+  heart: ['..XX.XX..', '.XXXXXXX.', 'XXXXXXXXX', 'XXXXXXXXX', '.XXXXXXX.', '..XXXXX..', '...XXX...', '....X....'],
+  star: ['....X....', '...XXX...', 'XXXXXXXXX', '.XXXXXXX.', '..XXXXX..', '..XX.XX..', '.XX...XX.'],
+  crown: ['X...X...X', 'XX.XXX.XX', 'XXXXXXXXX', 'XXXXXXXXX', 'XXXXXXXXX'],
+  note: ['...XXXXX', '...X...X', '...X...X', '...X...X', '.XXX.XXX', 'XXXXXXXX', '.XX..XX.'],
+  bolt: ['...XXX', '..XXX.', '.XXX..', 'XXXXXX', '..XXX.', '.XXX..', 'XX....'],
+  gem: ['.XXXXX.', 'XXXXXXX', '.XXXXX.', '..XXX..', '...X...'],
+};
+const STK = [['none', 'Ninguno', 'None'], ['heart', 'Corazón', 'Heart'], ['star', 'Estrella', 'Star'], ['crown', 'Corona', 'Crown'],
+  ['note', 'Nota', 'Note'], ['bolt', 'Rayo', 'Bolt'], ['gem', 'Gema', 'Gem'], ['planet', 'Planeta', 'Planet']];
+const ST = { k: 'none', img: null, frames: null, total: 0 };
+$('stk').innerHTML = STK.map(([k, es, en]) => `<button class="chip" data-k="${k}" aria-pressed="${k === 'none'}">${L(es, en)}</button>`).join('');
+$('stk').addEventListener('click', e => {
+  const b = e.target.closest('.chip'); if (!b) return;
+  ST.k = b.dataset.k; document.querySelectorAll('#stk .chip').forEach(x => x.setAttribute('aria-pressed', x === b));
+});
+$('upl').addEventListener('change', async e => {
+  const f = e.target.files[0]; if (!f) return;
+  ST.frames = null; ST.img = null;
+  try {
+    if ('ImageDecoder' in window && /gif|webp/.test(f.type)) {
+      const dec = new ImageDecoder({ data: await f.arrayBuffer(), type: f.type });
+      await dec.tracks.ready;
+      const n = dec.tracks.selectedTrack.frameCount, list = [];
+      let t = 0;
+      for (let i = 0; i < Math.min(n, 120); i++) {
+        const { image } = await dec.decode({ frameIndex: i });
+        const d = (image.duration || 100000) / 1000; // ms
+        list.push({ bmp: await createImageBitmap(image), t0: t, d }); t += d; image.close();
+      }
+      if (list.length > 1) { ST.frames = list; ST.total = t; }
+      else ST.img = list[0].bmp;
+    }
+    if (!ST.frames && !ST.img) ST.img = await createImageBitmap(f);
+    ST.k = 'img';
+    document.querySelectorAll('#stk .chip').forEach(x => x.setAttribute('aria-pressed', 'false'));
+    toast(L('Imagen lista', 'Image ready'));
+  } catch (err) { toast(L('No pude abrir esa imagen.', 'Could not open that image.')); }
+});
+
+function pixel(ctx, rows, size, col, dark) {
+  const n = Math.max(...rows.map(r => r.length)), m = rows.length, u = size / Math.max(n, m);
+  ctx.save(); ctx.translate(-n * u / 2, -m * u / 2);
+  for (const [dx, dy, c] of [[u * .5, u * .5, dark], [0, 0, col]]) {
+    ctx.fillStyle = c;
+    rows.forEach((r, y) => [...r].forEach((ch, x) => ch === 'X' && ctx.fillRect(x * u + dx, y * u + dy, Math.ceil(u), Math.ceil(u))));
+  }
+  ctx.restore();
+}
+function sticker(ctx, p, cx, cy, size, still = false) {
+  const mot = still ? 'still' : $('smot').value, a = TAU * p;
+  ctx.save(); ctx.translate(cx, cy);
+  if (mot === 'float') ctx.translate(0, Math.sin(a) * size * .08);
+  if (mot === 'bounce') ctx.translate(0, -Math.abs(Math.sin(a * 2)) * size * .16);
+  if (mot === 'spin') ctx.scale(Math.cos(a), 1);
+  if (mot === 'beat') { const k = 1 + .1 * Math.max(0, Math.sin(a * 2)) ** 3; ctx.scale(k, k); }
+  const col = $('c2').value;
+  if (ST.k === 'img' && (ST.img || ST.frames)) {
+    let bmp = ST.img;
+    if (ST.frames) { const t = (p * ST.total) % ST.total; bmp = (ST.frames.find(f => t >= f.t0 && t < f.t0 + f.d) || ST.frames[0]).bmp; }
+    const k = size / Math.max(bmp.width, bmp.height);
+    ctx.imageSmoothingEnabled = !(bmp.width <= 64);
+    ctx.drawImage(bmp, -bmp.width * k / 2, -bmp.height * k / 2, bmp.width * k, bmp.height * k);
+  } else if (ST.k === 'planet') {
+    const R = size * .3;
+    ctx.strokeStyle = $('gc').value; ctx.lineWidth = Math.max(1.5, size * .05);
+    ctx.beginPath(); ctx.ellipse(0, 0, R * 1.7, R * .5, -.35, Math.PI, TAU); ctx.stroke();
+    const g = ctx.createLinearGradient(-R, -R, R, R); g.addColorStop(0, $('c1').value); g.addColorStop(1, col);
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, R, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0, 0, R * 1.7, R * .5, -.35, 0, Math.PI); ctx.stroke();
+  } else if (PIX[ST.k]) {
+    ctx.imageSmoothingEnabled = false;
+    pixel(ctx, PIX[ST.k], size, col, 'rgba(10,12,30,.85)');
+  }
+  ctx.restore();
+}
+// Personaje propio: bolita que camina (2 cuadros)
+const WALK = [
+  ['...XXXX...', '..XXXXXX..', '.XXOXXOXX.', '.XXXXXXXX.', '.XXXXXXXX.', '..XXXXXX..', '..X....X..', '.XX....XX.'],
+  ['...XXXX...', '..XXXXXX..', '.XXOXXOXX.', '.XXXXXXXX.', '.XXXXXXXX.', '..XXXXXX..', '...X..X...', '...XX.XX..'],
+];
+function actor(ctx, p, x, y, size, dir) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(dir, 1);
+  const step = Math.floor(p * 16) % 2;
+  ctx.translate(0, -Math.abs(Math.sin(p * Math.PI * 16)) * size * .04);
+  const custom = ST.k !== 'none' && (ST.k !== 'img' || ST.img || ST.frames);
+  if (custom) {
+    // el personaje ya camina: sin el movimiento extra del dibujito
+    sticker(ctx, p, 0, 0, size, true);
+  } else {
+    ctx.imageSmoothingEnabled = false;
+    const rows = WALK[step], u = size / 10, col = $('c2').value;
+    ctx.translate(-5 * u, -4 * u);
+    rows.forEach((r, yy) => [...r].forEach((ch, xx) => {
+      if (ch === '.') return;
+      ctx.fillStyle = ch === 'O' ? '#0c0e22' : col;
+      ctx.fillRect(xx * u, yy * u, Math.ceil(u), Math.ceil(u));
+    }));
+  }
+  ctx.restore();
+}
+function sparkles(ctx, p, w, h) {
+  const n = 7;
+  for (let i = 0; i < n; i++) {
+    const x = w * ((i * .618 + .07) % 1), y = h * ((i * .381 + .13) % 1);
+    const k = Math.max(0, Math.sin(TAU * p * (1 + i % 2) + i * 1.7));
+    const r = Math.min(w, h) * .06 * k;
+    if (r < .5) continue;
+    ctx.fillStyle = i % 2 ? $('c1').value : $('gc').value;
+    ctx.beginPath(); ctx.moveTo(x, y - r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.quadraticCurveTo(x, y, x, y + r);
+    ctx.quadraticCurveTo(x, y, x - r, y); ctx.quadraticCurveTo(x, y, x, y - r); ctx.fill();
+  }
+}
+
+// ---------- vista previa ----------
+const cv = $('cv'), ctx = cv.getContext('2d');
+let p = 0, last = performance.now();
+function layout() {
+  const { w, h, zoom } = S.size;
+  cv.width = w; cv.height = h;
+  cv.style.width = Math.min(w * zoom, 900) + 'px';
+  cv.style.imageRendering = zoom > 1 ? 'pixelated' : 'auto';
+  $('hint').textContent = `${w}×${h} px · ` + ({
+    avatar: L('Ponlo como avatar (necesitas el power Animate para que se mueva).', 'Use it as your avatar (you need the Animate power for it to move).'),
+    avatar2: L('Para perfiles y xatspace; xat lo muestra a 80×80 en el chat.', 'For profiles and xatspace; xat shows it at 80×80 in chat.'),
+    banner: L('Para banners de 728×90.', 'For 728×90 banners.'),
+    pstyle: L('Fondo de tu perfil; para que se mueva necesitas 2 Pstyle.', 'Your profile background; it moves with 2 Pstyle powers.'),
+    square: L('Cuadrado para lo que quieras.', 'A square for anything you like.'),
+  })[S.size.id];
+}
+function bgHint() {
+  $('bghint').textContent = $('bg').value === 'transparent'
+    ? L('En GIF el brillo se ve mejor sobre un color.', 'In a GIF, glow looks best on a color.')
+    : $('bg').value === 'color' ? '' : L('Usa el color del fondo y tus colores.', 'Uses the background color and your colors.');
+}
+$('bg').addEventListener('change', bgHint);
+function loop(now) {
+  const dt = (now - last) / 1000; last = now;
+  p = (p + dt / +$('dur').value) % 1;
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  render(ctx, p, cv.width, cv.height);
+  requestAnimationFrame(loop);
+}
+async function fontsReady() { try { await document.fonts.load(`800 40px "${$('font').value}"`); } catch (e) {} }
+$('font').addEventListener('change', fontsReady);
+
+// ---------- exportar ----------
+let lastBlob, lastName;
+$('gif').onclick = async () => {
+  await fontsReady();
+  const btn = $('gif'); btn.disabled = true; btn.textContent = L('Creando…', 'Making…');
+  const { w, h } = S.size, dur = +$('dur').value, fps = w * h > 100000 ? 15 : 20;
+  try {
+    const blob = await makeGIF({ w, h, frames: Math.round(dur * fps), fps, render, transparent: $('bg').value === 'transparent',
+      onProgress: v => ($('prog').style.width = v * 100 + '%') });
+    show(blob, `xhaz-${S.fx}-${S.size.id}.gif`);
+  } catch (e) { toast(L('No se pudo crear el GIF.', 'Could not make the GIF.')); }
+  btn.disabled = false; btn.textContent = L('Crear GIF', 'Make GIF');
+  setTimeout(() => ($('prog').style.width = '0'), 900);
+};
+$('png').onclick = async () => {
+  await fontsReady();
+  const c = document.createElement('canvas'); c.width = S.size.w; c.height = S.size.h;
+  render(c.getContext('2d'), p, c.width, c.height);
+  show(await canvasPNG(c), `xhaz-${S.fx}-${S.size.id}.png`);
+};
+$('rdl').onclick = () => lastBlob && download(lastBlob, lastName);
+function show(blob, name) {
+  lastBlob = blob; lastName = name; download(blob, name);
+  $('result').classList.add('on');
+  $('rimg').src = URL.createObjectURL(blob);
+  $('rimg').style.width = Math.min(S.size.w * S.size.zoom, 600) + 'px';
+  $('rimg').style.imageRendering = S.size.zoom > 1 ? 'pixelated' : 'auto';
+  $('rtitle').textContent = L('Listo: se descargó ', 'Done: downloaded ') + name;
+  $('rsize').textContent = fmtBytes(blob.size);
+  $('guide').innerHTML = `<b>${L('Para usarlo en xat', 'To use it on xat')}</b>
+    <ol><li>${L('Súbelo a una página de imágenes que xat acepta:', 'Upload it to an image host xat accepts:')}
+      <div class="hosts" style="margin:8px 0"><a href="https://xatimg.com/" target="_blank" rel="noopener">xatimg</a><a href="https://imgbb.com/" target="_blank" rel="noopener">ImgBB</a><a href="https://picto.gg/" target="_blank" rel="noopener">Picto</a></div></li>
+    <li>${L('Copia el <b>link directo</b> y pégalo donde va: el campo Avatar de tu perfil, tu Pstyle o tu banner.', 'Copy the <b>direct link</b> and paste it where it goes: your profile Avatar field, your Pstyle or your banner.')}</li></ol>`;
+}
+
+layout(); bgHint(); fontsReady();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

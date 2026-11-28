@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fondos con título · xHaz Tools</title>
+<link rel="stylesheet" href="../assets/base.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pacifico&family=Kaushan+Script&family=Lobster&family=Yellowtail&family=Great+Vibes&family=Bebas+Neue&family=Anton&family=Bungee&family=Cinzel:wght@700&family=Monoton&family=Righteous&display=swap">
+<style>
+.sizes{display:flex;flex-wrap:wrap;gap:6px}
+.size{font:inherit;font-size:13px;text-align:left;color:#cfd3f5;background:var(--ink);border:1px solid var(--line);border-radius:var(--r-md);padding:7px 11px;cursor:pointer;line-height:1.25}
+.size small{display:block;color:var(--mute);font-size:11px}
+.size[aria-pressed="true"]{border-color:var(--blue);background:#1f2a5c;color:#fff}
+.preview{position:relative;width:100%;max-width:980px;margin:0 auto}
+.preview canvas{width:100%;height:auto;display:block;border-radius:8px}
+.mock{position:absolute;inset:0;pointer-events:none;display:none}
+.mock.on{display:block}
+.mock .chatbox{position:absolute;display:grid;grid-template-columns:1fr 26%;grid-template-rows:1fr 9%;gap:1.2%;padding:1.6%;border-radius:6px}
+.mock .msgs{background:rgba(255,255,255,.10);border-radius:6px;padding:3%;display:flex;flex-direction:column;gap:3.5%;justify-content:flex-end}
+.mock .msgs i{display:block;height:4.2%;min-height:5px;border-radius:99px;background:rgba(255,255,255,.3)}
+.mock .users{grid-row:span 2;background:rgba(0,0,0,.22);border-radius:6px}
+.mock .input{background:rgba(255,255,255,.85);border-radius:6px}
+.mock .solid{background:rgba(236,239,247,.94)}
+.result{display:none;flex-direction:column;gap:12px}
+.result.on{display:flex}
+.result img{max-width:100%;border-radius:8px;border:1px solid var(--line);align-self:flex-start;max-height:260px}
+.hosts{display:flex;flex-wrap:wrap;gap:8px}
+.hosts a{font-size:13px;text-decoration:none;background:var(--raise);border:1px solid var(--line);border-radius:999px;padding:6px 12px}
+.warn{color:var(--peach)}
+.finish{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.fin{font:inherit;font-size:13px;font-weight:700;border:1px solid var(--line);border-radius:var(--r-md);padding:8px 4px;cursor:pointer;color:#1a1a1a}
+.fin[aria-pressed="true"]{outline:2px solid var(--text);outline-offset:1px}
+</style>
+</head>
+<body>
+<header class="top"></header>
+<main>
+  <div class="head">
+    <h1 data-en="Backgrounds with a title">Fondos con título</h1>
+    <p data-en="The classic xat background: a big metallic title over a themed scene, your photo if you want, and the little squares for the smiley bar. For your chatbox, PCBack and outer background.">El fondo clásico de xat: un título metálico grande sobre una escena temática, tu foto si quieres y los cuadritos de la barra de smileys. Para tu chatbox, tu PCBack y tu fondo exterior.</p>
+  </div>
+  <div class="work">
+    <aside class="controls">
+      <div class="group"><span class="gt" data-en="Where does it go?">¿Dónde va?</span><div class="sizes" id="sizes"></div></div>
+      <div class="group"><span class="gt" data-en="Scene">Escena</span><div class="chips" id="scenes"></div>
+        <label class="btn ghost" style="cursor:pointer;width:max-content"><input type="file" id="bgfile" accept="image/*" hidden><span data-en="Use my photo as background">Usar mi foto de fondo</span></label>
+        <label class="f" id="dimw" hidden><span data-en="Darken your photo">Oscurecer tu foto</span><input type="range" id="dim" min="0" max="0.8" step="0.05" value="0.3"></label>
+      </div>
+      <div class="group">
+        <span class="gt" data-en="Title">Título</span>
+        <input type="text" id="title" value="xHaz" maxlength="22" aria-label="Título">
+        <div class="row">
+          <select id="font" aria-label="Letra">
+            <option value="Kaushan Script">Kaushan</option><option value="Pacifico">Pacifico</option><option value="Lobster">Lobster</option>
+            <option value="Yellowtail">Yellowtail</option><option value="Great Vibes">Great Vibes</option><option value="Bebas Neue">Bebas Neue</option>
+            <option value="Anton">Anton</option><option value="Bungee">Bungee</option><option value="Cinzel">Cinzel</option><option value="Monoton">Monoton</option>
+            <option value="Righteous">Righteous</option><option value="Bricolage Grotesque">Bricolage</option>
+          </select>
+        </div>
+        <span class="hint" data-en="Finish">Acabado</span>
+        <div class="finish" id="finish"></div>
+        <div class="row">
+          <label class="f"><span data-en="Size">Tamaño</span><input type="range" id="tsize" min="0.08" max="0.36" step="0.005" value="0.27"></label>
+          <label class="f"><span data-en="Depth">Volumen</span><input type="range" id="depth" min="0" max="1" step="0.05" value="0.5"></label>
+        </div>
+        <div class="row">
+          <label class="f"><span data-en="Left / right">Izquierda / derecha</span><input type="range" id="tx" min="0.15" max="0.85" step="0.01" value="0.5"></label>
+          <label class="f"><span data-en="Up / down">Arriba / abajo</span><input type="range" id="ty" min="0.15" max="0.85" step="0.01" value="0.45"></label>
+        </div>
+        <label class="chip" style="display:flex;gap:6px;align-items:center;width:max-content"><input type="checkbox" id="shine" checked> <span data-en="Moving shine">Brillo que pasa</span></label>
+      </div>
+      <div class="group">
+        <span class="gt" data-en="Small text">Textos pequeños</span>
+        <input type="text" id="above" maxlength="40" placeholder="Arriba del título (ej: ~ bienvenidos ~)" data-en-ph="Above the title (e.g. ~ welcome ~)">
+        <input type="text" id="below" maxlength="60" value="xat.com/xHaz" placeholder="Debajo del título" data-en-ph="Below the title">
+      </div>
+      <div class="group">
+        <span class="gt" data-en="Your figure (optional)">Tu figura (opcional)</span>
+        <label class="btn ghost" style="cursor:pointer;width:max-content"><input type="file" id="figfile" accept="image/*" hidden><span data-en="Upload a photo or PNG">Subir foto o PNG</span></label>
+        <p class="hint" data-en="A PNG with a transparent background looks best. It stays on your computer.">Un PNG sin fondo queda mejor. Se queda en tu computadora.</p>
+        <div class="row" id="figctl" hidden>
+          <label class="f"><span data-en="Position">Posición</span><input type="range" id="fx" min="0" max="1" step="0.01" value="0.18"></label>
+          <label class="f"><span data-en="Size">Tamaño</span><input type="range" id="fs" min="0.3" max="1.2" step="0.01" value="0.85"></label>
+        </div>
+      </div>
+      <div class="group">
+        <span class="gt" data-en="Smiley bar squares">Cuadritos de la barra de smileys</span>
+        <div class="row">
+          <select id="slots"><option value="none" data-en="None">Ninguno</option><option value="square" data-en="Squares">Cuadrados</option><option value="round" data-en="Rounded">Redondeados</option><option value="circle" data-en="Circles">Círculos</option></select>
+          <input type="color" id="slotc" value="#ffffff" style="flex:none" aria-label="Color">
+        </div>
+        <div class="row">
+          <label class="f"><span data-en="How many">Cuántos</span><input type="range" id="slotn" min="6" max="16" step="1" value="11"></label>
+          <label class="f"><span data-en="Height">Altura</span><input type="range" id="sloty" min="0.6" max="0.95" step="0.005" value="0.8"></label>
+        </div>
+      </div>
+    </aside>
+    <section class="stage">
+      <div class="frame"><div class="preview" id="preview"><canvas id="cv"></canvas><div class="mock" id="mock"></div></div></div>
+      <div class="bar">
+        <button class="btn ghost" id="play" data-en="Pause">Pausar</button>
+        <label class="chip" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="showmock" checked> <span data-en="Show the xat chat on top">Ver el chat de xat encima</span></label>
+        <span class="hint" id="dims"></span>
+      </div>
+      <div class="note">
+        <div class="bar">
+          <button class="btn" id="png" data-en="Download image (PNG)">Descargar imagen (PNG)</button>
+          <button class="btn" id="gif" data-en="Make animated GIF">Crear GIF animado</button>
+          <div class="progress" aria-hidden="true"><i id="prog"></i></div>
+        </div>
+        <p class="hint" id="gifhint" style="margin-top:8px"></p>
+      </div>
+      <div class="result note" id="result">
+        <b id="rtitle"></b><img id="rimg" alt="">
+        <span class="hint" id="rsize"></span>
+        <div id="guide"></div>
+      </div>
+    </section>
+  </div>
+</main>
+<footer class="foot"></footer>
+
+<script type="module">
+import { shell, L, toast, download, makeGIF, canvasPNG, fmtBytes } from '../assets/core.js';
+import { rng, rgba } from '../assets/art.js';
+shell('disenos');
+const $ = id => document.getElementById(id);
+const TAU = Math.PI * 2;
+
+const SIZES = [
+  { id: 'chat', w: 728, h: 486, es: 'Chatbox (fondo del chat)', en: 'Chatbox (chat background)', mock: 'chat', gif: true },
+  { id: 'pcback', w: 728, h: 486, es: 'PCBack (tus privados)', en: 'PCBack (your private chats)', mock: 'chat', gif: true },
+  { id: 'outer', w: 1920, h: 1080, es: 'Fondo exterior', en: 'Outer background', mock: 'outer', gif: false },
+];
+
+// ---------- escenas propias, todas en bucle ----------
+const P = (seed, n, f) => { const r = rng(seed); return Array.from({ length: n }, () => f(r)); };
+const CACHE = {};
+const pts = (k, n, f) => (CACHE[k] ||= P(k.length * 97 + n, n, f));
+function grad(ctx, w, h, stops, vertical = true) {
+  const g = vertical ? ctx.createLinearGradient(0, 0, 0, h) : ctx.createLinearGradient(0, 0, w, h);
+  stops.forEach((c, i) => g.addColorStop(i / (stops.length - 1), c)); ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+}
+function bokeh(ctx, w, h, p, cols, n, seed, size = 1) {
+  const B = pts('bk' + seed, n, r => [r(), r(), r(), r() * TAU]);
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  B.forEach(([x, y, z, ph], i) => {
+    const R = (10 + z * 40) * size * w / 728, a = (.06 + .1 * z) * (.6 + .4 * Math.sin(TAU * p + ph));
+    const g = ctx.createRadialGradient(x * w, y * h, 0, x * w, y * h, R);
+    g.addColorStop(0, rgba(cols[i % cols.length], a)); g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x * w, y * h, R, 0, TAU); ctx.fill();
+  });
+  ctx.restore();
+}
+function fall(ctx, w, h, p, key, n, draw, speed = 1) {
+  const F = pts(key, n, r => [r(), r(), r(), r() * TAU, 1 + Math.floor(r() * 2)]);
+  F.forEach(([x0, y0, z, ph, k]) => {
+    const y = ((y0 + p * k * speed) % 1) * (h + 60) - 30, x = x0 * w + Math.sin(TAU * p * k + ph) * 18 * w / 728;
+    draw(x, y, z, TAU * p * k + ph);
+  });
+}
+const SCENES = {
+  navidad: { es: 'Navidad', en: 'Christmas', draw(ctx, w, h, p) {
+    grad(ctx, w, h, ['#2a0d0d', '#3b1410', '#0f1f14']);
+    bokeh(ctx, w, h, p, ['#ffb347', '#ff6b6b', '#ffe08a'], 26, 'nav', 1.2);
+    // guirnalda de focos
+    const s = w / 728, N = 16;
+    ctx.strokeStyle = 'rgba(20,40,20,.9)'; ctx.lineWidth = 2.5 * s; ctx.beginPath();
+    for (let i = 0; i <= 80; i++) { const x = i / 80 * w, y = 18 * s + Math.sin(i / 80 * Math.PI * 3) ** 2 * 26 * s; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+    ctx.stroke();
+    const C = ['#ff4d4d', '#ffd23f', '#3ddc84', '#4dabff', '#ff7ad9'];
+    for (let i = 0; i < N; i++) {
+      const u = (i + .5) / N, x = u * w, y = 18 * s + Math.sin(u * Math.PI * 3) ** 2 * 26 * s + 8 * s;
+      const on = .55 + .45 * Math.sin(TAU * p * 2 + i * 1.3), c = C[i % C.length];
+      const g = ctx.createRadialGradient(x, y, 0, x, y, 20 * s); g.addColorStop(0, rgba(c, .55 * on)); g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, 20 * s, 0, TAU); ctx.fill();
+      ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(x, y, 4 * s, 6 * s, 0, 0, TAU); ctx.fill();
+    }
+    fall(ctx, w, h, p, 'snow', 90, (x, y, z) => { ctx.fillStyle = `rgba(255,255,255,${.4 + z * .5})`; ctx.beginPath(); ctx.arc(x, y, (1 + z * 2.4) * s, 0, TAU); ctx.fill(); });
+  } },
+  otono: { es: 'Otoño', en: 'Autumn', draw(ctx, w, h, p) {
+    grad(ctx, w, h, ['#3a1606', '#7a2e0b', '#c25a17', '#5a2208']);
+    const s = w / 728, sun = ctx.createRadialGradient(w * .5, h * .55, 0, w * .5, h * .55, w * .5);
+    sun.addColorStop(0, 'rgba(255,200,110,.55)'); sun.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = sun; ctx.fillRect(0, 0, w, h);
+    const LC = ['#e85d04', '#f48c06', '#9d0208', '#ffba08', '#dc2f02'];
+    fall(ctx, w, h, p, 'leaf', 26, (x, y, z, a) => {
+      ctx.save(); ctx.translate(x, y); ctx.rotate(a); const r = (8 + z * 12) * s; ctx.fillStyle = LC[Math.floor(z * 5) % 5];
+      ctx.beginPath(); ctx.moveTo(0, -r); ctx.bezierCurveTo(r * .75, -r * .55, r * .7, r * .45, 0, r); ctx.bezierCurveTo(-r * .7, r * .45, -r * .75, -r * .55, 0, -r);
+      ctx.closePath(); ctx.fill(); ctx.strokeStyle = 'rgba(60,20,0,.5)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, r); ctx.lineTo(0, -r * .6); ctx.stroke(); ctx.restore();
+    }, .6);
+  } },
+  cumple: { es: 'Cumpleaños', en: 'Birthday', draw(ctx, w, h, p) {
+    grad(ctx, w, h, ['#0b1a8a', '#1430c9', '#0a1460']);
+    const s = w / 728, BC = ['#ff5d8f', '#ffd166', '#06d6a0', '#a78bfa', '#4cc9f0'];
+    const B = pts('ball', 9, r => [r(), r(), r(), r() * TAU]);
+    B.forEach(([x, y, z, ph], i) => {
+      const bx = (x * .9 + .05) * w, by = (y * .7 + .12) * h + Math.sin(TAU * p + ph) * 10 * s, R = (22 + z * 22) * s, c = BC[i % 5];
+      ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(bx, by + R * 1.2); ctx.quadraticCurveTo(bx + 8 * s, by + R * 2, bx, by + R * 3); ctx.stroke();
+      const g = ctx.createRadialGradient(bx - R * .35, by - R * .4, R * .1, bx, by, R * 1.2); g.addColorStop(0, '#ffffff'); g.addColorStop(.25, c); g.addColorStop(1, rgba(c, .75));
+      ctx.fillStyle = g; ctx.globalAlpha = .55 + z * .4; ctx.beginPath(); ctx.ellipse(bx, by, R, R * 1.18, 0, 0, TAU); ctx.fill(); ctx.globalAlpha = 1;
+    });
+    fall(ctx, w, h, p, 'conf', 70, (x, y, z, a) => { ctx.save(); ctx.translate(x, y); ctx.rotate(a); ctx.fillStyle = BC[Math.floor(z * 5) % 5]; ctx.fillRect(-3 * s, -1.5 * s, 6 * s, 3 * s); ctx.restore(); });
+  } },
+  ladrillo: { es: 'Pared de ladrillo', en: 'Brick wall', draw(ctx, w, h, p) {
+    ctx.fillStyle = '#1d1d20'; ctx.fillRect(0, 0, w, h);
+    const s = w / 728, bw = 46 * s, bh = 20 * s, r = rng(5);
+    for (let y = 0, row = 0; y < h; y += bh, row++) for (let x = -(row % 2) * bw / 2; x < w; x += bw) {
+      const v = 38 + r() * 18; ctx.fillStyle = `rgb(${v},${v},${v + 3})`; ctx.fillRect(x + 1.5 * s, y + 1.5 * s, bw - 3 * s, bh - 3 * s);
+    }
+    const a = TAU * p, cx = w * (.5 + .08 * Math.sin(a));
+    const spot = ctx.createRadialGradient(cx, h * .45, 0, cx, h * .45, w * .55);
+    spot.addColorStop(0, 'rgba(255,236,190,.45)'); spot.addColorStop(.5, 'rgba(255,220,150,.12)'); spot.addColorStop(1, 'rgba(0,0,0,.65)');
+    ctx.fillStyle = spot; ctx.fillRect(0, 0, w, h);
+  } },
+  neon: { es: 'Neón espacial', en: 'Neon space', draw(ctx, w, h, p) {
+    grad(ctx, w, h, ['#1a0633', '#3b0b6e', '#14052b']);
+    const s = w / 728, S = pts('nstar', 120, r => [r(), r(), r(), r() * TAU]);
+    S.forEach(([x, y, z, ph]) => { ctx.fillStyle = `rgba(255,255,255,${(.3 + .6 * z) * (.5 + .5 * Math.sin(TAU * p * 2 + ph))})`; ctx.fillRect(x * w, y * h, (1 + z) * s, (1 + z) * s); });
+    for (let i = 0; i < 3; i++) {
+      ctx.strokeStyle = rgba(['#ff4fd8', '#8b5cf6', '#22d3ee'][i], .55); ctx.lineWidth = 2 * s;
+      ctx.shadowColor = ['#ff4fd8', '#8b5cf6', '#22d3ee'][i]; ctx.shadowBlur = 16 * s;
+      ctx.beginPath(); ctx.ellipse(w * .5, h * .5, w * (.3 + i * .08), h * (.12 + i * .04), -.2 + Math.sin(TAU * p + i) * .05, 0, TAU); ctx.stroke();
+    }
+    ctx.shadowBlur = 0;
+  } },
+  sakura: { es: 'Sakura', en: 'Sakura', draw(ctx, w, h, p) {
+    grad(ctx, w, h, ['#3d0a14', '#7a1c2c', '#c2455c', '#4a0f1c']);
+    const s = w / 728;
+    ctx.strokeStyle = 'rgba(40,10,14,.85)'; ctx.lineCap = 'round';
+    [[0, 0, w * .32, h * .16, 9], [w * .18, h * .06, w * .26, h * .26, 5], [w * .1, h * .1, w * .06, h * .28, 4]].forEach(([a, b, c, d, lw]) => { ctx.lineWidth = lw * s; ctx.beginPath(); ctx.moveTo(a, b); ctx.quadraticCurveTo((a + c) / 2, b + 30 * s, c, d); ctx.stroke(); });
+    const BL = pts('blos', 22, r => [r() * .34, r() * .3, r()]);
+    BL.forEach(([x, y, z]) => { ctx.fillStyle = rgba(z > .5 ? '#ffd1dc' : '#ff9eb5', .9); for (let k = 0; k < 5; k++) { const t = k / 5 * TAU; ctx.beginPath(); ctx.ellipse(x * w + Math.cos(t) * 5 * s, y * h + Math.sin(t) * 5 * s, 4 * s, 2.6 * s, t, 0, TAU); ctx.fill(); } });
+    fall(ctx, w, h, p, 'petal', 40, (x, y, z, a) => { ctx.save(); ctx.translate(x, y); ctx.rotate(a); ctx.fillStyle = rgba('#ffc2d1', .55 + z * .4); ctx.beginPath(); ctx.ellipse(0, 0, (3 + z * 4) * s, (1.8 + z * 2) * s, 0, 0, TAU); ctx.fill(); ctx.restore(); }, .5);
+  } },
+  elegante: { es: 'Elegante dorado', en: 'Gold elegance', draw(ctx, w, h, p) {
+    grad(ctx, w, h, ['#0b0b0d', '#1c1a17', '#0b0b0d'], false);
+    const s = w / 728;
+    for (let i = 0; i < 4; i++) {
+      const x = ((i * .3 + p * .5) % 1.4 - .2) * w;
+      const g = ctx.createLinearGradient(x - 80 * s, 0, x + 80 * s, 0); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(.5, 'rgba(212,175,55,.08)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.save(); ctx.transform(1, 0, -.5, 1, h * .25, 0); ctx.fillStyle = g; ctx.fillRect(x - 80 * s, 0, 160 * s, h); ctx.restore();
+    }
+    const G = pts('gold', 70, r => [r(), r(), r(), r() * TAU]);
+    G.forEach(([x0, y0, z, ph]) => { const y = ((y0 - p * (1 + z)) % 1 + 1) % 1 * h; ctx.fillStyle = rgba('#f2d27a', (.3 + .6 * z) * (.5 + .5 * Math.sin(TAU * p * 3 + ph))); ctx.beginPath(); ctx.arc(x0 * w, y, (.8 + z * 2) * s, 0, TAU); ctx.fill(); });
+  } },
+  ciudad: { es: 'Ciudad de noche', en: 'Night city', draw(ctx, w, h, p) {
+    grad(ctx, w, h, ['#05060f', '#141a3a', '#2a1b3d']);
+    bokeh(ctx, w, h * .7, p, ['#ffb703', '#8ecae6', '#ff006e', '#fb8500'], 34, 'city', .9);
+    const s = w / 728, r = rng(9);
+    ctx.fillStyle = '#05060c';
+    for (let x = 0; x < w;) { const bw = (30 + r() * 50) * s, bh = (80 + r() * 160) * s; ctx.fillRect(x, h - bh, bw - 3 * s, bh); for (let wy = h - bh + 8 * s; wy < h - 8 * s; wy += 12 * s) for (let wx = x + 5 * s; wx < x + bw - 10 * s; wx += 10 * s) { if (r() > .55) { ctx.fillStyle = rgba('#ffd27a', .35 + .3 * Math.sin(TAU * p + wx + wy)); ctx.fillRect(wx, wy, 4 * s, 5 * s); ctx.fillStyle = '#05060c'; } } x += bw; }
+  } },
+};
+
+// ---------- acabados del título ----------
+const FIN = {
+  cromo: { es: 'Cromo', en: 'Chrome', stops: ['#ffffff', '#d7dbe2', '#6b7280', '#eef0f3', '#8a919c'], edge: '#1d2027', glow: 'rgba(255,255,255,.55)', btn: 'linear-gradient(#fff,#9aa1ad)' },
+  oro: { es: 'Oro', en: 'Gold', stops: ['#fff7c2', '#f2c94c', '#8a5a00', '#f7d774', '#b07d10'], edge: '#3a2500', glow: 'rgba(255,210,90,.6)', btn: 'linear-gradient(#fff3b0,#b07d10)' },
+  rosa: { es: 'Rosa', en: 'Rose', stops: ['#ffe4ef', '#f7a1c4', '#8c2d5a', '#f9c0d6', '#c2557f'], edge: '#3a0d22', glow: 'rgba(255,140,190,.6)', btn: 'linear-gradient(#ffe4ef,#c2557f)' },
+  hielo: { es: 'Hielo', en: 'Ice', stops: ['#ffffff', '#bfe9ff', '#3a6f8f', '#d9f4ff', '#7fb8d6'], edge: '#0b2233', glow: 'rgba(150,220,255,.6)', btn: 'linear-gradient(#fff,#7fb8d6)' },
+  fuego: { es: 'Fuego', en: 'Fire', stops: ['#fff3b0', '#ffb703', '#d62828', '#ffdd57', '#e85d04'], edge: '#3a0a00', glow: 'rgba(255,120,40,.65)', btn: 'linear-gradient(#fff3b0,#d62828)' },
+  neon: { es: 'Neón', en: 'Neon', stops: ['#ffffff', '#ffd6f6', '#ff4fd8', '#ffd6f6', '#ff4fd8'], edge: '#3b0033', glow: 'rgba(255,79,216,.9)', btn: 'linear-gradient(#ffd6f6,#ff4fd8)' },
+};
+const S = { size: SIZES[0], scene: 'navidad', fin: 'cromo', bg: null, fig: null, playing: true, p: 0 };
+
+$('sizes').innerHTML = SIZES.map((s, i) => `<button class="size" data-i="${i}" aria-pressed="${i === 0}">${L(s.es, s.en)}<small>${s.w}×${s.h}${s.gif ? '' : ' · ' + L('solo imagen', 'image only')}</small></button>`).join('');
+$('scenes').innerHTML = Object.entries(SCENES).map(([k, v]) => `<button class="chip" data-s="${k}" aria-pressed="${k === S.scene}">${L(v.es, v.en)}</button>`).join('');
+$('finish').innerHTML = Object.entries(FIN).map(([k, v]) => `<button class="fin" data-f="${k}" aria-pressed="${k === S.fin}" style="background:${v.btn}">${L(v.es, v.en)}</button>`).join('');
+const press = (sel, b) => document.querySelectorAll(sel).forEach(x => x.setAttribute('aria-pressed', x === b));
+$('sizes').onclick = e => { const b = e.target.closest('.size'); if (!b) return; S.size = SIZES[+b.dataset.i]; press('#sizes .size', b); layout(); };
+$('scenes').onclick = e => { const b = e.target.closest('.chip'); if (!b) return; S.scene = b.dataset.s; S.bg = null; $('dimw').hidden = true; press('#scenes .chip', b); };
+$('finish').onclick = e => { const b = e.target.closest('.fin'); if (!b) return; S.fin = b.dataset.f; press('#finish .fin', b); };
+$('play').onclick = () => { S.playing = !S.playing; $('play').textContent = S.playing ? L('Pausar', 'Pause') : L('Reproducir', 'Play'); };
+$('showmock').onchange = layout;
+async function readImg(f) { try { return await createImageBitmap(f); } catch (e) { toast(L('No pude abrir esa imagen.', 'Could not open that image.')); return null; } }
+$('bgfile').onchange = async e => { const b = e.target.files[0] && await readImg(e.target.files[0]); if (b) { S.bg = b; $('dimw').hidden = false; document.querySelectorAll('#scenes .chip').forEach(x => x.setAttribute('aria-pressed', 'false')); } };
+$('figfile').onchange = async e => { const b = e.target.files[0] && await readImg(e.target.files[0]); if (b) { S.fig = b; $('figctl').hidden = false; } };
+
+// ---------- dibujo ----------
+const LAYER = document.createElement('canvas');
+function title(ctx, w, h, p) {
+  const t = $('title').value.trim(); if (!t) return;
+  const fam = $('font').value, F = FIN[S.fin];
+  let fs = Math.min(h, w * .6) * +$('tsize').value * (S.size.id === 'outer' ? .7 : 1);
+  ctx.font = `400 ${fs}px "${fam}", "Bricolage Grotesque", system-ui, sans-serif`;
+  const tw = ctx.measureText(t).width; if (tw > w * .9) { fs *= w * .9 / tw; ctx.font = `400 ${fs}px "${fam}", "Bricolage Grotesque", system-ui, sans-serif`; }
+  const x = w * +$('tx').value, y = h * +$('ty').value;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
+  const depth = Math.round(fs * .12 * +$('depth').value);
+  for (let d = depth; d > 0; d--) { ctx.fillStyle = d === depth ? 'rgba(0,0,0,.45)' : F.edge; ctx.fillText(t, x + d * .5, y + d * .8); }
+  ctx.save(); ctx.shadowColor = F.glow; ctx.shadowBlur = fs * (S.fin === 'neon' ? .45 : .22);
+  ctx.lineWidth = fs * .1; ctx.strokeStyle = F.edge; ctx.strokeText(t, x, y); ctx.restore();
+  ctx.lineWidth = fs * .035; ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.strokeText(t, x, y);
+  const g = ctx.createLinearGradient(0, y - fs * .5, 0, y + fs * .5);
+  F.stops.forEach((c, i) => g.addColorStop([0, .42, .5, .6, 1][i], c));
+  ctx.fillStyle = g; ctx.fillText(t, x, y);
+  if ($('shine').checked) {
+    ctx.save(); ctx.globalCompositeOperation = 'source-atop';
+    const sx = x - tw / 2 - fs + (tw + fs * 2) * ((p * 1.5) % 1.5) / 1.5 * 1.2;
+    const lg = ctx.createLinearGradient(sx - fs * .5, 0, sx + fs * .5, 0);
+    lg.addColorStop(0, 'rgba(255,255,255,0)'); lg.addColorStop(.5, 'rgba(255,255,255,.8)'); lg.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = lg; ctx.fillRect(0, 0, w, h); ctx.restore();
+  }
+  return { fs, x, y };
+}
+function smallText(ctx, w, h, T) {
+  if (!T) return;
+  const F = FIN[S.fin];
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const above = $('above').value.trim(), below = $('below').value.trim();
+  ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 6;
+  if (above) { ctx.font = `400 ${T.fs * .28}px "Great Vibes", "Outfit", sans-serif`; ctx.fillStyle = F.stops[1]; ctx.fillText(above, T.x, T.y - T.fs * .7); }
+  if (below) { ctx.font = `600 ${Math.max(10, T.fs * .14)}px "Outfit", system-ui, sans-serif`; ctx.fillStyle = '#ffffff'; ctx.letterSpacing = '2px'; ctx.fillText(below, T.x, T.y + T.fs * .72); ctx.letterSpacing = '0px'; }
+  ctx.shadowBlur = 0;
+}
+function slots(ctx, w, h) {
+  const kind = $('slots').value; if (kind === 'none') return;
+  const n = +$('slotn').value, s = w / 728, size = 22 * s * (S.size.id === 'outer' ? .55 : 1), gap = 6 * s * (S.size.id === 'outer' ? .55 : 1);
+  const total = n * size + (n - 1) * gap, x0 = S.size.id === 'outer' ? (w - total) / 2 : 20 * s, y0 = h * +$('sloty').value;
+  const c = $('slotc').value;
+  for (let i = 0; i < n; i++) {
+    const x = x0 + i * (size + gap);
+    ctx.fillStyle = rgba(c, .16); ctx.strokeStyle = rgba(c, .75); ctx.lineWidth = 1.4 * s;
+    ctx.beginPath();
+    if (kind === 'circle') ctx.arc(x + size / 2, y0 + size / 2, size / 2, 0, TAU);
+    else ctx.roundRect(x, y0, size, size, kind === 'round' ? size * .3 : 2 * s);
+    ctx.fill(); ctx.stroke();
+  }
+}
+function cover(ctx, bmp, w, h) {
+  const k = Math.max(w / bmp.width, h / bmp.height);
+  ctx.drawImage(bmp, (w - bmp.width * k) / 2, (h - bmp.height * k) / 2, bmp.width * k, bmp.height * k);
+}
+function render(ctx, p, w, h) {
+  if (S.bg) { cover(ctx, S.bg, w, h); ctx.fillStyle = `rgba(0,0,0,${$('dim').value})`; ctx.fillRect(0, 0, w, h); }
+  else SCENES[S.scene].draw(ctx, w, h, p);
+  if (S.fig) {
+    const k = h * +$('fs').value / S.fig.height, fw = S.fig.width * k, fh = S.fig.height * k;
+    const fx = (w - fw) * +$('fx').value;
+    ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.5)'; ctx.shadowBlur = 24 * w / 728;
+    ctx.drawImage(S.fig, fx, h - fh, fw, fh); ctx.restore();
+  }
+  if (LAYER.width !== w || LAYER.height !== h) { LAYER.width = w; LAYER.height = h; }
+  const lc = LAYER.getContext('2d'); lc.clearRect(0, 0, w, h);
+  const T = title(lc, w, h, p);
+  ctx.drawImage(LAYER, 0, 0);
+  smallText(ctx, w, h, T);
+  slots(ctx, w, h);
+  const vg = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * .35, w / 2, h / 2, Math.max(w, h) * .75);
+  vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.35)'); ctx.fillStyle = vg; ctx.fillRect(0, 0, w, h);
+}
+
+// ---------- vista previa ----------
+const cv = $('cv'), ctx = cv.getContext('2d');
+function layout() {
+  const { w, h } = S.size, k = Math.min(1, 980 / w, 620 / h);
+  cv.width = Math.round(w * k); cv.height = Math.round(h * k);
+  $('dims').textContent = `${w}×${h} px`;
+  const m = $('mock'); m.className = 'mock';
+  const inner = `<div class="msgs"><i style="width:62%"></i><i style="width:40%"></i><i style="width:74%"></i></div><div class="users"></div><div class="input"></div>`;
+  m.innerHTML = S.size.mock === 'chat' ? `<div class="chatbox" style="inset:0">${inner}</div>`
+    : `<div class="chatbox solid" style="left:${(1 - 728 / 1920 * 1.33) / 2 * 100}%;width:${728 / 1920 * 133}%;top:${184 / 1080 * 100}%;height:${486 / 1080 * 133}%">${inner}</div>`;
+  if ($('showmock').checked) m.classList.add('on');
+  $('gif').disabled = !S.size.gif;
+  $('gifhint').textContent = S.size.gif ? L('El GIF se arma en tu navegador; tarda unos segundos.', 'The GIF is built in your browser; it takes a few seconds.') : L('El fondo exterior es grande: descárgalo como imagen.', 'The outer background is big: download it as an image.');
+}
+const FPS = 15, FRAMES = 36;
+let last = performance.now();
+function loop(now) {
+  if (S.playing) S.p = (S.p + Math.max(0, now - last) / 1000 / (FRAMES / FPS)) % 1;
+  last = now;
+  render(ctx, S.p, cv.width, cv.height);
+  requestAnimationFrame(loop);
+}
+async function fontsReady() { try { await document.fonts.load(`400 40px "${$('font').value}"`); await document.fonts.load('400 20px "Great Vibes"'); await document.fonts.load('600 20px "Outfit"'); } catch (e) {} }
+$('font').addEventListener('change', fontsReady);
+
+// ---------- exportar ----------
+function show(blob, name, animated) {
+  download(blob, name);
+  $('result').classList.add('on'); $('rimg').src = URL.createObjectURL(blob);
+  $('rtitle').textContent = L('Listo: se descargó ', 'Done: downloaded ') + name;
+  $('rsize').innerHTML = fmtBytes(blob.size) + (blob.size > 8 * 1048576 ? ` · <span class="warn">${L('pesa más de 8 MB: súbelo a ImgBB o Picto', 'over 8 MB: upload it to ImgBB or Picto')}</span>` : '');
+  const where = { chat: L('En tu sala: <b>grupo → customize</b> → apariencia → campo <b>Background</b> de "chat".', 'In your room: <b>group → customize</b> → appearance → the chat <b>Background</b> field.'),
+    pcback: L('Clic en tu nombre → campo <b>Avatar</b>: <code>tu-avatar#link</code>.', 'Click your name → <b>Avatar</b> field: <code>your-avatar#link</code>.') + (animated ? ' ' + L('Animado necesita 2 PCBack.', 'Animated needs 2 PCBack.') : ''),
+    outer: L('En tu sala: apariencia → <b>Outer background</b>.', 'In your room: appearance → <b>Outer background</b>.') }[S.size.id];
+  $('guide').innerHTML = `<b>${L('Cómo ponerlo en xat', 'How to put it on xat')}</b><ol><li>${L('Súbelo:', 'Upload it:')} <span class="hosts" style="display:inline-flex;margin-left:6px"><a href="https://xatimg.com/" target="_blank" rel="noopener">xatimg</a><a href="https://imgbb.com/" target="_blank" rel="noopener">ImgBB</a><a href="https://picto.gg/" target="_blank" rel="noopener">Picto</a></span></li><li>${L('Copia el link directo.', 'Copy the direct link.')}</li><li>${where}</li></ol>`;
+}
+$('png').onclick = async () => {
+  await fontsReady();
+  const { w, h } = S.size, c = document.createElement('canvas'); c.width = w; c.height = h;
+  render(c.getContext('2d'), S.p, w, h);
+  show(await canvasPNG(c), `xhaz-${S.size.id}-${S.scene}.png`, false);
+};
+$('gif').onclick = async () => {
+  if (!S.size.gif) return;
+  await fontsReady();
+  const btn = $('gif'); btn.disabled = true; btn.textContent = L('Creando…', 'Making…');
+  try {
+    const blob = await makeGIF({ w: S.size.w, h: S.size.h, frames: FRAMES, fps: FPS, render, onProgress: v => ($('prog').style.width = v * 100 + '%') });
+    show(blob, `xhaz-${S.size.id}-${S.scene}.gif`, true);
+  } catch (e) { toast(L('No se pudo crear el GIF.', 'Could not make the GIF.')); }
+  btn.disabled = false; btn.textContent = L('Crear GIF animado', 'Make animated GIF');
+  setTimeout(() => ($('prog').style.width = '0'), 900);
+};
+
+layout(); fontsReady();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

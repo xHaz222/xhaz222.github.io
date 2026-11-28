@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pawns, hats y smileys · xHaz Tools</title>
+<link rel="stylesheet" href="../assets/base.css">
+<style>
+.tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.tab{font:inherit;font-weight:600;font-size:14px;color:#cfd3f5;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:8px 16px;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--blue);border-color:var(--blue);color:#fff}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;align-items:start}
+.search{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.search input{flex:1;min-width:200px;font-size:16px;padding:10px 12px}
+.grp{margin-bottom:18px}
+.grp h3{font-size:15px;font-family:'Outfit';font-weight:600;color:#d9dcfa;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.grp h3 img{width:22px;height:22px;object-fit:contain}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+.cell{display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);padding:10px 6px;cursor:pointer;font:inherit;color:inherit}
+.cell:hover{border-color:#4a5199}
+.cell[aria-pressed="true"]{border-color:var(--blue);background:#1f2a5c}
+.cell img{width:48px;height:48px;object-fit:contain}
+.cell code{font-size:11px;color:#cfe0ff;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cell em{font-style:normal;font-size:11px;color:var(--mute)}
+.try{position:sticky;top:76px;display:flex;flex-direction:column;gap:12px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px;display:flex;flex-direction:column;gap:10px}
+.vis{background:#fff;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;color:#1d2133}
+.vis.dark{background:#151729;color:#eef0ff}
+.vrow{display:flex;align-items:center;gap:8px;font-weight:700;font-size:16px}
+.vrow img{width:30px;height:30px;object-fit:contain}
+.vrow.dim{opacity:.55;font-weight:500}
+.vrow .pawn{width:16px;height:18px;border-radius:50% 50% 35% 35%;background:#5b8cff;margin:0 7px}
+.bigpawn{display:flex;align-items:center;justify-content:center;height:120px;background:var(--deep);border-radius:12px}
+.bigpawn img{width:96px;height:96px;object-fit:contain;image-rendering:auto}
+.hatlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.more{margin:12px auto 0;display:flex}
+.empty{color:var(--mute);padding:16px 2px}
+@media (max-width:980px){.layout{grid-template-columns:1fr}.try{position:static;order:-1}}
+</style>
+</head>
+<body>
+<header class="top"></header>
+<main>
+  <div class="head">
+    <h1 data-en="Pawns, hats and smileys">Pawns, hats y smileys</h1>
+    <p data-en="Try the active pawns next to your name, build hat codes and find any smiley. Tap to copy.">Prueba los pawns activos junto a tu nombre, arma códigos de hats y encuentra cualquier smiley. Toca para copiar.</p>
+  </div>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="pawns" aria-selected="true" data-en="Active pawns">Pawns activos</button>
+    <button class="tab" role="tab" data-tab="hats" aria-selected="false" data-en="Classic hats">Hats clásicos</button>
+    <button class="tab" role="tab" data-tab="smileys" aria-selected="false">Smileys</button>
+  </div>
+  <div class="layout">
+    <section>
+      <div class="search"><input type="text" id="q" placeholder="Buscar por power o código…" data-en-ph="Search by power or code…" aria-label="Buscar"></div>
+      <div id="out"><p class="empty" data-en="Loading…">Cargando…</p></div>
+      <button class="btn ghost more" id="more" hidden data-en="Show more">Ver más</button>
+    </section>
+    <aside class="try">
+      <div class="box">
+        <span class="gt" data-en="Try it">Pruébalo</span>
+        <div class="bigpawn"><img id="bigimg" alt="" src="" hidden></div>
+        <label class="f"><span data-en="Your name">Tu nombre</span><input type="text" id="nm" value="xHaz" maxlength="30"></label>
+        <div class="vis" id="vis">
+          <div class="vrow"><img id="rowimg" alt="" hidden><span class="pawn" id="rowdef"></span><span id="rowname">xHaz</span></div>
+          <div class="vrow dim"><span class="pawn"></span><span data-en="Visitor">Visitante</span></div>
+        </div>
+        <label class="chip" style="display:flex;gap:6px;align-items:center;width:max-content"><input type="checkbox" id="dark"> <span data-en="Night mode">Modo noche</span></label>
+        <div id="combo" hidden>
+          <label class="f"><span data-en="Combine with a classic hat">Combinar con un hat clásico</span><select id="comb"></select></label>
+        </div>
+        <div class="codebox"><code id="code">—</code><button class="btn" data-copy="#code" data-en="Copy">Copiar</button></div>
+        <p class="hint" id="how" data-en="Paste the code at the end of your name. You need the Hat power and the power of that pawn.">Pega el código al final de tu nombre. Necesitas el power Hat y el power de ese pawn.</p>
+      </div>
+    </aside>
+  </div>
+</main>
+<footer class="foot"></footer>
+
+<script type="module">
+import { shell, L, copy } from '../assets/core.js';
+shell('pawns');
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+const STRIP = c => `https://s0.xat.com/web_gear/chat/GetStrip8.php?c=a_(${encodeURIComponent(c)})_80`;
+const PICON = n => `https://xat.com/images/smw/${encodeURIComponent(n)}.png`;
+document.addEventListener('error', e => { const t = e.target; if (t.tagName === 'IMG' && t.dataset.fb === 'hide') t.style.visibility = 'hidden'; }, true);
+
+const DEFAULT_HATS = ['a', 'b', 'e', 'f', 'g', 'p', 'r', 't', 'u', 'w', 'x'];
+const S = { tab: 'pawns', pawns: null, topsh: null, pnames: null, shown: 120, sel: null };
+
+// ---------- datos ----------
+async function pawns() {
+  if (S.pawns) return S.pawns;
+  const j = await fetch('https://api.xatblog.net/activepawns').then(r => r.json());
+  S.pawns = (j.data || []).map(x => ({ power: x.power?.name || '', id: x.power?.id || 0, hat: x.hat, img: x.name }));
+  return S.pawns;
+}
+async function smileys() {
+  if (S.topsh) return;
+  const [p2, pw] = await Promise.all([fetch('https://xat.com/web_gear/chat/pow2.php').then(r => r.json()), fetch('https://xat.com/json/powers.php').then(r => r.json())]);
+  S.topsh = (p2.find(x => x[0] === 'topsh') || [])[1] || {};
+  S.pnames = {};
+  for (const [id, v] of Object.entries(pw || {})) if (v && v.s) S.pnames[id] = v.s;
+}
+
+// ---------- vistas ----------
+async function draw() {
+  const q = $('q').value.trim().toLowerCase().replace(/[()]/g, '').replace(/^hat#/, '');
+  const out = $('out');
+  $('more').hidden = true;
+  try {
+    if (S.tab === 'pawns') {
+      const all = await pawns();
+      const list = all.filter(p => !q || p.power.includes(q) || p.hat.toLowerCase().includes(q));
+      const by = new Map();
+      list.forEach(p => { if (!by.has(p.power)) by.set(p.power, { id: p.id, items: [] }); by.get(p.power).items.push(p); });
+      out.innerHTML = [...by].sort((a, b) => b[1].id - a[1].id).map(([pw, g]) => `<div class="grp"><h3><img src="${PICON(pw)}" alt="" data-fb="hide">${esc(pw)} <span class="hint">· ${g.items.length}</span></h3><div class="grid">${
+        g.items.sort((a, b) => a.img.localeCompare(b.img, undefined, { numeric: true })).map(p => `<button class="cell" data-pawn="${esc(p.img)}" data-hat="${esc(p.hat)}" data-pw="${esc(pw)}"><img src="${STRIP(p.img)}" alt="" loading="lazy" data-fb="hide"><code>${esc(p.hat)}</code></button>`).join('')}</div></div>`).join('')
+        || `<p class="empty">${L('Ningún pawn activo con esa búsqueda.', 'No active pawn matches that search.')}</p>`;
+    } else if (S.tab === 'hats') {
+      out.innerHTML = `<div class="box" style="margin-bottom:14px"><span class="gt">${L('Color del hat (opcional)', 'Hat color (optional)')}</span>
+        <div class="row" style="justify-content:flex-start"><input type="color" id="hc" value="#ff0000" style="flex:none"><label class="chip" style="display:flex;gap:6px;align-items:center;flex:none"><input type="checkbox" id="hcon"> ${L('Usar color', 'Use color')}</label></div>
+        <p class="hint">${L('Party, Santa, Single y Uncle Sam no se pueden colorear. Los códigos distinguen mayúsculas.', 'Party, Santa, Single and Uncle Sam cannot be colored. Codes are case sensitive.')}</p></div>
+        <div class="hatlist">${DEFAULT_HATS.map(h => `<button class="cell" data-hat="(hat#${h})" data-def="1"><code style="font-size:15px">(hat#${h})</code><em>${h === 'g' ? L('requiere 1 regalo', 'needs 1 gift') : h === 'e' ? L('huevo', 'egg') : h === 'r' ? L('orejas de conejo', 'bunny ears') : h === 't' ? L('gorra', 'cap') : '&nbsp;'}</em></button>`).join('')}</div>
+        <p class="hint" style="margin-top:12px">${L('Estos solo necesitan el power Hat. xat no publica una imagen de cada hat, por eso aquí se muestran como código.', 'These only need the Hat power. xat does not publish an image of each hat, so they are shown as code here.')}</p>`;
+      $('hc').oninput = $('hcon').onchange = () => S.sel && S.sel.def && pick(S.sel);
+    } else {
+      out.innerHTML = `<p class="empty">${L('Cargando smileys…', 'Loading smileys…')}</p>`;
+      await smileys();
+      const all = Object.entries(S.topsh).filter(([s, id]) => !q || s.includes(q) || (S.pnames[id] || '').includes(q));
+      out.innerHTML = `<p class="hint" style="margin-bottom:10px">${all.length.toLocaleString()} smileys${q ? '' : ' · ' + L('busca por nombre o por power', 'search by name or power')}</p><div class="grid">${
+        all.slice(0, S.shown).map(([s, id]) => `<button class="cell" data-sm="(${esc(s)})"><img src="${STRIP(s)}" alt="" loading="lazy" data-fb="hide"><code>(${esc(s)})</code><em>${esc(S.pnames[id] || L('gratis', 'free'))}</em></button>`).join('')}</div>`;
+      $('more').hidden = all.length <= S.shown;
+    }
+  } catch (e) {
+    out.innerHTML = `<p class="empty">${L('No se pudo cargar ahora. Revisa tu conexión y recarga la página.', 'Could not load right now. Check your connection and reload the page.')}</p>`;
+  }
+}
+
+function pick(sel) {
+  S.sel = sel;
+  let code = sel.hat;
+  if (sel.def && $('hcon')?.checked) code = code.replace(')', '#' + $('hc').value.replace('#', '').toUpperCase() + ')');
+  const comb = $('comb').value;
+  if (!sel.def && comb && /^\(hat#h/.test(code)) code = code.replace('(hat#h', '(hat#' + comb);
+  $('code').textContent = code;
+  $('combo').hidden = !!sel.def || !/^\(hat#h/.test(sel.hat);
+  if (sel.img) {
+    $('bigimg').src = STRIP(sel.img); $('bigimg').hidden = false;
+    $('rowimg').src = STRIP(sel.img); $('rowimg').hidden = false; $('rowdef').hidden = true;
+  } else { $('bigimg').hidden = true; $('rowimg').hidden = true; $('rowdef').hidden = false; }
+  $('how').textContent = sel.def
+    ? L('Pega el código al final de tu nombre. Solo necesitas el power Hat.', 'Paste the code at the end of your name. You only need the Hat power.')
+    : L(`Pega el código al final de tu nombre. Necesitas el power Hat y el power ${sel.pw}.`, `Paste the code at the end of your name. You need the Hat power and the ${sel.pw} power.`);
+}
+
+$('comb').innerHTML = `<option value="">${L('No combinar', 'Do not combine')}</option>` + DEFAULT_HATS.map(h => `<option value="${h}">(hat#${h}) + pawn</option>`).join('');
+$('comb').onchange = () => S.sel && pick(S.sel);
+$('out').addEventListener('click', e => {
+  const c = e.target.closest('.cell'); if (!c) return;
+  document.querySelectorAll('.cell').forEach(x => x.setAttribute('aria-pressed', x === c));
+  if (c.dataset.sm) { copy(c.dataset.sm); $('code').textContent = c.dataset.sm; return; }
+  pick({ hat: c.dataset.hat, img: c.dataset.pawn, pw: c.dataset.pw, def: !!c.dataset.def });
+  copy($('code').textContent);
+});
+$('nm').oninput = () => ($('rowname').textContent = $('nm').value || 'xHaz');
+$('dark').onchange = () => $('vis').classList.toggle('dark', $('dark').checked);
+let qt; $('q').addEventListener('input', () => { clearTimeout(qt); qt = setTimeout(() => { S.shown = 120; draw(); }, 200); });
+$('more').onclick = () => { S.shown += 160; draw(); };
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
+  S.tab = t.dataset.tab; S.shown = 120;
+  document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x === t));
+  $('q').placeholder = S.tab === 'smileys' ? L('Buscar smiley o power…', 'Search smiley or power…') : S.tab === 'hats' ? L('Los hats clásicos están todos abajo', 'All classic hats are below') : L('Buscar por power o código…', 'Search by power or code…');
+  draw();
+});
+draw();
+</script>
+</body>
+</html>

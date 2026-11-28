@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Repros para tu sala · xHaz Tools</title>
+<link rel="stylesheet" href="../assets/base.css">
+<style>
+.lay{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.ly{font:inherit;text-align:left;font-size:13px;color:#cfd3f5;background:var(--ink);border:1px solid var(--line);border-radius:var(--r-md);padding:8px 10px;cursor:pointer;line-height:1.25}
+.ly small{display:block;color:var(--mute);font-size:11px}
+.ly[aria-pressed="true"]{border-color:var(--blue);background:#1f2a5c;color:#fff}
+.pvwrap{display:flex;justify-content:center;align-items:center;width:100%;overflow:hidden}
+.pvbox{position:relative;border-radius:10px;overflow:hidden;box-shadow:0 0 0 1px var(--line)}
+.pvbox iframe{position:absolute;left:0;top:0;border:0;transform-origin:0 0;background:#000}
+.steps{margin-left:18px;display:flex;flex-direction:column;gap:5px;color:var(--mute);font-size:14px}
+.steps b{color:var(--text)}
+.warn{color:var(--peach)}
+</style>
+</head>
+<body>
+<header class="top"></header>
+<main>
+  <div class="head">
+    <h1 data-en="Players for your room">Repros para tu sala</h1>
+    <p data-en="Design the music player that goes in a tab under your chat. It downloads as one HTML file that follows the xatRadio rules, ready to upload.">Diseña el reproductor que va en una pestaña debajo de tu chat. Se descarga como un solo archivo HTML que cumple las reglas de xatRadio, listo para subir.</p>
+  </div>
+  <div class="work">
+    <aside class="controls">
+      <div class="group">
+        <label class="f"><span data-en="Your radio link (https)">Link de tu radio (https)</span><input type="text" id="url" placeholder="https://stream.zeno.fm/…" spellcheck="false"></label>
+        <div class="row"><label class="f"><span data-en="Radio name">Nombre de la radio</span><input type="text" id="name" value="Radio xHaz" maxlength="40"></label></div>
+        <label class="f"><span data-en="Your room link (optional)">Link de tu sala (opcional)</span><input type="text" id="room" placeholder="https://xat.com/xHaz" spellcheck="false"></label>
+      </div>
+      <div class="group">
+        <span class="gt" data-en="Design">Diseño</span>
+        <div class="lay" id="lay"></div>
+      </div>
+      <div class="group">
+        <span class="gt" data-en="Your image (goes inside the file)">Tu imagen (va dentro del archivo)</span>
+        <label class="btn ghost" style="cursor:pointer;width:max-content"><input type="file" id="img" accept="image/*" hidden><span data-en="Choose image">Elegir imagen</span></label>
+        <p class="hint" id="imghint" data-en="xatRadio does not allow external images, so your image is embedded. Use only your own designs.">xatRadio no permite imágenes externas, por eso tu imagen se mete en el archivo. Usa solo diseños tuyos.</p>
+      </div>
+      <div class="group">
+        <span class="gt" data-en="Size">Tamaño</span>
+        <select id="size">
+          <option value="600x500">600×500</option>
+          <option value="728x300">728×300</option>
+          <option value="728x90" data-en="728×90 (strip)">728×90 (franja)</option>
+          <option value="400x400">400×400</option>
+        </select>
+      </div>
+      <div class="group">
+        <span class="gt" data-en="Colors and letters">Colores y letra</span>
+        <div class="row" style="justify-content:flex-start">
+          <label class="f" style="flex:none"><span data-en="Accent">Acento</span><input type="color" id="ac" value="#4d7cff"></label>
+          <label class="f" style="flex:none"><span data-en="Background">Fondo</span><input type="color" id="bg" value="#12142a"></label>
+          <label class="f" style="flex:none"><span data-en="Text">Texto</span><input type="color" id="fg" value="#ffffff"></label>
+        </div>
+        <select id="font" aria-label="Letra">
+          <option value="sans" data-en="Modern">Moderna</option>
+          <option value="round" data-en="Rounded">Redondeada</option>
+          <option value="serif" data-en="Classic">Clásica</option>
+          <option value="mono" data-en="Mono">Monoespaciada</option>
+          <option value="impact" data-en="Bold">Gruesa</option>
+        </select>
+        <p class="hint" data-en="System letters only: xatRadio does not allow loading outside fonts.">Solo letras del sistema: xatRadio no deja cargar fuentes externas.</p>
+      </div>
+      <div class="group">
+        <label class="chip" style="display:flex;gap:6px;align-items:center;width:max-content"><input type="checkbox" id="credit" checked> <span data-en="Small credit: player by xHaz Tools">Crédito pequeño: repro de xHaz Tools</span></label>
+      </div>
+    </aside>
+    <section class="stage">
+      <div class="frame"><div class="pvwrap" id="pvwrap"><div class="pvbox" id="pvbox"><iframe id="pv" title="Vista previa" sandbox="allow-scripts"></iframe></div></div></div>
+      <div class="note">
+        <div class="bar">
+          <button class="btn" id="dl" data-en="Download player (HTML)">Descargar repro (HTML)</button>
+          <span class="hint" id="fsize"></span>
+        </div>
+        <p class="hint" style="margin-top:8px" data-en="The preview plays your radio when you press play. The current song shows if your radio shares it (Zeno, Icecast and Shoutcast are supported).">La vista previa suena tu radio al darle play. La canción actual aparece si tu radio la comparte (funciona con Zeno, Icecast y Shoutcast).</p>
+      </div>
+      <div class="note">
+        <b data-en="How to put it in your room">Cómo ponerlo en tu sala</b>
+        <ol class="steps" style="margin-top:8px">
+          <li data-en="Create an account at xatradio.com (use a password different from xat).">Crea tu cuenta en <b>xatradio.com</b> (con una contraseña distinta a la de xat).</li>
+          <li data-en="Upload the HTML file you downloaded. A person reviews it before approving it.">Sube el archivo HTML que descargaste. Una persona lo revisa antes de aprobarlo.</li>
+          <li data-en="When it is approved, copy your player ID and paste it here:">Cuando esté aprobado, copia el ID de tu repro y pégalo aquí:</li>
+        </ol>
+        <div class="row" style="margin:10px 0"><input type="text" id="pid" placeholder="ID del repro" data-en-ph="Player ID" style="max-width:220px"></div>
+        <div class="codebox"><code id="code">[radiohtml:600:500:ID]</code><button class="btn" data-copy="#code" data-en="Copy">Copiar</button></div>
+        <ol class="steps" start="4" style="margin-top:10px">
+          <li data-en="In your room: group → customize → tabs → open code view, paste the code and save.">En tu sala: <b>grupo → customize → tabs</b> → abre la vista de código, pega el código y guarda.</li>
+        </ol>
+        <p class="hint" style="margin-top:8px" data-en="Once uploaded, xatRadio does not let you change the player: check it well before uploading.">Una vez subido, xatRadio no deja modificar el repro: revísalo bien antes de subirlo.</p>
+      </div>
+    </section>
+  </div>
+</main>
+<footer class="foot"></footer>
+
+<script type="module">
+import { shell, L, download, fmtBytes, toast } from '../assets/core.js';
+shell('repros');
+const $ = id => document.getElementById(id);
+const LAYOUTS = [
+  ['image', 'Sobre tu imagen', 'Over your image', 'Tu diseño con controles encima', 'Your design with controls on top'],
+  ['vinyl', 'Vinilo', 'Vinyl', 'Un disco que gira al sonar', 'A record that spins while playing'],
+  ['bars', 'Barras', 'Bars', 'Barras que bailan con la música', 'Bars that dance with the music'],
+  ['pill', 'Cápsula', 'Capsule', 'Compacto, ideal para franjas', 'Compact, good for strips'],
+];
+const FONTS = {
+  sans: "system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif",
+  round: "'Arial Rounded MT Bold','Varela Round','Trebuchet MS',system-ui,sans-serif",
+  serif: "Georgia,'Times New Roman',serif",
+  mono: "ui-monospace,Consolas,'Courier New',monospace",
+  impact: "Impact,'Arial Black','Franklin Gothic Heavy',sans-serif",
+};
+const S = { lay: 'image', img: '' };
+$('lay').innerHTML = LAYOUTS.map(([k, es, en, d, de]) => `<button class="ly" data-k="${k}" aria-pressed="${k === S.lay}">${L(es, en)}<small>${L(d, de)}</small></button>`).join('');
+$('lay').onclick = e => { const b = e.target.closest('.ly'); if (!b) return; S.lay = b.dataset.k; document.querySelectorAll('.ly').forEach(x => x.setAttribute('aria-pressed', x === b)); update(); };
+
+// La imagen se reduce y se mete en el archivo (xatRadio no deja cargar imágenes externas)
+$('img').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const bmp = await createImageBitmap(f);
+    const max = 1200, k = Math.min(1, max / Math.max(bmp.width, bmp.height));
+    const c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+    c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+    S.img = c.toDataURL('image/jpeg', .86);
+    $('imghint').textContent = L('Imagen lista: ', 'Image ready: ') + `${c.width}×${c.height}`;
+    update();
+  } catch (err) { toast(L('No pude abrir esa imagen.', 'Could not open that image.')); }
+};
+
+const escH = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const SC = '<' + '/script>';
+
+// ---------- plantilla del repro (un solo archivo, sin nada externo salvo la radio) ----------
+function player(cfg) {
+  const [W, H] = cfg.size.split('x').map(Number);
+  const narrow = H <= 120;
+  const css = `
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden}
+body{font-family:${FONTS[cfg.font]};color:${cfg.fg};background:${cfg.bg};position:relative}
+.bg{position:absolute;inset:0;background-size:cover;background-position:center}
+.wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:${narrow ? '8px 14px' : '22px'}}
+.pp{width:${narrow ? 46 : 64}px;height:${narrow ? 46 : 64}px;border-radius:50%;border:0;background:${cfg.ac};cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+.pp i{display:block;width:0;height:0;border-left:${narrow ? 15 : 20}px solid #fff;border-top:${narrow ? 9 : 12}px solid transparent;border-bottom:${narrow ? 9 : 12}px solid transparent;margin-left:5px}
+.on .pp i{width:${narrow ? 14 : 18}px;height:${narrow ? 16 : 22}px;border:0;margin:0;border-left:${narrow ? 5 : 6}px solid #fff;border-right:${narrow ? 5 : 6}px solid #fff}
+.vol{-webkit-appearance:none;appearance:none;width:${narrow ? 80 : 110}px;height:4px;border-radius:4px;background:rgba(255,255,255,.3);accent-color:${cfg.ac};cursor:pointer}
+.vol::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:${cfg.ac};border:2px solid #fff}
+.name{font-weight:700;font-size:${narrow ? 15 : 22}px;line-height:1.1}
+.mq{overflow:hidden;white-space:nowrap;font-size:${narrow ? 12 : 14}px;opacity:.85;max-width:100%}
+.mq span{display:inline-block;padding-left:100%;animation:mq 14s linear infinite}
+@keyframes mq{to{transform:translateX(-100%)}}
+.room{color:inherit;font-size:12px;opacity:.75;text-decoration:none;border-bottom:1px solid currentColor}
+.credit{position:absolute;right:8px;bottom:5px;font:9px ${FONTS.mono};opacity:.45}
+.panel{background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:${narrow ? '6px 12px' : '14px 18px'};display:flex;align-items:center;gap:14px;max-width:100%;backdrop-filter:blur(6px)}
+.meta{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+/* vinilo */
+.rec{width:${Math.round(Math.min(W, H) * .62)}px;height:${Math.round(Math.min(W, H) * .62)}px;border-radius:50%;flex:none;background:repeating-radial-gradient(circle,#111 0 2px,#1d1d1d 2px 4px);position:relative;box-shadow:0 10px 30px rgba(0,0,0,.5);animation:spin 4s linear infinite;animation-play-state:paused}
+.on .rec{animation-play-state:running}
+.rec::after{content:'';position:absolute;inset:34%;border-radius:50%;background:${cfg.ac} var(--lbl) center/cover;border:3px solid rgba(255,255,255,.15)}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* barras */
+.bars{display:flex;align-items:flex-end;gap:5px;height:${Math.round(H * .32)}px}
+.bars b{width:${Math.max(4, Math.round(W / 70))}px;height:12%;background:${cfg.ac};border-radius:3px;opacity:.9}
+.on .bars b{animation:bar .9s ease-in-out infinite alternate}
+@keyframes bar{0%{height:12%}100%{height:100%}}
+`;
+  const bars = Array.from({ length: Math.min(30, Math.round(W / 22)) }, (_, i) => `<b style="animation-delay:-${(i * 0.137 % 0.9).toFixed(2)}s;animation-duration:${(0.55 + (i * 0.29 % 0.6)).toFixed(2)}s"></b>`).join('');
+  const room = cfg.room ? `<a class="room" href="${escH(cfg.room)}" target="_top">${escH(cfg.room.replace(/^https?:\/\//, ''))}</a>` : '';
+  const ctrls = `<button class="pp" id="pp" aria-label="Play"><i></i></button>`;
+  const vol = `<input class="vol" id="vol" type="range" min="0" max="100" value="80" aria-label="Volumen">`;
+  const meta = `<div class="meta"><div class="name">${escH(cfg.name)}</div><div class="mq"><span id="now">${escH(cfg.name)}</span></div>${narrow ? '' : room}</div>`;
+  let body;
+  if (cfg.lay === 'image') body = `${cfg.img ? `<div class="bg" style="background-image:url(${cfg.img})"></div>` : ''}<div class="wrap" style="align-items:flex-end;justify-content:flex-start"><div class="panel">${ctrls}${meta}${narrow ? '' : vol}</div></div>`;
+  else if (cfg.lay === 'vinyl') body = `<div class="wrap" style="gap:24px;${narrow ? '' : 'flex-direction:' + (W > H ? 'row' : 'column')}"><div class="rec" style="--lbl:${cfg.img ? `url(${cfg.img})` : 'none'}${narrow ? ';width:60px;height:60px' : ''}"></div><div style="display:flex;flex-direction:column;gap:12px;min-width:0;max-width:${W > H ? '45%' : '90%'}">${meta}<div style="display:flex;align-items:center;gap:12px">${ctrls}${vol}</div></div></div>`;
+  else if (cfg.lay === 'bars') body = `${cfg.img ? `<div class="bg" style="background-image:url(${cfg.img});opacity:.35"></div>` : ''}<div class="wrap" style="flex-direction:column;gap:${narrow ? 4 : 16}px;text-align:center">${narrow ? '' : `<div class="bars">${bars}</div>`}${meta}<div style="display:flex;align-items:center;gap:12px">${ctrls}${vol}</div></div>`;
+  else body = `<div class="wrap"><div class="panel" style="border-radius:999px;width:${narrow ? '100%' : '86%'}">${cfg.img ? `<div style="width:${narrow ? 46 : 60}px;height:${narrow ? 46 : 60}px;border-radius:50%;flex:none;background:url(${cfg.img}) center/cover"></div>` : ''}${ctrls}${meta}${vol}</div></div>`;
+
+  const js = `
+var STREAM=${JSON.stringify(cfg.url)},NAME=${JSON.stringify(cfg.name)};
+var au=new Audio(),pp=document.getElementById('pp'),now=document.getElementById('now'),vol=document.getElementById('vol');
+au.preload='none';au.volume=.8;
+pp.onclick=function(){if(au.paused){au.src=STREAM;au.play().then(function(){document.body.classList.add('on')}).catch(function(){now.textContent=NAME})}else{au.pause();au.removeAttribute('src');au.load();document.body.classList.remove('on')}};
+if(vol)vol.oninput=function(){au.volume=vol.value/100};
+function setTitle(t){if(t&&now.textContent!==t)now.textContent=t}
+function meta(){if(!STREAM)return;var u;try{u=new URL(STREAM)}catch(e){return}
+ if(/zeno\\.fm$/.test(u.hostname)&&window.EventSource){var m=u.pathname.split('/').filter(Boolean).pop();var es=new EventSource('https://api.zeno.fm/mounts/metadata/subscribe/'+m);es.onmessage=function(e){try{setTitle(JSON.parse(e.data).streamTitle)}catch(x){}};return}
+ var o=u.origin;function ice(){return fetch(o+'/status-json.xsl').then(function(r){return r.json()}).then(function(j){var s=j.icestats&&j.icestats.source;if(Array.isArray(s)){s=s.filter(function(x){return x.listenurl&&x.listenurl.indexOf(u.pathname)>-1})[0]||s[0]}if(s)setTitle(s.title||((s.artist||'')+' - '+(s.title||'')))})}
+ function sc(){return fetch(o+'/stats?sid=1&json=1').then(function(r){return r.json()}).then(function(j){setTitle(j.songtitle)})}
+ function tick(){ice().catch(function(){return sc()}).catch(function(){})}tick();setInterval(tick,15000)}
+meta();`;
+  return `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escH(cfg.name)}</title><style>${css}</style></head><body>${body}${cfg.credit ? '<span class="credit">repro: xHaz Tools</span>' : ''}<script>${js}${SC}</body></html>`;
+}
+
+function cfg() {
+  return { url: $('url').value.trim(), name: $('name').value.trim() || 'Radio', room: /^https:\/\/(www\.)?xat\.com\//i.test($('room').value.trim()) ? $('room').value.trim() : '',
+    lay: S.lay, img: S.img, size: $('size').value, ac: $('ac').value, bg: $('bg').value, fg: $('fg').value, font: $('font').value, credit: $('credit').checked };
+}
+let html = '';
+function update() {
+  const c = cfg(); html = player(c);
+  $('pv').srcdoc = html;
+  const [W, H] = c.size.split('x').map(Number), box = $('pvbox'), wrap = $('pvwrap');
+  const k = Math.min(1, (wrap.clientWidth || 700) / W);
+  box.style.width = W * k + 'px'; box.style.height = H * k + 'px';
+  $('pv').style.width = W + 'px'; $('pv').style.height = H + 'px'; $('pv').style.transform = `scale(${k})`;
+  $('fsize').innerHTML = fmtBytes(new Blob([html]).size) + (c.url && !/^https:\/\//i.test(c.url) ? ` · <span class="warn">${L('el link de la radio tiene que empezar con https://', 'the radio link must start with https://')}</span>` : '')
+    + ($('room').value.trim() && !c.room ? ` · <span class="warn">${L('el link de sala debe ser de xat.com', 'the room link must be on xat.com')}</span>` : '');
+  $('code').textContent = `[radiohtml:${W}:${H}:${$('pid').value.trim() || 'ID'}]`;
+}
+let t; document.querySelector('.controls').addEventListener('input', () => { clearTimeout(t); t = setTimeout(update, 250); });
+document.querySelector('.controls').addEventListener('change', update);
+$('pid').addEventListener('input', update);
+new ResizeObserver(update).observe($('pvwrap'));
+$('dl').onclick = () => {
+  const c = cfg();
+  if (!/^https:\/\//i.test(c.url)) return toast(L('Primero pon el link https de tu radio.', 'First add your radio https link.'));
+  download(new Blob([player(c)], { type: 'text/html' }), (c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'repro') + '.html');
+};
+update();
+</script>
+</body>
+</html>

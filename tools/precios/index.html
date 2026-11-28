@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Precios fairtrade y trade justo · xHaz Tools</title>
+<link rel="stylesheet" href="../assets/base.css">
+<style>
+.tabs{display:flex;gap:6px;margin-bottom:16px}
+.tab{font:inherit;font-weight:600;font-size:14px;color:#cfd3f5;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:8px 16px;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--blue);border-color:var(--blue);color:#fff}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+.tools input[type=text]{flex:1;min-width:220px;font-size:16px;padding:10px 12px}
+.tools select{width:auto}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.seg button{font:inherit;font-size:13px;background:transparent;color:var(--mute);border:0;padding:7px 14px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--raise);color:var(--text)}
+.layout{display:grid;grid-template-columns:1fr;gap:18px}
+.layout.trade{grid-template-columns:minmax(0,1fr) minmax(320px,420px)}
+.rows{display:flex;flex-direction:column;gap:6px}
+.r{display:grid;grid-template-columns:40px minmax(0,1.3fr) minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);padding:8px 12px}
+.r img{width:32px;height:32px;object-fit:contain}
+.r .n b{font-weight:600}
+.r .n small{display:block;color:var(--mute);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r .v{font-family:'JetBrains Mono',monospace;font-size:13px;color:#d9e3ff}
+.r .v small{display:block;font-family:'Outfit';color:var(--mute);font-size:11px}
+.r .add{display:flex;gap:6px}
+.r .add button{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--ink);color:#cfd3f5;border-radius:999px;padding:5px 10px;cursor:pointer}
+.r .add button:hover{border-color:var(--blue)}
+.badge{display:inline-block;font-size:11px;padding:1px 7px;border-radius:99px;background:var(--raise);color:#cfd3f5;margin-left:6px;vertical-align:1px}
+.badge.new{background:var(--peach);color:#2a1408}
+.more{margin:14px auto 0;display:flex}
+.empty{color:var(--mute);padding:20px 4px}
+.side{position:sticky;top:76px;display:flex;flex-direction:column;gap:12px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px}
+.box h3{font-size:17px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:baseline}
+.box h3 small{font-family:'JetBrains Mono',monospace;font-size:13px;color:#d9e3ff;font-weight:500}
+.it{display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--line);font-size:14px}
+.it img{width:22px;height:22px;object-fit:contain}
+.it span{flex:1;min-width:0}
+.it input{width:58px;padding:4px 6px}
+.it button{border:0;background:transparent;color:var(--mute);font-size:16px;cursor:pointer}
+.extra{display:flex;gap:8px;margin-top:8px}
+.extra label{flex:1}
+.verdict{border-radius:var(--r-lg);padding:16px;font-size:15px}
+.verdict b{display:block;font-family:'Bricolage Grotesque',sans-serif;font-size:22px;margin-bottom:4px}
+.verdict.fair{background:#173a33;border:1px solid #2e6b5c}
+.verdict.up{background:#3a2a17;border:1px solid #7a5530}
+.verdict.none{background:var(--panel);border:1px solid var(--line);color:var(--mute)}
+.credit{font-size:12px;color:var(--mute);margin-top:18px}
+@media (max-width:980px){.layout.trade{grid-template-columns:1fr}.side{position:static;order:-1}.r{grid-template-columns:34px minmax(0,1fr) auto}.r .v{grid-column:2}.r .add{grid-column:3;grid-row:1 / span 2}}
+</style>
+</head>
+<body>
+<header class="top"></header>
+<main>
+  <div class="head">
+    <h1 data-en="Fairtrade prices and fair trade">Precios fairtrade y trade justo</h1>
+    <p data-en="Every xat power with its community trade price. Add powers to each side to see whether a trade is fair.">Todos los powers de xat con su precio de trade de la comunidad. Agrega powers a cada lado para saber si un trade es justo.</p>
+  </div>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="list" aria-selected="true" data-en="Prices">Precios</button>
+    <button class="tab" role="tab" data-tab="trade" aria-selected="false" data-en="Fair trade">Trade justo</button>
+  </div>
+  <div class="tools">
+    <input type="text" id="q" placeholder="Buscar un power…" data-en-ph="Search a power…" aria-label="Buscar">
+    <select id="filter" aria-label="Filtro">
+      <option value="" data-en="All">Todos</option>
+      <option value="is_new" data-en="New">Nuevos</option>
+      <option value="store" data-en="In the store">En la tienda</option>
+      <option value="is_limited" data-en="Limited">Limitados</option>
+      <option value="is_epic" data-en="Epic">Épicos</option>
+      <option value="is_group" data-en="Group">De grupo</option>
+      <option value="is_collection" data-en="Collections">Colecciones</option>
+      <option value="is_hug" data-en="With hugs">Con hugs</option>
+      <option value="is_jinx" data-en="With jinx">Con jinx</option>
+      <option value="is_allpowers">AllPowers</option>
+    </select>
+    <select id="sort" aria-label="Orden">
+      <option value="new" data-en="Newest first">Más nuevos</option>
+      <option value="high" data-en="Most expensive">Más caros</option>
+      <option value="low" data-en="Cheapest">Más baratos</option>
+      <option value="name" data-en="A to Z">De la A a la Z</option>
+    </select>
+    <div class="seg" role="group" aria-label="Moneda"><button data-cur="xats" aria-pressed="true">xats</button><button data-cur="days" aria-pressed="false" data-en="days">días</button></div>
+  </div>
+  <div class="layout" id="layout">
+    <div>
+      <div class="rows" id="rows"><p class="empty" data-en="Loading prices…">Cargando precios…</p></div>
+      <button class="btn ghost more" id="more" hidden data-en="Show more">Ver más</button>
+    </div>
+    <aside class="side" id="side" hidden>
+      <div class="box"><h3><span data-en="You give">Tú das</span><small id="giveT">0</small></h3><div id="give"></div>
+        <div class="extra"><label class="f"><span>+ xats</span><input type="number" min="0" step="10" id="gx" value="0"></label><label class="f"><span data-en="+ days">+ días</span><input type="number" min="0" id="gd" value="0"></label></div></div>
+      <div class="box"><h3><span data-en="You get">Recibes</span><small id="getT">0</small></h3><div id="get"></div>
+        <div class="extra"><label class="f"><span>+ xats</span><input type="number" min="0" step="10" id="rx" value="0"></label><label class="f"><span data-en="+ days">+ días</span><input type="number" min="0" id="rd" value="0"></label></div></div>
+      <div class="verdict none" id="verdict"></div>
+      <button class="btn ghost" id="clear" data-en="Clear trade">Vaciar trade</button>
+    </aside>
+  </div>
+  <p class="credit" data-en="Prices: xatblog fairtrade (community reference, not official). 1 day ≈ 13.5 xats, the rate of the X2D power.">Precios: fairtrade de xatblog (referencia de la comunidad, no oficial). 1 día ≈ 13,5 xats, la tasa del power X2D.</p>
+</main>
+<footer class="foot"></footer>
+
+<script type="module">
+import { shell, L, toast } from '../assets/core.js';
+shell('precios');
+const $ = id => document.getElementById(id);
+const XPD = 13.5;
+const S = { all: [], shown: 60, cur: 'xats', tab: new URLSearchParams(location.search).get('tab') === 'trade' ? 'trade' : 'list', give: new Map(), get: new Map() };
+const icon = n => `https://xat.com/images/smw/${encodeURIComponent(n)}.png`;
+const fmt = v => Math.round(v).toLocaleString(L('es-PE', 'en-US'));
+const mid = p => (p.fairtrade_min_xats + p.fairtrade_max_xats) / 2;
+const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+
+document.addEventListener('error', e => { const t = e.target; if (t.tagName === 'IMG' && t.dataset.fb === 'hide') t.style.visibility = 'hidden'; }, true);
+
+async function load() {
+  try {
+    const r = await fetch('https://api.xatblog.net/prices');
+    const j = await r.json();
+    S.all = (j.prices || []).filter(p => p.name);
+    draw();
+  } catch (e) {
+    $('rows').innerHTML = `<p class="empty">${L('No se pudieron cargar los precios ahora. Revisa tu conexión y recarga la página.', 'Prices could not load right now. Check your connection and reload the page.')}</p>`;
+  }
+}
+
+function list() {
+  const q = $('q').value.trim().toLowerCase(), f = $('filter').value, s = $('sort').value;
+  let a = S.all.filter(p => !q || p.name.includes(q) || (p.description || '').toLowerCase().includes(q));
+  if (f === 'store') a = a.filter(p => !(p.categories || []).includes('is_limited'));
+  else if (f) a = a.filter(p => (p.categories || []).includes(f));
+  const val = p => mid(p) || -1;
+  a.sort(s === 'high' ? (x, y) => val(y) - val(x) : s === 'low' ? (x, y) => (val(x) < 0) - (val(y) < 0) || val(x) - val(y) : s === 'name' ? (x, y) => x.name.localeCompare(y.name) : (x, y) => y.id - x.id);
+  return a;
+}
+function priceText(p) {
+  if (!p.fairtrade_max_xats) return `<span class="v">—<small>${L('aún sin precio de trade', 'no trade price yet')}</small></span>`;
+  const r = S.cur === 'xats' ? `${fmt(p.fairtrade_min_xats)}–${fmt(p.fairtrade_max_xats)} xats` : `${fmt(p.fairtrade_min_days)}–${fmt(p.fairtrade_max_days)} ${L('días', 'days')}`;
+  return `<span class="v">${r}<small>${L('tienda', 'store')}: ${esc(String(p.store_price).replace('unknown', '—').replace('days', L('días', 'days')))}</small></span>`;
+}
+function draw() {
+  const a = list(), cats = p => p.categories || [];
+  $('rows').innerHTML = a.slice(0, S.shown).map(p => `<div class="r">
+    <img src="${icon(p.name)}" alt="" loading="lazy" data-fb="hide">
+    <div class="n"><b>${esc(p.name)}</b>${cats(p).includes('is_latest') ? `<span class="badge new">${L('el más nuevo', 'newest')}</span>` : cats(p).includes('is_new') ? `<span class="badge new">${L('nuevo', 'new')}</span>` : ''}${cats(p).includes('is_epic') ? '<span class="badge">epic</span>' : ''}<small>${esc(p.description)} · ${esc(p.released)}</small></div>
+    ${priceText(p)}
+    <div class="add">${S.tab === 'trade' ? `<button data-add="give" data-n="${esc(p.name)}">+ ${L('doy', 'give')}</button><button data-add="get" data-n="${esc(p.name)}">+ ${L('recibo', 'get')}</button>` : ''}</div>
+  </div>`).join('') || `<p class="empty">${L('No hay powers con esa búsqueda.', 'No powers match that search.')}</p>`;
+  $('more').hidden = a.length <= S.shown;
+  drawTrade();
+}
+
+// ---------- trade ----------
+function sideTotal(m, xats, days) {
+  let lo = 0, hi = 0, missing = [];
+  for (const [n, q] of m) {
+    const p = S.all.find(x => x.name === n);
+    if (!p || !p.fairtrade_max_xats) { missing.push(n); continue; }
+    lo += p.fairtrade_min_xats * q; hi += p.fairtrade_max_xats * q;
+  }
+  const extra = (+xats || 0) + (+days || 0) * XPD;
+  return { lo: lo + extra, hi: hi + extra, mid: (lo + hi) / 2 + extra, missing };
+}
+function sideHTML(m, side) {
+  return [...m].map(([n, q]) => `<div class="it"><img src="${icon(n)}" alt="" data-fb="hide"><span>${esc(n)}</span><input type="number" min="1" value="${q}" data-q="${side}" data-n="${esc(n)}" aria-label="${L('Cantidad', 'Quantity')}"><button data-rm="${side}" data-n="${esc(n)}" aria-label="${L('Quitar', 'Remove')}">×</button></div>`).join('')
+    || `<p class="hint" style="padding:6px 0">${L('Agrega powers con los botones de la lista.', 'Add powers with the buttons on the list.')}</p>`;
+}
+function money(v) { return S.cur === 'xats' ? `${fmt(v)} xats` : `${fmt(v / XPD)} ${L('días', 'days')}`; }
+function drawTrade() {
+  $('layout').classList.toggle('trade', S.tab === 'trade');
+  $('side').hidden = S.tab !== 'trade';
+  if (S.tab !== 'trade') return;
+  $('give').innerHTML = sideHTML(S.give, 'give'); $('get').innerHTML = sideHTML(S.get, 'get');
+  const A = sideTotal(S.give, $('gx').value, $('gd').value), B = sideTotal(S.get, $('rx').value, $('rd').value);
+  $('giveT').textContent = A.mid ? `≈ ${money(A.mid)}` : '0';
+  $('getT').textContent = B.mid ? `≈ ${money(B.mid)}` : '0';
+  const v = $('verdict');
+  if (!A.mid || !B.mid) { v.className = 'verdict none'; v.textContent = L('Agrega algo en los dos lados para comparar.', 'Add something on both sides to compare.'); return; }
+  const diff = B.mid - A.mid, pct = Math.abs(diff) / Math.max(A.mid, B.mid);
+  const overlap = A.lo <= B.hi && B.lo <= A.hi;
+  let html;
+  if (pct <= .08 || (overlap && pct <= .15)) { v.className = 'verdict fair'; html = `<b>${L('Es un trade justo', 'It is a fair trade')}</b>${L('Los dos lados valen casi lo mismo.', 'Both sides are worth about the same.')}`; }
+  else if (diff > 0) { v.className = 'verdict up'; html = `<b>${L('Te conviene a ti', 'It favors you')}</b>${L('Recibes unos ', 'You get about ')}${money(diff)}${L(' más de lo que das.', ' more than you give.')}`; }
+  else { v.className = 'verdict up'; html = `<b>${L('Le conviene a la otra persona', 'It favors the other person')}</b>${L('Das unos ', 'You give about ')}${money(-diff)}${L(' más de lo que recibes.', ' more than you get.')}`; }
+  const miss = [...A.missing, ...B.missing];
+  if (miss.length) html += `<p class="hint" style="margin-top:6px">${L('Sin precio de trade, no se cuentan: ', 'No trade price, not counted: ')}${miss.map(esc).join(', ')}</p>`;
+  html += `<p class="hint" style="margin-top:6px">${L('Rango: das ', 'Range: you give ')}${money(A.lo)}–${money(A.hi)} · ${L('recibes ', 'you get ')}${money(B.lo)}–${money(B.hi)}</p>`;
+  v.innerHTML = html;
+}
+
+// ---------- eventos ----------
+$('q').addEventListener('input', () => { S.shown = 60; draw(); });
+$('filter').addEventListener('change', () => { S.shown = 60; draw(); });
+$('sort').addEventListener('change', draw);
+$('more').onclick = () => { S.shown += 80; draw(); };
+document.querySelectorAll('[data-cur]').forEach(b => b.onclick = () => { S.cur = b.dataset.cur; document.querySelectorAll('[data-cur]').forEach(x => x.setAttribute('aria-pressed', x === b)); draw(); });
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => { S.tab = t.dataset.tab; document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x === t)); draw(); });
+document.addEventListener('click', e => {
+  const a = e.target.closest('[data-add]');
+  if (a) { const m = S[a.dataset.add]; m.set(a.dataset.n, (m.get(a.dataset.n) || 0) + 1); toast(L('Agregado: ', 'Added: ') + a.dataset.n); drawTrade(); }
+  const r = e.target.closest('[data-rm]');
+  if (r) { S[r.dataset.rm].delete(r.dataset.n); drawTrade(); }
+});
+document.addEventListener('input', e => {
+  const q = e.target.closest('[data-q]');
+  if (q) { S[q.dataset.q].set(q.dataset.n, Math.max(1, +q.value || 1)); drawTradeSoon(); }
+  if (['gx', 'gd', 'rx', 'rd'].includes(e.target.id)) drawTradeSoon();
+});
+let tt; function drawTradeSoon() { clearTimeout(tt); tt = setTimeout(() => { const f = document.activeElement; const id = f && f.dataset && f.dataset.n; drawTrade(); if (id) { const el = document.querySelector(`[data-q][data-n="${CSS.escape(id)}"]`); el && el.focus(); } }, 350); }
+$('clear').onclick = () => { S.give.clear(); S.get.clear(); ['gx', 'gd', 'rx', 'rd'].forEach(i => ($(i).value = 0)); drawTrade(); };
+if (S.tab === 'trade') document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === 'trade'));
+load();
+</script>
+</body>
+</html>

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Avatar con forma y marco · xHaz Tools</title>
+<link rel="stylesheet" href="../assets/base.css">
+<style>
+.drop{border:1.5px dashed #4a5199;border-radius:var(--r-md);padding:18px;text-align:center;color:var(--mute);cursor:pointer}
+.drop:hover,.drop.over{border-color:var(--peach);color:var(--text)}
+.shapes{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.shp{aspect-ratio:1;background:var(--ink);border:1px solid var(--line);border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:8px}
+.shp svg{width:100%;height:100%;fill:#cfd3f5}
+.shp[aria-pressed="true"]{border-color:var(--blue);background:#1f2a5c}
+.shp[aria-pressed="true"] svg{fill:#fff}
+.edit{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
+.edit canvas{width:min(100%,360px);aspect-ratio:1;border-radius:12px;cursor:grab;touch-action:none}
+.edit canvas:active{cursor:grabbing}
+.minis{display:flex;gap:18px;align-items:flex-end;flex-wrap:wrap;justify-content:center}
+.minis figure{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:var(--mute)}
+.minis canvas{cursor:default;border-radius:0;width:auto;aspect-ratio:auto}
+.checker{background-color:#2a2e52;background-image:linear-gradient(45deg,#353a66 25%,transparent 25%,transparent 75%,#353a66 75%),linear-gradient(45deg,#353a66 25%,transparent 25%,transparent 75%,#353a66 75%);background-size:16px 16px;background-position:0 0,8px 8px}
+.result{display:none;flex-direction:column;gap:12px}
+.result.on{display:flex}
+.result img{border-radius:8px;align-self:flex-start;image-rendering:pixelated}
+.hosts{display:flex;flex-wrap:wrap;gap:8px}
+.hosts a{font-size:13px;text-decoration:none;background:var(--raise);border:1px solid var(--line);border-radius:999px;padding:6px 12px}
+</style>
+</head>
+<body>
+<header class="top"></header>
+<main>
+  <div class="head">
+    <h1 data-en="Avatar with shape and frame">Avatar con forma y marco</h1>
+    <p data-en="Crop your photo into a circle, heart, star or any shape, and add a frame that can be still or animated. It comes out at avatar size.">Recorta tu foto en círculo, corazón, estrella o la forma que quieras, y ponle un marco quieto o animado. Sale al tamaño de avatar.</p>
+  </div>
+  <div class="work">
+    <aside class="controls">
+      <div class="group">
+        <label class="drop" id="drop"><input type="file" id="file" accept="image/*" hidden><span data-en="Choose your photo or drop it here">Elige tu foto o suéltala aquí</span></label>
+        <p class="hint" data-en="Your photo never leaves your computer. Animated GIFs keep moving in Chrome and Edge.">Tu foto no sale de tu computadora. Los GIF animados siguen moviéndose en Chrome y Edge.</p>
+      </div>
+      <div class="group">
+        <span class="gt" data-en="Shape">Forma</span>
+        <div class="shapes" id="shapes"></div>
+      </div>
+      <div class="group">
+        <label class="f"><span data-en="Zoom">Zoom</span><input type="range" id="zoom" min="0.5" max="3" step="0.01" value="1"></label>
+        <p class="hint" data-en="Drag the photo in the preview to move it.">Arrastra la foto en la vista previa para moverla.</p>
+      </div>
+      <div class="group">
+        <span class="gt" data-en="Frame">Marco</span>
+        <div class="chips" id="ftype">
+          <button class="chip" data-v="none" aria-pressed="false" data-en="None">Sin marco</button>
+          <button class="chip" data-v="solid" aria-pressed="false" data-en="Solid">Liso</button>
+          <button class="chip" data-v="grad" aria-pressed="true" data-en="Gradient">Degradado</button>
+          <button class="chip" data-v="rainbow" aria-pressed="false" data-en="Rainbow">Arcoíris</button>
+        </div>
+        <div class="row" style="justify-content:flex-start">
+          <input type="color" id="f1" value="#ffb48f" style="flex:none" aria-label="Color 1">
+          <input type="color" id="f2" value="#4d7cff" style="flex:none" aria-label="Color 2">
+          <label class="f" style="flex:1"><span data-en="Thickness">Grosor</span><input type="range" id="fw" min="0.02" max="0.14" step="0.005" value="0.06"></label>
+        </div>
+      </div>
+      <div class="group">
+        <span class="gt" data-en="Frame effect">Efecto del marco</span>
+        <div class="chips" id="feff">
+          <button class="chip" data-v="none" aria-pressed="true" data-en="Still">Quieto</button>
+          <button class="chip" data-v="spin" aria-pressed="false" data-en="Spinning colors">Colores que giran</button>
+          <button class="chip" data-v="glow" aria-pressed="false" data-en="Beating glow">Brillo que late</button>
+          <button class="chip" data-v="dash" aria-pressed="false" data-en="Moving dashes">Puntos que corren</button>
+          <button class="chip" data-v="spark" aria-pressed="false" data-en="Sparkles">Destellos</button>
+        </div>
+      </div>
+      <div class="group">
+        <span class="gt" data-en="Outside the shape">Fuera de la forma</span>
+        <div class="row" style="justify-content:flex-start">
+          <select id="out" style="flex:1"><option value="transparent" data-en="Transparent">Transparente</option><option value="color" data-en="Color">Color</option></select>
+          <input type="color" id="outc" value="#141629" style="flex:none" aria-label="Color de fondo">
+        </div>
+      </div>
+    </aside>
+    <section class="stage">
+      <div class="frame">
+        <div class="edit">
+          <canvas id="big" width="720" height="720" class="checker" aria-label="Vista previa: arrastra para mover la foto"></canvas>
+          <div class="minis">
+            <figure><canvas id="m80" width="80" height="80" class="checker"></canvas>80×80</figure>
+            <figure><canvas id="m30" width="30" height="30" class="checker"></canvas><span data-en="30×30 (as in the list)">30×30 (como en la lista)</span></figure>
+          </div>
+        </div>
+      </div>
+      <div class="note">
+        <div class="bar">
+          <select id="size" style="width:auto" aria-label="Tamaño">
+            <option value="80">80×80 (avatar)</option>
+            <option value="160">160×160</option>
+            <option value="300">300×300</option>
+          </select>
+          <button class="btn" id="dl" data-en="Download">Descargar</button>
+          <div class="progress" aria-hidden="true"><i id="prog"></i></div>
+        </div>
+        <p class="hint" id="hint" style="margin-top:8px"></p>
+      </div>
+      <div class="result note" id="result">
+        <b id="rtitle"></b>
+        <img id="rimg" alt="">
+        <span class="hint" id="rsize"></span>
+        <div>
+          <b data-en="To use it on xat">Para usarlo en xat</b>
+          <ol>
+            <li><span data-en="Upload it to an image host xat accepts:">Súbelo a una página de imágenes que xat acepta:</span>
+              <div class="hosts" style="margin:8px 0"><a href="https://xatimg.com/" target="_blank" rel="noopener">xatimg</a><a href="https://imgbb.com/" target="_blank" rel="noopener">ImgBB</a><a href="https://picto.gg/" target="_blank" rel="noopener">Picto</a></div></li>
+            <li data-en="Click your name, paste the direct link in the Avatar field and save. An animated avatar needs the Animate power.">Haz clic en tu nombre, pega el link directo en el campo Avatar y guarda. Un avatar animado necesita el power Animate.</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+<footer class="foot"></footer>
+
+<script type="module">
+import { shell, L, toast, download, makeGIF, canvasPNG, fmtBytes } from '../assets/core.js';
+shell('avatar');
+const $ = id => document.getElementById(id);
+const TAU = Math.PI * 2;
+
+// Formas en coordenadas -1..1
+function poly(n, rot = -Math.PI / 2, inner = 0) {
+  return ctx => {
+    const k = inner ? n * 2 : n;
+    for (let i = 0; i < k; i++) {
+      const a = rot + i * TAU / k, r = inner && i % 2 ? inner : 1;
+      i ? ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r) : ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+    }
+    ctx.closePath();
+  };
+}
+const SHAPES = {
+  circle: ctx => ctx.arc(0, 0, 1, 0, TAU),
+  square: ctx => ctx.rect(-1, -1, 2, 2),
+  round: ctx => ctx.roundRect(-1, -1, 2, 2, .38),
+  triangle: ctx => { ctx.moveTo(0, -1); ctx.lineTo(1, .85); ctx.lineTo(-1, .85); ctx.closePath(); },
+  diamond: poly(4),
+  hexagon: poly(6, 0),
+  octagon: poly(8, Math.PI / 8),
+  star: poly(5, -Math.PI / 2, .48),
+  heart: ctx => {
+    ctx.moveTo(0, .95);
+    ctx.bezierCurveTo(-.15, .8, -1, .3, -1, -.3); ctx.bezierCurveTo(-1, -.8, -.45, -1.05, 0, -.62);
+    ctx.bezierCurveTo(.45, -1.05, 1, -.8, 1, -.3); ctx.bezierCurveTo(1, .3, .15, .8, 0, .95); ctx.closePath();
+  },
+  flower: ctx => {
+    for (let i = 0; i <= 200; i++) {
+      const a = i / 200 * TAU, r = .82 + .18 * Math.cos(a * 6);
+      i ? ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r) : ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+    }
+    ctx.closePath();
+  },
+};
+const NAMES = { circle: ['Círculo', 'Circle'], square: ['Cuadrado', 'Square'], round: ['Redondeado', 'Rounded'], triangle: ['Triángulo', 'Triangle'],
+  diamond: ['Rombo', 'Diamond'], hexagon: ['Hexágono', 'Hexagon'], octagon: ['Octágono', 'Octagon'], star: ['Estrella', 'Star'], heart: ['Corazón', 'Heart'], flower: ['Flor', 'Flower'] };
+
+const S = { shape: 'circle', ftype: 'grad', feff: 'none', img: null, frames: null, total: 0, ox: 0, oy: 0 };
+$('shapes').innerHTML = Object.keys(SHAPES).map(k => {
+  const c = document.createElement('canvas'); c.width = c.height = 48;
+  const x = c.getContext('2d'); x.translate(24, 24); x.scale(20, 20); x.beginPath(); SHAPES[k](x); x.fillStyle = '#cfd3f5'; x.fill();
+  return `<button class="shp" data-k="${k}" aria-pressed="${k === S.shape}" aria-label="${L(...NAMES[k])}" title="${L(...NAMES[k])}"><img src="${c.toDataURL()}" alt="" style="width:100%;height:100%"></button>`;
+}).join('');
+$('shapes').addEventListener('click', e => { const b = e.target.closest('.shp'); if (!b) return; S.shape = b.dataset.k; document.querySelectorAll('.shp').forEach(x => x.setAttribute('aria-pressed', x === b)); });
+for (const id of ['ftype', 'feff']) $(id).addEventListener('click', e => {
+  const b = e.target.closest('.chip'); if (!b) return;
+  S[id] = b.dataset.v; document.querySelectorAll(`#${id} .chip`).forEach(x => x.setAttribute('aria-pressed', x === b)); hint();
+});
+
+// --- cargar foto (GIF animado incluido si el navegador puede leerlo) ---
+async function load(f) {
+  if (!f || !f.type.startsWith('image/')) return;
+  S.img = null; S.frames = null; S.ox = S.oy = 0; $('zoom').value = 1;
+  try {
+    if ('ImageDecoder' in window && /gif|webp/.test(f.type)) {
+      const dec = new ImageDecoder({ data: await f.arrayBuffer(), type: f.type });
+      await dec.tracks.ready;
+      const n = dec.tracks.selectedTrack.frameCount, list = [];
+      let t = 0;
+      for (let i = 0; i < Math.min(n, 120); i++) {
+        const { image } = await dec.decode({ frameIndex: i });
+        const d = (image.duration || 100000) / 1000;
+        list.push({ bmp: await createImageBitmap(image), t0: t, d }); t += d; image.close();
+      }
+      if (list.length > 1) { S.frames = list; S.total = t; } else S.img = list[0].bmp;
+    }
+    if (!S.img && !S.frames) S.img = await createImageBitmap(f);
+    hint();
+  } catch (e) { toast(L('No pude abrir esa imagen.', 'Could not open that image.')); }
+}
+$('file').addEventListener('change', e => load(e.target.files[0]));
+const drop = $('drop');
+['dragover', 'dragenter'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => load(e.dataTransfer.files[0]));
+
+// --- mover con el mouse o el dedo ---
+const big = $('big');
+let drag = null;
+big.addEventListener('pointerdown', e => { drag = { x: e.clientX, y: e.clientY, ox: S.ox, oy: S.oy }; big.setPointerCapture(e.pointerId); });
+big.addEventListener('pointermove', e => {
+  if (!drag) return;
+  const k = 2 / big.getBoundingClientRect().width;
+  S.ox = drag.ox + (e.clientX - drag.x) * k; S.oy = drag.oy + (e.clientY - drag.y) * k;
+});
+big.addEventListener('pointerup', () => (drag = null));
+big.addEventListener('wheel', e => { e.preventDefault(); $('zoom').value = Math.min(3, Math.max(.5, +$('zoom').value * (e.deltaY < 0 ? 1.06 : .94))); }, { passive: false });
+
+// --- dibujo ---
+function frameStyle(ctx, p, R) {
+  const t = S.ftype, c1 = $('f1').value, c2 = $('f2').value;
+  const rot = S.feff === 'spin' ? TAU * p : 0;
+  if (t === 'solid') return c1;
+  const g = ctx.createConicGradient ? ctx.createConicGradient(rot, 0, 0) : null;
+  if (!g) return c1;
+  if (t === 'rainbow') { for (let i = 0; i <= 6; i++) g.addColorStop(i / 6, `hsl(${i * 60},90%,62%)`); }
+  else { g.addColorStop(0, c1); g.addColorStop(.5, c2); g.addColorStop(1, c1); }
+  return g;
+}
+function render(ctx, p, W, H) {
+  const size = Math.min(W, H);
+  ctx.save();
+  if ($('out').value === 'color') { ctx.fillStyle = $('outc').value; ctx.fillRect(0, 0, W, H); }
+  ctx.translate(W / 2, H / 2);
+  const fw = S.ftype === 'none' ? 0 : +$('fw').value, pad = S.feff === 'glow' || S.feff === 'spark' ? .1 : .03;
+  const R = size / 2 * (1 - pad), inner = R * (1 - fw * 2);
+  const path = r => { ctx.beginPath(); ctx.save(); ctx.scale(r, r); SHAPES[S.shape](ctx); ctx.restore(); };
+  // foto recortada
+  ctx.save(); path(inner); ctx.clip();
+  let bmp = S.img;
+  if (S.frames) { const t = (p * S.total) % S.total; bmp = (S.frames.find(f => t >= f.t0 && t < f.t0 + f.d) || S.frames[0]).bmp; }
+  if (bmp) {
+    const z = +$('zoom').value, k = (inner * 2) / Math.min(bmp.width, bmp.height) * z;
+    ctx.drawImage(bmp, -bmp.width * k / 2 + S.ox * R, -bmp.height * k / 2 + S.oy * R, bmp.width * k, bmp.height * k);
+  } else {
+    const g = ctx.createLinearGradient(-inner, -inner, inner, inner); g.addColorStop(0, '#2b3170'); g.addColorStop(1, '#151838');
+    ctx.fillStyle = g; ctx.fillRect(-inner, -inner, inner * 2, inner * 2);
+    ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = `600 ${inner * .2}px Outfit, system-ui, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(L('tu foto', 'your photo'), 0, 0);
+  }
+  ctx.restore();
+  // marco
+  if (fw > 0) {
+    ctx.save();
+    if (S.feff === 'glow') { ctx.shadowColor = $('f2').value; ctx.shadowBlur = size * (.04 + .05 * Math.max(0, Math.sin(TAU * p))); }
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = R - inner;
+    ctx.strokeStyle = frameStyle(ctx, p, R);
+    if (S.feff === 'dash') { const d = (R - inner) * 1.4; ctx.setLineDash([d, d * .8]); ctx.lineDashOffset = -p * d * 1.8 * 6; }
+    path((R + inner) / 2); ctx.stroke();
+    ctx.restore();
+  }
+  if (S.feff === 'spark') {
+    for (let i = 0; i < 6; i++) {
+      const a = i / 6 * TAU + .4, k = Math.max(0, Math.sin(TAU * p * (1 + i % 2) + i * 1.3)), r = size * .07 * k;
+      if (r < .4) continue;
+      const x = Math.cos(a) * R * .98, y = Math.sin(a) * R * .98;
+      ctx.fillStyle = i % 2 ? '#ffffff' : $('f1').value;
+      ctx.beginPath(); ctx.moveTo(x, y - r); ctx.quadraticCurveTo(x, y, x + r, y); ctx.quadraticCurveTo(x, y, x, y + r);
+      ctx.quadraticCurveTo(x, y, x - r, y); ctx.quadraticCurveTo(x, y, x, y - r); ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+const animated = () => S.feff !== 'none' || !!S.frames;
+function hint() {
+  $('hint').textContent = animated()
+    ? L('Se descarga como GIF animado (necesitas el power Animate para que se mueva en xat).', 'Downloads as an animated GIF (you need the Animate power for it to move on xat).')
+    : L('Se descarga como imagen PNG.', 'Downloads as a PNG image.');
+}
+let p = 0, last = performance.now();
+const DUR = 2.4;
+function loop(now) {
+  p = (p + Math.max(0, now - last) / 1000 / DUR) % 1; last = now;
+  for (const c of [big, $('m80'), $('m30')]) { const x = c.getContext('2d'); x.clearRect(0, 0, c.width, c.height); render(x, p, c.width, c.height); }
+  requestAnimationFrame(loop);
+}
+
+$('dl').onclick = async () => {
+  const n = +$('size').value, btn = $('dl');
+  let blob, name;
+  if (animated()) {
+    btn.disabled = true;
+    const frames = S.frames && S.feff === 'none' ? Math.min(60, Math.max(8, Math.round(S.total / 50))) : 36;
+    const dur = S.frames && S.feff === 'none' ? S.total / 1000 : DUR;
+    blob = await makeGIF({ w: n, h: n, frames, fps: frames / dur, render, transparent: $('out').value === 'transparent', onProgress: v => ($('prog').style.width = v * 100 + '%') });
+    name = `xhaz-avatar-${S.shape}.gif`; btn.disabled = false;
+    setTimeout(() => ($('prog').style.width = '0'), 900);
+  } else {
+    const c = document.createElement('canvas'); c.width = c.height = n;
+    render(c.getContext('2d'), 0, n, n);
+    blob = await canvasPNG(c); name = `xhaz-avatar-${S.shape}.png`;
+  }
+  download(blob, name);
+  $('result').classList.add('on');
+  $('rimg').src = URL.createObjectURL(blob);
+  $('rimg').style.width = Math.max(n, 160) + 'px';
+  $('rtitle').textContent = L('Listo: se descargó ', 'Done: downloaded ') + name;
+  $('rsize').textContent = `${n}×${n} · ${fmtBytes(blob.size)}`;
+};
+
+hint();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

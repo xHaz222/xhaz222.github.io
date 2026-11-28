@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Creador de fondos · xHaz Tools</title>
+<link rel="stylesheet" href="../assets/base.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Orbitron:wght@700&family=Rubik+Mono+One&family=Space+Grotesk:wght@600&display=swap">
+<style>
+.sizes{display:flex;flex-wrap:wrap;gap:6px}
+.size{font:inherit;font-size:13px;text-align:left;color:#cfd3f5;background:var(--ink);border:1px solid var(--line);border-radius:var(--r-md);padding:7px 11px;cursor:pointer;line-height:1.25}
+.size small{display:block;color:var(--mute);font-size:11px}
+.size[aria-pressed="true"]{border-color:var(--blue);background:#1f2a5c;color:#fff}
+.preview{position:relative;width:100%;max-width:980px;margin:0 auto}
+.preview canvas{width:100%;height:auto;display:block;border-radius:8px}
+/* chat de xat de ejemplo, a escala real sobre el fondo */
+.mock{position:absolute;inset:0;pointer-events:none;display:none}
+.mock.on{display:block}
+.mock .chatbox{position:absolute;inset:0;display:grid;grid-template-columns:1fr 26%;grid-template-rows:1fr 9%;gap:1.2%;padding:1.6%}
+.mock .msgs{background:rgba(255,255,255,.10);border-radius:6px;padding:3%;display:flex;flex-direction:column;gap:3.5%;justify-content:flex-end}
+.mock .msgs i{display:block;height:4.2%;min-height:6px;border-radius:99px;background:rgba(255,255,255,.28)}
+.mock .users{grid-row:span 2;background:rgba(0,0,0,.22);border-radius:6px;padding:6%;display:flex;flex-direction:column;gap:5%}
+.mock .users i{display:flex;align-items:center;gap:8%;height:5%;min-height:8px}
+.mock .users i::before{content:'';height:100%;aspect-ratio:1;border-radius:50% 50% 40% 40%;background:#5bd16a}
+.mock .users i::after{content:'';flex:1;height:55%;border-radius:99px;background:rgba(255,255,255,.3)}
+.mock .input{background:rgba(255,255,255,.88);border-radius:6px}
+.mock .profile{position:absolute;left:4%;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:3%;width:80%}
+.mock .profile b{width:18%;aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,.85);border:3px solid rgba(0,0,0,.25)}
+.mock .profile span{flex:1;height:22%;min-height:10px;border-radius:99px;background:rgba(255,255,255,.75)}
+.result{display:none;flex-direction:column;gap:12px}
+.result.on{display:flex}
+.result img{max-width:100%;border-radius:8px;border:1px solid var(--line);align-self:flex-start;max-height:260px}
+.hosts{display:flex;flex-wrap:wrap;gap:8px}
+.hosts a{font-size:13px;text-decoration:none;background:var(--raise);border:1px solid var(--line);border-radius:999px;padding:6px 12px}
+.hosts a:hover{border-color:var(--blue)}
+.warn{color:var(--peach)}
+</style>
+</head>
+<body>
+<header class="top"></header>
+<main>
+  <div class="head">
+    <h1 data-en="Background maker">Creador de fondos</h1>
+    <p data-en="Pick where it goes and a style. It is drawn live at the official xat size, as a still image or an animated GIF that loops without jumps.">Elige dónde va y un estilo. Se dibuja en vivo a la medida oficial de xat, como imagen fija o como GIF animado que se repite sin saltos.</p>
+  </div>
+
+  <div class="work">
+    <aside class="controls" aria-label="Opciones">
+      <div class="group">
+        <span class="gt" data-en="Where does it go?">¿Dónde va?</span>
+        <div class="sizes" id="sizes"></div>
+      </div>
+      <div class="group">
+        <span class="gt" data-en="Style">Estilo</span>
+        <div class="chips" id="styles"></div>
+      </div>
+      <div class="group">
+        <span class="gt" data-en="Colors">Colores</span>
+        <div class="swatches" id="pals"></div>
+        <div class="row" style="flex:none;justify-content:flex-start">
+          <input type="color" id="c0" aria-label="Fondo" data-en-title="Background" title="Fondo">
+          <input type="color" id="c1" aria-label="Color 1" title="Color 1">
+          <input type="color" id="c2" aria-label="Color 2" title="Color 2">
+          <input type="color" id="c3" aria-label="Color 3" title="Color 3">
+          <button class="btn ghost" id="seed" style="flex:none" data-en="Another variation">Otra variación</button>
+        </div>
+      </div>
+      <div class="group">
+        <label class="f"><span data-en="Amount of detail">Cantidad de detalle</span><input type="range" id="density" min="0" max="1" step="0.05" value="0.5"></label>
+        <label class="f"><span data-en="Speed">Velocidad</span><input type="range" id="speed" min="1" max="3" step="1" value="1"></label>
+        <div class="row">
+          <label class="f"><span data-en="Grain">Grano</span><input type="range" id="grain" min="0" max="0.35" step="0.01" value="0.08"></label>
+          <label class="f"><span data-en="Dark edges">Bordes oscuros</span><input type="range" id="vig" min="0" max="0.8" step="0.05" value="0.35"></label>
+        </div>
+      </div>
+      <div class="group">
+        <span class="gt" data-en="Text (optional)">Texto (opcional)</span>
+        <input type="text" id="txt" maxlength="40" placeholder="Ej: xat.com/xHaz" data-en-ph="E.g. xat.com/xHaz">
+        <input type="text" id="sub" maxlength="60" placeholder="Ej: bienvenidos a mi sala" data-en-ph="E.g. welcome to my room">
+        <div class="row">
+          <select id="font" aria-label="Letra">
+            <option value="Bricolage Grotesque">Bricolage</option>
+            <option value="Outfit">Outfit</option>
+            <option value="Space Grotesk">Space Grotesk</option>
+            <option value="JetBrains Mono">JetBrains Mono</option>
+            <option value="Orbitron">Orbitron</option>
+            <option value="Bungee">Bungee</option>
+            <option value="Rubik Mono One">Rubik Mono</option>
+          </select>
+          <select id="tpos" aria-label="Posición">
+            <option value="top" data-en="Top">Arriba</option>
+            <option value="mid" data-en="Center">Centro</option>
+            <option value="bot" data-en="Bottom">Abajo</option>
+          </select>
+          <input type="color" id="tcol" value="#ffffff" aria-label="Color del texto" style="flex:none">
+        </div>
+        <label class="f"><span data-en="Text size">Tamaño del texto</span><input type="range" id="tsize" min="0.05" max="0.22" step="0.005" value="0.11"></label>
+        <p class="hint" data-en="In a chat background the chat covers the middle: text looks best at the top or bottom edge.">En el fondo del chat, el chat tapa el centro: el texto luce mejor arriba o abajo.</p>
+      </div>
+    </aside>
+
+    <section class="stage" aria-label="Vista previa">
+      <div class="frame">
+        <div class="preview" id="preview">
+          <canvas id="cv"></canvas>
+          <div class="mock" id="mock"></div>
+        </div>
+      </div>
+      <div class="bar">
+        <button class="btn ghost" id="play" data-en="Pause">Pausar</button>
+        <label class="chip" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="showmock" checked> <span data-en="Show the xat chat on top">Ver el chat de xat encima</span></label>
+        <span class="hint" id="dims"></span>
+      </div>
+      <div class="note">
+        <div class="bar">
+          <button class="btn" id="png" data-en="Download image (PNG)">Descargar imagen (PNG)</button>
+          <button class="btn" id="gif" data-en="Make animated GIF">Crear GIF animado</button>
+          <select id="frames" aria-label="Fotogramas" style="width:auto">
+            <option value="24" data-en="Light (24 frames)">Liviano (24 cuadros)</option>
+            <option value="36" selected data-en="Smooth (36 frames)">Suave (36 cuadros)</option>
+            <option value="48" data-en="Very smooth (48 frames)">Muy suave (48 cuadros)</option>
+          </select>
+          <div class="progress" aria-hidden="true"><i id="prog"></i></div>
+        </div>
+        <p class="hint" id="gifhint" style="margin-top:8px"></p>
+      </div>
+      <div class="result note" id="result">
+        <b id="rtitle"></b>
+        <img id="rimg" alt="">
+        <div class="bar"><button class="btn" id="rdl" data-en="Download again">Descargar de nuevo</button><span class="hint" id="rsize"></span></div>
+        <div id="guide"></div>
+      </div>
+    </section>
+  </div>
+</main>
+<footer class="foot"></footer>
+
+<script type="module">
+import { shell, L, EN, toast, download, makeGIF, canvasPNG, fmtBytes } from '../assets/core.js';
+import { STYLES, PALETTES, finish, rgba } from '../assets/art.js';
+shell('fondos');
+
+const SIZES = [
+  { id: 'chat',   w: 728,  h: 486,  es: 'Fondo del chat', en: 'Chat background', gif: true, mock: 'chat' },
+  { id: 'pcback', w: 728,  h: 486,  es: 'PCBack (privados)', en: 'PCBack (private chats)', gif: true, mock: 'chat' },
+  { id: 'pstyle', w: 760,  h: 200,  es: 'Pstyle (perfil)', en: 'Pstyle (profile)', gif: true, mock: 'profile' },
+  { id: 'banner', w: 728,  h: 90,   es: 'Banner', en: 'Banner', gif: true },
+  { id: 'outer',  w: 2560, h: 1440, es: 'Fondo exterior', en: 'Outer background', gif: false },
+  { id: 'mobv',   w: 1080, h: 1920, es: 'Móvil vertical', en: 'Mobile portrait', gif: false },
+  { id: 'mobh',   w: 1920, h: 1080, es: 'Móvil horizontal', en: 'Mobile landscape', gif: false },
+];
+const S = { size: SIZES[0], style: 'aurora', pal: 'noche', c: [...PALETTES.noche], seed: 7, playing: true, p: 0 };
+const $ = id => document.getElementById(id);
+const cv = $('cv'), ctx = cv.getContext('2d');
+
+// --- interfaz ---
+$('sizes').innerHTML = SIZES.map((s, i) => `<button class="size" data-i="${i}" aria-pressed="${i === 0}">${L(s.es, s.en)}<small>${s.w}×${s.h}${s.gif ? '' : ' · ' + L('solo imagen', 'image only')}</small></button>`).join('');
+$('styles').innerHTML = Object.entries(STYLES).map(([k, v]) => `<button class="chip" data-s="${k}" aria-pressed="${k === S.style}">${L(v.es, v.en)}</button>`).join('');
+$('pals').innerHTML = Object.entries(PALETTES).map(([k, c]) => `<button class="sw" data-p="${k}" title="${k}" aria-label="${k}" aria-pressed="${k === S.pal}" style="background:linear-gradient(135deg,${c[0]} 0 30%,${c[1]} 30% 55%,${c[2]} 55% 80%,${c[3]} 80%)"></button>`).join('');
+const syncColors = () => S.c.forEach((v, i) => ($('c' + i).value = v));
+syncColors();
+
+$('sizes').addEventListener('click', e => { const b = e.target.closest('.size'); if (!b) return; S.size = SIZES[+b.dataset.i]; press('#sizes .size', b); layout(); });
+$('styles').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; S.style = b.dataset.s; press('#styles .chip', b); });
+$('pals').addEventListener('click', e => { const b = e.target.closest('.sw'); if (!b) return; S.pal = b.dataset.p; S.c = [...PALETTES[S.pal]]; syncColors(); press('#pals .sw', b); });
+[0, 1, 2, 3].forEach(i => $('c' + i).addEventListener('input', e => { S.c[i] = e.target.value; document.querySelectorAll('#pals .sw').forEach(b => b.setAttribute('aria-pressed', 'false')); }));
+$('seed').onclick = () => { S.seed = (S.seed * 48271 + 11) % 2147483647; };
+$('play').onclick = () => { S.playing = !S.playing; $('play').textContent = S.playing ? L('Pausar', 'Pause') : L('Reproducir', 'Play'); };
+$('showmock').onchange = layout;
+function press(sel, b) { document.querySelectorAll(sel).forEach(x => x.setAttribute('aria-pressed', x === b)); }
+
+function opts() {
+  return { bg: S.c[0], c: [S.c[1], S.c[2], S.c[3]], density: +$('density').value, speed: +$('speed').value, seed: S.seed };
+}
+
+// Texto encima del fondo
+function drawText(c, w, h, p) {
+  const t = $('txt').value.trim(), sub = $('sub').value.trim();
+  if (!t && !sub) return;
+  const fam = $('font').value, col = $('tcol').value, k = +$('tsize').value;
+  const fs = Math.round(Math.min(w, h * 2.2) * k * (w / h < 1 ? 1.6 : 1));
+  const pos = $('tpos').value;
+  const y = pos === 'top' ? h * .14 + fs * .5 : pos === 'bot' ? h * .86 - (sub ? fs * .4 : 0) : h * .5;
+  c.save(); c.textAlign = 'center'; c.textBaseline = 'middle';
+  if (t) {
+    c.font = `700 ${fs}px "${fam}", "Outfit", system-ui, sans-serif`;
+    c.shadowColor = rgba(S.c[1], .85); c.shadowBlur = fs * (.25 + .1 * Math.sin(p * Math.PI * 2));
+    c.fillStyle = col; c.fillText(t, w / 2, y, w * .92);
+  }
+  if (sub) {
+    c.shadowBlur = 0; c.font = `500 ${Math.round(fs * .32)}px "Outfit", system-ui, sans-serif`;
+    c.fillStyle = rgba(col, .8); c.fillText(sub, w / 2, y + fs * (t ? .78 : 0), w * .9);
+  }
+  c.restore();
+}
+
+function render(c, p, w, h) {
+  STYLES[S.style].draw(c, w, h, p, opts());
+  finish(c, w, h, { grain: +$('grain').value, vignette: +$('vig').value });
+  drawText(c, w, h, p);
+}
+
+// Vista previa: misma proporción, resolución acotada para que vaya fluido
+function layout() {
+  const { w, h } = S.size, k = Math.min(1, 980 / w, 620 / h);
+  cv.width = Math.round(w * k); cv.height = Math.round(h * k);
+  $('preview').style.maxWidth = Math.max(cv.width, Math.min(980, w)) + 'px';
+  $('dims').textContent = `${w}×${h} px`;
+  const m = $('mock'); m.className = 'mock';
+  m.innerHTML = S.size.mock === 'chat'
+    ? `<div class="chatbox"><div class="msgs"><i style="width:62%"></i><i style="width:40%"></i><i style="width:74%"></i><i style="width:33%"></i></div><div class="users"><i></i><i></i><i></i><i></i><i></i></div><div class="input"></div></div>`
+    : S.size.mock === 'profile' ? `<div class="profile"><b></b><span></span></div>` : '';
+  if ($('showmock').checked && S.size.mock) m.classList.add('on');
+  $('showmock').parentElement.style.display = S.size.mock ? '' : 'none';
+  $('gif').disabled = !S.size.gif;
+  $('frames').disabled = !S.size.gif;
+  $('gifhint').textContent = S.size.gif
+    ? L('El GIF se arma en tu navegador; tarda unos segundos.', 'The GIF is built in your browser; it takes a few seconds.')
+    : L('Esta medida es muy grande para un GIF liviano: descárgala como imagen.', 'This size is too big for a light GIF: download it as an image.');
+}
+
+const FPS = 15;
+let last = performance.now();
+function loop(now) {
+  const dt = (now - last) / 1000; last = now;
+  const frames = +$('frames').value;
+  if (S.playing) S.p = (S.p + dt / (frames / FPS)) % 1;
+  render(ctx, S.p, cv.width, cv.height);
+  requestAnimationFrame(loop);
+}
+
+async function fontsReady() {
+  const fam = $('font').value;
+  try { await document.fonts.load(`700 40px "${fam}"`); await document.fonts.load('500 20px "Outfit"'); } catch (e) {}
+}
+
+// --- exportar ---
+let lastBlob, lastName;
+$('png').onclick = async () => {
+  await fontsReady();
+  const { w, h } = S.size, c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  render(c.getContext('2d'), S.p, w, h);
+  const blob = await canvasPNG(c);
+  show(blob, `xhaz-${S.size.id}-${S.style}.png`, false);
+};
+$('gif').onclick = async () => {
+  if (!S.size.gif) return;
+  await fontsReady();
+  const btn = $('gif'); btn.disabled = true; btn.textContent = L('Creando…', 'Making…');
+  const { w, h } = S.size;
+  try {
+    const blob = await makeGIF({ w, h, frames: +$('frames').value, fps: FPS, render, onProgress: v => ($('prog').style.width = (v * 100) + '%') });
+    show(blob, `xhaz-${S.size.id}-${S.style}.gif`, true);
+  } catch (e) { toast(L('No se pudo crear el GIF. Prueba con menos cuadros.', 'Could not make the GIF. Try fewer frames.')); }
+  btn.disabled = false; btn.textContent = L('Crear GIF animado', 'Make animated GIF');
+  setTimeout(() => ($('prog').style.width = '0'), 900);
+};
+$('rdl').onclick = () => lastBlob && download(lastBlob, lastName);
+
+function show(blob, name, animated) {
+  lastBlob = blob; lastName = name;
+  download(blob, name);
+  const r = $('result'); r.classList.add('on');
+  $('rimg').src = URL.createObjectURL(blob);
+  $('rtitle').textContent = L('Listo: se descargó ', 'Done: downloaded ') + name;
+  const big = blob.size > 8 * 1048576;
+  $('rsize').innerHTML = fmtBytes(blob.size) + (big ? ` · <span class="warn">${L('pesa más de 8 MB: usa ImgBB o Picto, o elige menos cuadros', 'over 8 MB: use ImgBB or Picto, or pick fewer frames')}</span>` : '');
+  const where = {
+    chat: L('En tu grupo: <b>grupo → customize</b> → pestaña de apariencia → campo <b>Background</b> de "chat".', 'In your group: <b>group → customize</b> → appearance tab → the chat <b>Background</b> field.'),
+    pcback: L('Haz clic en tu nombre y en el campo <b>Avatar</b> escribe <code>tu-avatar#link</code>. Un segundo link (<code>#link2</code>) es el que ven tus amigos.', 'Click your name and in the <b>Avatar</b> field type <code>your-avatar#link</code>. A second link (<code>#link2</code>) is what your friends see.'),
+    pstyle: L('Haz clic en tu nombre → <b>Settings</b> → <b>Pstyle</b> → campo de imagen de fondo.', 'Click your name → <b>Settings</b> → <b>Pstyle</b> → background image field.'),
+    banner: L('Úsalo donde xat pida un banner de 728×90, por ejemplo para promoción.', 'Use it wherever xat asks for a 728×90 banner, such as promotion.'),
+    outer: L('En tu grupo: <b>grupo → customize</b> → apariencia → <b>Outer background</b>.', 'In your group: <b>group → customize</b> → appearance → <b>Outer background</b>.'),
+    mobv: L('En tu grupo: apariencia → <b>Portrait background</b> (móvil).', 'In your group: appearance → <b>Portrait background</b> (mobile).'),
+    mobh: L('En tu grupo: apariencia → <b>Landscape background</b> (móvil).', 'In your group: appearance → <b>Landscape background</b> (mobile).'),
+  }[S.size.id];
+  const anim = animated && (S.size.id === 'pcback' || S.size.id === 'pstyle')
+    ? `<p class="warn" style="margin-top:6px">${L('Para que se mueva en ', 'To animate it in ')}${S.size.id === 'pcback' ? 'PCBack' : 'Pstyle'}${L(' necesitas 2 unidades de ese power.', ' you need 2 units of that power.')}</p>` : '';
+  $('guide').innerHTML = `<b>${L('Cómo ponerlo en xat', 'How to put it on xat')}</b>
+    <ol>
+      <li>${L('Súbelo a una página de imágenes que xat acepta:', 'Upload it to an image host xat accepts:')}
+        <div class="hosts" style="margin:8px 0">
+          <a href="https://xatimg.com/" target="_blank" rel="noopener">xatimg · ${L('hasta 8 MB', 'up to 8 MB')}</a>
+          <a href="https://imgbb.com/" target="_blank" rel="noopener">ImgBB · 32 MB</a>
+          <a href="https://picto.gg/" target="_blank" rel="noopener">Picto · 75 MB</a>
+        </div></li>
+      <li>${L('Copia el <b>link directo</b> (el que termina en .png o .gif).', 'Copy the <b>direct link</b> (the one ending in .png or .gif).')}</li>
+      <li>${where}</li>
+    </ol>${anim}`;
+  r.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+layout();
+fontsReady();
+$('font').addEventListener('change', fontsReady);
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>xHaz Tools · herramientas para xat</title>
+<meta name="description" content="Fondos, GIFs 2D/3D, nombres y status para xat. Gratis, sin registro.">
+<link rel="stylesheet" href="assets/base.css">
+<style>
+.hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:clamp(20px,4vw,56px);align-items:center;margin:10px 0 56px}
+.hero h1{font-size:clamp(38px,5.4vw,72px);letter-spacing:-.035em;line-height:.98}
+.hero p{color:var(--mute);font-size:17px;margin-top:18px;max-width:46ch}
+.hero .cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.hero .cta a{text-decoration:none}
+/* el escenario: fondo vivo + chat de xat a su proporción real (728×486) */
+.scene{position:relative;border-radius:22px;overflow:hidden;border:1px solid var(--line);aspect-ratio:16/10;background:#000}
+.scene canvas{position:absolute;inset:0;width:100%;height:100%}
+.xchat{position:absolute;left:50%;top:50%;width:62%;aspect-ratio:728/486;transform:translate(-50%,-50%);border-radius:10px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.45);display:grid;grid-template-columns:1fr 27%;grid-template-rows:1fr 11%;background:rgba(236,239,247,.93);font-size:clamp(9px,1vw,13px);color:#20253a}
+.xchat .msgs{padding:5% 5% 3%;display:flex;flex-direction:column;justify-content:flex-end;gap:6%}
+.xchat .m{display:flex;gap:6px;align-items:flex-start;line-height:1.25}
+.xchat .m i{width:1.9em;height:1.9em;border-radius:5px;flex:none}
+.xchat .m b{display:block;font-weight:700}
+.xchat .ul{grid-row:span 2;background:#fff;border-left:1px solid #dde1ec;padding:9% 8%;display:flex;flex-direction:column;gap:7%}
+.xchat .u{display:flex;align-items:center;gap:6px;font-weight:600;white-space:nowrap;overflow:hidden}
+.xchat .u::before{content:'';width:.85em;height:1em;border-radius:50% 50% 35% 35%;background:var(--pc,#4cc35a);flex:none}
+.xchat .in{background:#fff;border-top:1px solid #dde1ec;display:flex;align-items:center;padding:0 4%;color:#8a90a8}
+.gname{font-weight:800;background:linear-gradient(90deg,#ffbaed,#e854af,#ffbaed);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:gw 3s linear infinite}
+@keyframes gw{to{background-position:-200% 0}}
+.scene .tag{position:absolute;left:14px;bottom:12px;font-size:12px;color:rgba(255,255,255,.8);background:rgba(0,0,0,.35);padding:4px 10px;border-radius:99px}
+
+h2.sec{font-size:clamp(22px,2.4vw,30px);margin:0 0 6px}
+p.secd{color:var(--mute);margin-bottom:20px}
+.ready{display:grid;grid-template-columns:1.4fr 1fr;grid-template-rows:auto auto;gap:18px;margin-bottom:56px}
+.tool{position:relative;display:flex;flex-direction:column;text-decoration:none;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden}
+.tool:hover{border-color:#4a5199}
+.tool:first-child{grid-row:span 3}
+.tool .pv{position:relative;flex:1;min-height:170px;background:var(--deep)}
+.tool .pv canvas{position:absolute;inset:0;width:100%;height:100%}
+.tool .tx{padding:16px 18px 18px}
+.tool h3{font-size:21px}
+.tool p{color:var(--mute);font-size:14px;margin-top:4px}
+.namedemo{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:12px;flex-direction:column;font-family:'Outfit',system-ui,sans-serif}
+.namedemo span{font-size:clamp(26px,3vw,40px);font-weight:700}
+.namedemo code{font-size:12px;color:#cfe0ff;background:rgba(0,0,0,.3);padding:5px 10px;border-radius:8px}
+.next{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:2px 28px;margin-bottom:20px}
+.next div{padding:12px 0;border-top:1px solid var(--line)}
+.next b{font-weight:600}
+.next p{color:var(--mute);font-size:14px}
+.next a{text-decoration:none}.next a:hover b{color:var(--peach)}
+@media (max-width:980px){.hero{grid-template-columns:1fr}.ready{grid-template-columns:1fr}.tool:first-child{grid-row:auto}.tool .pv{min-height:200px}}
+</style>
+</head>
+<body>
+<header class="top"></header>
+<main>
+  <section class="hero">
+    <div>
+      <h1 data-en="Make your xat look like you.">Haz que tu xat se vea como tú.</h1>
+      <p data-en="Animated backgrounds, 2D and 3D GIFs, name and status codes. Everything is made in your browser, sized for xat, free and with no sign-up.">Fondos animados, GIFs 2D y 3D, códigos de nombre y status. Todo se crea en tu navegador, a la medida de xat, gratis y sin registro.</p>
+      <div class="cta">
+        <a class="btn" href="fondos/" data-en="Make a background">Crear un fondo</a>
+        <a class="btn ghost" href="texto/" data-en="Animate my name">Animar mi nombre</a>
+      </div>
+    </div>
+    <div class="scene" aria-label="Ejemplo: un fondo creado aquí con el chat de xat encima">
+      <canvas id="heroCv"></canvas>
+      <div class="xchat" aria-hidden="true">
+        <div class="msgs">
+          <div class="m"><i style="background:linear-gradient(135deg,#ffd0e8,#e854af)"></i><div><b class="gname">xHaz</b><span data-en="this background was made in xHaz Tools">este fondo lo hice en xHaz Tools</span></div></div>
+          <div class="m"><i style="background:linear-gradient(135deg,#bfe3ff,#4d7cff)"></i><div><b>Visitante</b><span data-en="it moves! how?">¡se mueve! ¿cómo?</span></div></div>
+        </div>
+        <div class="ul"><span class="u"><span class="gname">xHaz</span></span><span class="u" style="--pc:#5b8cff">Visitante</span><span class="u" style="--pc:#5b8cff">Invitado</span></div>
+        <div class="in" data-en="Type here…">Escribe aquí…</div>
+      </div>
+      <span class="tag" id="heroTag"></span>
+    </div>
+  </section>
+
+  <h2 class="sec" data-en="Ready to use">Listas para usar</h2>
+  <p class="secd" data-en="What you see in each one is being drawn right now.">Lo que ves en cada una se está dibujando en este momento.</p>
+  <section class="ready">
+    <a class="tool" href="fondos/">
+      <div class="pv"><canvas id="pvF"></canvas></div>
+      <div class="tx"><h3 data-en="Background maker">Creador de fondos</h3><p data-en="12 styles, including a 4D tesseract. Chat, PCBack, Pstyle, banner, outer and mobile backgrounds, as an image or animated GIF.">12 estilos, incluido un teseracto 4D. Fondos de chat, PCBack, Pstyle, banner, exterior y móvil, en imagen o GIF animado.</p></div>
+    </a>
+    <a class="tool" href="texto/">
+      <div class="pv"><canvas id="pvT"></canvas></div>
+      <div class="tx"><h3 data-en="2D/3D animated text">Texto animado 2D/3D</h3><p data-en="Your name with wave, turn with depth, orbit or hologram, as a GIF for your avatar or banner.">Tu nombre con onda, giro con volumen, órbita u holograma, en GIF para tu avatar o banner.</p></div>
+    </a>
+    <a class="tool" href="nombre/">
+      <div class="pv"><div class="namedemo"><span class="gname">xHaz</span><code>(glow#0#grad#FFBAED#E854AF)</code></div></div>
+      <div class="tx"><h3 data-en="Name and status">Nombre y status</h3><p data-en="Glow, color, gradient, wave and flag for your name; glow, color and Statusfx for your status.">Brillo, color, degradado, onda y bandera para tu nombre; brillo, color y Statusfx para tu status.</p></div>
+    </a>
+    <a class="tool" href="letras/">
+      <div class="pv"><div class="namedemo"><span style="font-size:clamp(22px,2.4vw,32px);font-family:system-ui,sans-serif">꧁ 𝔵ℌ𝔞𝔷 ꧂ · 𝐱𝐇𝐚𝐳 · ⓧⒽⓐⓩ</span></div></div>
+      <div class="tx"><h3 data-en="Letters for your nick">Letras para nick</h3><p data-en="28 Unicode styles, frames, symbols, kaomojis and a builder for your nick.">28 estilos Unicode, marcos, símbolos, kaomojis y un armador para tu nick.</p></div>
+    </a>
+  </section>
+
+  <h2 class="sec" data-en="Also ready">También listas</h2>
+  <section class="next" style="margin-bottom:56px">
+    <div><a href="disenos/"><b data-en="Backgrounds with a title">Fondos con título</b></a><p data-en="Metallic title over a themed scene, your photo and the smiley bar squares: for chatbox, PCBack and outer background.">Título metálico sobre una escena temática, tu foto y los cuadritos de smileys: para chatbox, PCBack y exterior.</p></div>
+    <div><a href="space/"><b data-en="xatspace generator">Generador de xatspace</b></a><p data-en="Your own xatspace with your photos, songs and links: you get the link ready for the xatframe field.">Tu propio xatspace con tus fotos, canciones y links: te da el link listo para el campo xatframe.</p></div>
+    <div><a href="avatar/"><b data-en="Avatar with shape and frame">Avatar con forma y marco</b></a><p data-en="Crop your photo into a circle, heart, star and more, with a still or animated frame.">Recorta tu foto en círculo, corazón, estrella y más, con marco quieto o animado.</p></div>
+    <div><a href="combos/"><b data-en="Combined smileys">Smileys combinados</b></a><p data-en="5,901 community combinations, animated, with the powers each one needs.">5.901 combinaciones de la comunidad, animadas, con los powers que necesita cada una.</p></div>
+    <div><a href="pawns/"><b data-en="Pawns, hats and smileys">Pawns, hats y smileys</b></a><p data-en="Try the active pawns next to your name and copy their code; search every smiley.">Prueba los pawns activos junto a tu nombre y copia su código; busca cualquier smiley.</p></div>
+    <div><a href="precios/"><b data-en="Fairtrade prices">Precios fairtrade</b></a><p data-en="Every power with its trade price, in xats or days.">Todos los powers con su precio de trade, en xats o días.</p></div>
+    <div><a href="precios/?tab=trade"><b data-en="Fair trade">Trade justo</b></a><p data-en="What you give against what you get: it tells you if the trade is fair.">Lo que das contra lo que recibes: te dice si el trade es justo.</p></div>
+    <div><a href="repros/"><b data-en="Players for your room">Repros para tu sala</b></a><p data-en="Design the music player for the tab under your chat, ready to upload to xatRadio.">Diseña el reproductor para la pestaña de abajo de tu chat, listo para subir a xatRadio.</p></div>
+    <div><a href="radio/"><b data-en="Free radio">Radio gratis</b></a><p data-en="Test your radio link, get the codes and see options without monthly fees.">Prueba el link de tu radio, saca los códigos y mira opciones sin mensualidad.</p></div>
+  </section>
+
+  <h2 class="sec" data-en="Coming soon">Lo que viene</h2>
+  <p class="secd" data-en="Tools nobody has made yet, with live xat data.">Herramientas que nadie tiene todavía, con datos de xat en vivo.</p>
+  <section class="next">
+    <div><b data-en="Price history">Historial de precios</b><p data-en="How each power's trade price moves over time.">Cómo sube o baja el precio de trade de cada power con el tiempo.</p></div>
+    <div><b data-en="Rarity index">Índice de rareza</b><p data-en="Units released versus price: which powers are cheap for how scarce they are.">Unidades liberadas contra precio: qué powers están baratos para lo escasos que son.</p></div>
+    <div><b>Pawn World</b><p data-en="The active pawns, alive and walking: tap one to copy its code.">Los pawns activos, vivos y caminando: toca uno para copiar su código.</p></div>
+    <div><b data-en="Countdown">Cuenta regresiva</b><p data-en="Count power codes with colors, ready to paste.">Códigos del power Count con colores, listos para pegar.</p></div>
+  </section>
+</main>
+<footer class="foot"></footer>
+
+<script type="module">
+import { shell, L } from './assets/core.js';
+import { STYLES, PALETTES, finish } from './assets/art.js';
+shell('home');
+
+// Escenario principal: rota entre estilos cada 7 s
+const HERO = [['aurora', 'noche'], ['teseracto', 'lavanda'], ['niebla', 'mono'], ['synthwave', 'neon'], ['olas', 'oceano'], ['malla', 'rosa']];
+function fit(cv) {
+  const r = cv.getBoundingClientRect(), k = Math.min(1.5, devicePixelRatio || 1);
+  const w = Math.max(2, Math.round(r.width * k)), h = Math.max(2, Math.round(r.height * k));
+  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+}
+const heroCv = document.getElementById('heroCv'), pvF = document.getElementById('pvF'), pvT = document.getElementById('pvT');
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let t0 = performance.now();
+function frame(now) {
+  const t = Math.max(0, now - t0) / 1000;
+  const idx = Math.floor(t / 7) % HERO.length, [st, pal] = HERO[idx], c = PALETTES[pal];
+  const o = { bg: c[0], c: [c[1], c[2], c[3]], density: .55, speed: 1, seed: 7 };
+  const p = reduce ? .2 : (t / 6) % 1;
+  for (const cv of [heroCv, pvF]) {
+    fit(cv);
+    const x = cv.getContext('2d');
+    const [s2, p2] = cv === pvF ? HERO[(idx + 2) % HERO.length] : [st, pal];
+    const cc = PALETTES[p2];
+    STYLES[s2].draw(x, cv.width, cv.height, p, { ...o, bg: cc[0], c: [cc[1], cc[2], cc[3]] });
+    finish(x, cv.width, cv.height, { vignette: .35 });
+  }
+  document.getElementById('heroTag').textContent = L('Estilo: ', 'Style: ') + L(STYLES[st].es, STYLES[st].en);
+  // texto 3D de muestra
+  fit(pvT);
+  const x = pvT.getContext('2d'), w = pvT.width, h = pvT.height;
+  x.fillStyle = '#121430'; x.fillRect(0, 0, w, h);
+  const ang = reduce ? .3 : Math.sin(t * 2.4) * .6, fs = Math.min(h * .42, w * .22);
+  x.save(); x.translate(w / 2, h / 2); x.transform(Math.cos(ang), Math.sin(ang) * .12, 0, 1, 0, 0);
+  x.font = `800 ${fs}px "Bricolage Grotesque", "Outfit", system-ui, sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle';
+  const d = Math.round(fs * .16);
+  for (let i = d; i > 0; i--) { x.fillStyle = `rgb(${30 + (d - i) * 3},${40 + (d - i) * 4},${110 + (d - i) * 5})`; x.fillText('xHaz', -Math.sin(ang) * i * .9, i * .7); }
+  const g = x.createLinearGradient(-fs * 1.4, 0, fs * 1.4, 0); g.addColorStop(0, '#ffffff'); g.addColorStop(1, '#7fa2ff');
+  x.shadowColor = 'rgba(77,124,255,.9)'; x.shadowBlur = fs * .25; x.fillStyle = g; x.fillText('xHaz', 0, 0);
+  x.restore();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

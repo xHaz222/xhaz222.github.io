@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Smileys combinados · xHaz Tools</title>
+<link rel="stylesheet" href="../assets/base.css">
+<style>
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;align-items:start}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:10px}
+.tools input{flex:1;min-width:220px;font-size:16px;padding:10px 12px}
+.tools select{width:auto}
+.letters{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:14px}
+.letters button{font:inherit;font-size:12px;min-width:28px;padding:4px 6px;border-radius:7px;border:1px solid var(--line);background:var(--ink);color:#cfd3f5;cursor:pointer}
+.letters button[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:8px}
+.card{display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);padding:10px 8px;cursor:pointer;font:inherit;color:inherit;min-width:0}
+.card:hover{border-color:#4a5199}
+.card[aria-pressed="true"]{border-color:var(--blue);background:#1f2a5c}
+.sm{width:88px;height:88px;background-repeat:no-repeat;flex:none}
+.card code{font-size:10.5px;color:#cfe0ff;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card em{font-style:normal;font-size:11px;color:var(--mute)}
+.pager{display:flex;gap:8px;justify-content:center;align-items:center;margin-top:14px}
+.side{position:sticky;top:76px;display:flex;flex-direction:column;gap:12px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px;display:flex;flex-direction:column;gap:10px}
+.big{display:flex;align-items:center;justify-content:center;min-height:170px;background:var(--deep);border-radius:12px}
+.big .sm{width:150px;height:150px}
+.pw{display:flex;flex-wrap:wrap;gap:6px}
+.pw span{font-size:12px;padding:3px 9px;border-radius:99px;background:var(--raise)}
+.empty{color:var(--mute);padding:20px 4px}
+.credit{font-size:12px;color:var(--mute);margin-top:16px}
+@media (max-width:980px){.layout{grid-template-columns:1fr}.side{position:static;order:-1}}
+</style>
+</head>
+<body>
+<header class="top"></header>
+<main>
+  <div class="head">
+    <h1 data-en="Combined smileys">Smileys combinados</h1>
+    <p data-en="Thousands of smiley combinations made by the community, animated. Tap one to copy its code and see which powers it needs.">Miles de combinaciones de smileys hechas por la comunidad, animadas. Toca una para copiar su código y ver qué powers necesita.</p>
+  </div>
+  <div class="layout">
+    <section>
+      <div class="tools">
+        <input type="text" id="q" placeholder="Buscar por código o autor…" data-en-ph="Search by code or author…" aria-label="Buscar">
+        <select id="sort" aria-label="Orden"><option value="new" data-en="Newest">Más nuevos</option><option value="old" data-en="Oldest">Más antiguos</option><option value="mix" data-en="Shuffled">Mezclados</option></select>
+        <button class="btn ghost" id="rand" data-en="Surprise me">Sorpréndeme</button>
+      </div>
+      <div class="letters" id="letters"></div>
+      <p class="hint" id="count" style="margin-bottom:10px"></p>
+      <div class="grid" id="grid"><p class="empty" data-en="Loading smileys…">Cargando smileys…</p></div>
+      <div class="pager"><button class="btn ghost" id="prev" data-en="Previous">Anterior</button><span class="hint" id="pg"></span><button class="btn ghost" id="next" data-en="Next">Siguiente</button></div>
+    </section>
+    <aside class="side">
+      <div class="box">
+        <div class="big" id="big"><span class="hint" data-en="Pick a smiley">Elige un smiley</span></div>
+        <div class="codebox"><code id="code">—</code><button class="btn" data-copy="#code" data-en="Copy">Copiar</button></div>
+        <p class="hint" id="author"></p>
+        <span class="gt" data-en="Powers it needs">Powers que necesita</span>
+        <div class="pw" id="pw"><span class="hint" data-en="Tap a smiley to see them">Toca un smiley para verlos</span></div>
+        <p class="hint" id="price"></p>
+      </div>
+      <div class="box">
+        <span class="gt" data-en="Check any code">Revisar cualquier código</span>
+        <div class="codebox"><input type="text" id="own" placeholder="cool#hug#shine" spellcheck="false" style="flex:1"><button class="btn ghost" id="check" data-en="Check">Revisar</button></div>
+        <p class="hint" data-en="It tells you which powers your code needs and what they cost. If it is in the gallery, you also see it moving.">Te dice qué powers necesita tu código y cuánto cuestan. Si está en la galería, también lo ves en movimiento.</p>
+      </div>
+    </aside>
+  </div>
+  <p class="credit" data-en="Combinations by the Mundosmilies community, hosted by xatblog. Power detection: xatblog API.">Combinaciones de la comunidad de Mundosmilies, alojadas por xatblog. Detección de powers: API de xatblog.</p>
+</main>
+<footer class="foot"></footer>
+
+<script type="module">
+import { shell, L, copy, toast } from '../assets/core.js';
+import { md5 } from '../assets/md5.js';
+shell('combos');
+const $ = id => document.getElementById(id);
+const API = 'https://api.xatblog.net';
+const PER = 48;
+const S = { all: [], list: [], page: 0, letter: '', byCode: new Map() };
+const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+const imgUrl = code => `https://xatblog.net/ms_assets/sm2/${md5(code)}.png`;
+
+// Animación de tira: cuadros = ancho / alto, 12 cuadros por segundo
+const sheet = document.createElement('style'); document.head.appendChild(sheet);
+const done = new Set();
+function animate(div, code, size) {
+  const url = imgUrl(code), im = new Image();
+  im.onload = () => {
+    const n = Math.max(1, Math.round(im.width / im.height)), k = size / im.height;
+    div.style.backgroundImage = `url("${url}")`;
+    div.style.backgroundSize = `${im.width * k}px ${size}px`;
+    if (n > 1) {
+      const name = 'a' + md5(code).slice(0, 10) + '_' + size;
+      if (!done.has(name)) { sheet.sheet.insertRule(`@keyframes ${name}{to{background-position:-${im.width * k}px 0}}`, sheet.sheet.cssRules.length); done.add(name); }
+      div.style.animation = `${name} ${(n / 12).toFixed(2)}s steps(${n}) infinite`;
+    }
+  };
+  im.onerror = () => { div.style.opacity = '.25'; };
+  im.src = url;
+}
+
+async function load() {
+  try {
+    const j = await fetch(`${API}/smilies/list?sort=newest&limit=7000`).then(r => r.json());
+    S.all = (j.smilies || []).filter(s => s.code);
+    S.all.forEach(s => S.byCode.set(s.code.toLowerCase(), s));
+    const letters = [...new Set(S.all.map(s => (s.letter || '').toUpperCase()).filter(c => /^[A-Z]$/.test(c)))].sort();
+    $('letters').innerHTML = `<button data-l="" aria-pressed="true">${L('Todas', 'All')}</button>` + letters.map(c => `<button data-l="${c}" aria-pressed="false">${c}</button>`).join('');
+    filter();
+  } catch (e) {
+    $('grid').innerHTML = `<p class="empty">${L('No se pudieron cargar los smileys ahora. Recarga la página en un momento.', 'Smileys could not load right now. Reload the page in a moment.')}</p>`;
+  }
+}
+function filter() {
+  const q = $('q').value.trim().toLowerCase().replace(/[()]/g, ''), s = $('sort').value;
+  let a = S.all.filter(x => (!S.letter || (x.letter || '').toUpperCase() === S.letter) && (!q || x.code.toLowerCase().includes(q) || (x.author || '').toLowerCase().includes(q)));
+  if (s === 'old') a = a.slice().sort((x, y) => x.time - y.time);
+  if (s === 'mix') a = a.map(v => [Math.random(), v]).sort((x, y) => x[0] - y[0]).map(v => v[1]);
+  S.list = a; S.page = 0; draw();
+}
+function draw() {
+  const a = S.list, pages = Math.max(1, Math.ceil(a.length / PER));
+  $('count').textContent = `${a.length.toLocaleString()} ${L('combinaciones', 'combinations')}`;
+  $('grid').innerHTML = a.slice(S.page * PER, S.page * PER + PER).map((x, i) => `<button class="card" data-i="${S.page * PER + i}"><div class="sm"></div><code>(${esc(x.code)})</code><em>${esc(x.author || '')}</em></button>`).join('')
+    || `<p class="empty">${L('No hay smileys con esa búsqueda.', 'No smileys match that search.')}</p>`;
+  $('grid').querySelectorAll('.card').forEach(c => animate(c.querySelector('.sm'), a[+c.dataset.i].code, 88));
+  $('pg').textContent = `${S.page + 1} / ${pages}`;
+  $('prev').disabled = S.page === 0; $('next').disabled = S.page >= pages - 1;
+}
+async function pick(code, author) {
+  $('code').textContent = `(${code})`;
+  const big = $('big'); big.innerHTML = '<div class="sm"></div>';
+  const known = S.byCode.get(code.toLowerCase());
+  if (known) animate(big.firstChild, known.code, 150);
+  else big.innerHTML = `<span class="hint" style="text-align:center;padding:10px">${L('Esta combinación no está en la galería, así que no hay vista previa. El código igual funciona en xat si tienes los powers.', 'This combination is not in the gallery, so there is no preview. The code still works on xat if you have the powers.')}</span>`;
+  $('author').textContent = author ? L('Hecho por ', 'Made by ') + author : '';
+  $('pw').innerHTML = `<span class="hint">${L('Revisando…', 'Checking…')}</span>`; $('price').textContent = '';
+  try {
+    const j = await fetch(`${API}/powers/findpowers?code=${encodeURIComponent(code)}`).then(r => r.json());
+    const p = j.powers || [];
+    $('pw').innerHTML = p.length ? p.map(x => `<span>${esc(x)}</span>`).join('') : `<span>${L('Ninguno: es gratis', 'None: it is free')}</span>`;
+    if (j.price && j.price.xats && j.price.xats.max) $('price').textContent = L('Costo aproximado de esos powers: ', 'Approximate cost of those powers: ') + `${j.price.xats.min.toLocaleString()}–${j.price.xats.max.toLocaleString()} xats (${j.price.days.min}–${j.price.days.max} ${L('días', 'days')})`;
+  } catch (e) { $('pw').innerHTML = `<span class="hint">${L('No se pudo revisar ahora.', 'Could not check right now.')}</span>`; }
+}
+
+// ---------- eventos ----------
+let qt; $('q').addEventListener('input', () => { clearTimeout(qt); qt = setTimeout(filter, 220); });
+$('sort').onchange = filter;
+$('letters').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.letter = b.dataset.l; document.querySelectorAll('#letters button').forEach(x => x.setAttribute('aria-pressed', x === b)); filter(); };
+$('prev').onclick = () => { S.page--; draw(); scrollTo({ top: 0, behavior: 'smooth' }); };
+$('next').onclick = () => { S.page++; draw(); scrollTo({ top: 0, behavior: 'smooth' }); };
+$('grid').onclick = e => {
+  const c = e.target.closest('.card'); if (!c) return;
+  document.querySelectorAll('.card').forEach(x => x.setAttribute('aria-pressed', x === c));
+  const x = S.list[+c.dataset.i]; copy(`(${x.code})`); pick(x.code, x.author);
+};
+$('rand').onclick = async () => {
+  try { const j = await fetch(`${API}/smilies/random`).then(r => r.json()); const code = j.code_str || ''; if (code) { pick(code.toLowerCase() === code ? code : (S.byCode.get(code.toLowerCase())?.code || code), j.author); copy(`(${code})`); } }
+  catch (e) { toast(L('No se pudo traer uno ahora.', 'Could not get one right now.')); }
+};
+$('check').onclick = () => { const c = $('own').value.trim().replace(/^\(|\)$/g, ''); if (c) pick(c, ''); };
+$('own').addEventListener('keydown', e => { if (e.key === 'Enter') $('check').click(); });
+load();
+</script>
+</body>
+</html>

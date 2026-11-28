@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Letras para nick · xHaz Tools</title>
+<link rel="stylesheet" href="../assets/base.css">
+<style>
+.search{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.search input{flex:1;min-width:240px;font-size:18px;padding:12px 14px}
+.deco{margin-bottom:20px}
+.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr));gap:8px}
+.item{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-md);padding:10px 12px;cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%}
+.item:hover{border-color:#4a5199}
+.item .nm{flex:none;width:118px;font-size:12px;color:var(--mute)}
+.item .out{flex:1;font-size:20px;line-height:1.3;overflow-wrap:anywhere;font-family:system-ui,'Segoe UI Symbol','Noto Sans Symbols 2','Noto Sans Math',sans-serif}
+.item .cp{flex:none;font-size:12px;color:var(--mute)}
+.item:focus-visible .cp,.item:hover .cp{color:var(--peach)}
+.tip{margin-top:22px}
+.comp{margin-bottom:16px}
+.item .add{flex:none;width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--ink);color:var(--text);font-size:16px;cursor:pointer}
+.item .add:hover{border-color:var(--peach)}
+.sec2{font-size:20px;margin:26px 0 10px}
+.syms{display:flex;flex-wrap:wrap;gap:6px}
+.syms button{font:inherit;font-size:20px;min-width:44px;height:44px;padding:0 10px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--text);cursor:pointer;font-family:system-ui,'Segoe UI Symbol','Noto Sans Symbols 2',sans-serif}
+.syms button:hover{border-color:var(--peach)}
+.kao button{font-size:15px}
+@media (max-width:560px){.item .nm{width:84px}}
+</style>
+</head>
+<body>
+<header class="top"></header>
+<main>
+  <div class="head">
+    <h1 data-en="Letters for your nick">Letras para nick</h1>
+    <p data-en="Write once and you get it in every style. Click one to copy it and paste it in your xat name.">Escribe una vez y sale en todos los estilos. Haz clic en uno para copiarlo y pégalo en tu nombre de xat.</p>
+  </div>
+  <div class="search">
+    <input type="text" id="txt" value="xHaz" maxlength="40" aria-label="Tu texto" data-en-ph="Type your nick" placeholder="Escribe tu nick">
+  </div>
+  <div class="note comp">
+    <span class="gt" data-en="Build your nick: tap + on any style or symbol to add it here">Arma tu nick: toca + en cualquier estilo o símbolo para sumarlo aquí</span>
+    <div class="codebox" style="margin-top:8px"><input type="text" id="comp" aria-label="Tu nick armado" placeholder="꧁ 𝐱𝐇𝐚𝐳 ꧂" style="flex:1;font-size:18px"><button class="btn" id="compcopy" data-en="Copy">Copiar</button><button class="btn ghost" id="mix" data-en="Mix styles">Mezclar estilos</button><button class="btn ghost" id="compclr" aria-label="Borrar">×</button></div>
+    <p class="hint" style="margin-top:6px"><span id="clen">0</span> <span data-en="characters">caracteres</span></p>
+  </div>
+  <div class="deco group">
+    <span class="gt" data-en="Frame it (optional)">Enmárcalo (opcional)</span>
+    <div class="chips" id="decos"></div>
+  </div>
+  <div class="list" id="list" role="list"></div>
+  <h2 class="sec2" data-en="Symbols">Símbolos</h2>
+  <div class="syms" id="syms"></div>
+  <h2 class="sec2">Kaomojis</h2>
+  <div class="syms kao" id="kao"></div>
+  <div class="note tip">
+    <b data-en="Good to know">Bueno saber</b>
+    <ol>
+      <li data-en="Some phones or computers don't have every symbol: if you see empty boxes, pick another style.">Algunos celulares o computadoras no tienen todos los símbolos: si ves cuadritos vacíos, elige otro estilo.</li>
+      <li data-en="These letters count as normal text, so you can add your name code after them, for example 𝐱𝐇𝐚𝐳(glow#0#grad#FFBAED#E854AF).">Estas letras cuentan como texto normal, así que puedes poner tu código de nombre después, por ejemplo 𝐱𝐇𝐚𝐳(glow#0#grad#FFBAED#E854AF).</li>
+      <li><a id="toname" href="../nombre/" data-en="Take it to the name studio">Llevarlo al estudio de nombre</a></li>
+    </ol>
+  </div>
+</main>
+<footer class="foot"></footer>
+
+<script type="module">
+import { shell, L, copy, toast } from '../assets/core.js';
+shell('letras');
+const $ = id => document.getElementById(id);
+const cp = n => String.fromCodePoint(n);
+
+// Bloque "Mathematical Alphanumeric Symbols": inicio de A, a y 0, más los huecos que Unicode cubre con otros caracteres
+function math(A, a, d, ex = {}) {
+  return ch => {
+    if (ex[ch]) return ex[ch];
+    const c = ch.codePointAt(0);
+    if (c >= 65 && c <= 90 && A) return cp(A + c - 65);
+    if (c >= 97 && c <= 122 && a) return cp(a + c - 97);
+    if (c >= 48 && c <= 57 && d) return cp(d + c - 48);
+    return ch;
+  };
+}
+function table(from, to) {
+  const f = [...from], t = [...to];
+  const m = Object.fromEntries(f.map((c, i) => [c, t[i]]));
+  return ch => m[ch] ?? m[ch.toLowerCase()] ?? ch;
+}
+const comb = mark => ch => (ch === ' ' ? ch : ch + mark);
+const AZ = 'abcdefghijklmnopqrstuvwxyz';
+
+const STYLES = [
+  ['Negrita', 'Bold', math(0x1D400, 0x1D41A, 0x1D7CE)],
+  ['Cursiva', 'Italic', math(0x1D434, 0x1D44E, 0, { h: 'ℎ' })],
+  ['Negrita cursiva', 'Bold italic', math(0x1D468, 0x1D482, 0)],
+  ['Sans negrita', 'Sans bold', math(0x1D5D4, 0x1D5EE, 0x1D7EC)],
+  ['Sans cursiva', 'Sans italic', math(0x1D608, 0x1D622, 0)],
+  ['Sans', 'Sans', math(0x1D5A0, 0x1D5BA, 0x1D7E2)],
+  ['Manuscrita', 'Script', math(0x1D49C, 0x1D4B6, 0, { B: 'ℬ', E: 'ℰ', F: 'ℱ', H: 'ℋ', I: 'ℐ', L: 'ℒ', M: 'ℳ', R: 'ℛ', e: 'ℯ', g: 'ℊ', o: 'ℴ' })],
+  ['Manuscrita negrita', 'Bold script', math(0x1D4D0, 0x1D4EA, 0)],
+  ['Gótica', 'Gothic', math(0x1D504, 0x1D51E, 0, { C: 'ℭ', H: 'ℌ', I: 'ℑ', R: 'ℜ', Z: 'ℨ' })],
+  ['Gótica negrita', 'Bold gothic', math(0x1D56C, 0x1D586, 0)],
+  ['Doble trazo', 'Double struck', math(0x1D538, 0x1D552, 0x1D7D8, { C: 'ℂ', H: 'ℍ', N: 'ℕ', P: 'ℙ', Q: 'ℚ', R: 'ℝ', Z: 'ℤ' })],
+  ['Monoespaciada', 'Monospace', math(0x1D670, 0x1D68A, 0x1D7F6)],
+  ['Ancho completo', 'Full width', math(0xFF21, 0xFF41, 0xFF10, { ' ': '　' })],
+  ['Versalitas', 'Small caps', table(AZ, 'ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀsᴛᴜᴠᴡxʏᴢ')],
+  ['Círculos', 'Circles', math(0x24B6, 0x24D0, 0, { 0: '⓪', 1: '①', 2: '②', 3: '③', 4: '④', 5: '⑤', 6: '⑥', 7: '⑦', 8: '⑧', 9: '⑨' })],
+  ['Círculos negros', 'Black circles', ch => /[a-z]/i.test(ch) ? cp(0x1F150 + ch.toUpperCase().charCodeAt(0) - 65) : ch],
+  ['Cuadros', 'Squares', ch => /[a-z]/i.test(ch) ? cp(0x1F130 + ch.toUpperCase().charCodeAt(0) - 65) : ch],
+  ['Cuadros negros', 'Black squares', ch => /[a-z]/i.test(ch) ? cp(0x1F170 + ch.toUpperCase().charCodeAt(0) - 65) : ch],
+  ['Pequeña arriba', 'Superscript', table(AZ + '0123456789', 'ᵃᵇᶜᵈᵉᶠᵍʰⁱʲᵏˡᵐⁿᵒᵖqʳˢᵗᵘᵛʷˣʸᶻ⁰¹²³⁴⁵⁶⁷⁸⁹')],
+  ['Estilo griego', 'Greek look', table(AZ, 'αв¢∂єƒgнιנкℓмησρqяѕтυνωχуz')],
+  ['Estilo ruso', 'Russian look', table(AZ, 'аъсↁэfБЂіјкlмиорqѓѕтцvшхЎz')],
+  ['Estilo japonés', 'Japanese look', table(AZ, '卂乃匚刀乇下厶卄工丁长乚从𠘨口尸㔿尺丂丅凵リ山乂丫乙')],
+  ['Burbujas con puntos', 'Dotted bubbles', ch => /[a-z]/i.test(ch) ? ch + '\u0325\u0366' : ch],
+  ['Tachada', 'Strikethrough', comb('̶')],
+  ['Subrayada', 'Underlined', comb('̲')],
+  ['Con puntos', 'Dotted', comb('̈')],
+  ['Espaciada', 'Spaced', ch => ch + ' '],
+  ['Al revés', 'Upside down', null],
+];
+const FLIP = table(AZ + '0123456789.,!?', 'ɐqɔpǝɟƃɥᴉɾʞlɯuodbɹsʇnʌʍxʎz0ƖᄅƐㄣϛ9ㄥ86˙\'¡¿');
+
+const DECOS = [
+  ['', L('Ninguno', 'None')], ['꧁ | ꧂'], ['★彡 | 彡★'], ['『 | 』'], ['【 | 】'], ['✦ | ✦'], ['·˚ ༘ | ˚ ༘·'],
+  ['ılılı | ılılı'], ['▸ | ◂'], ['⋆｡° | °｡⋆'], ['✧･ﾟ | ﾟ･✧'], ['━ | ━'], ['〘 | 〙'],
+  ['˜”*°•.˜”*°• | •°*”˜.•°*”˜'], ['.•°¤*(¯`★´¯)*¤° | °¤*(¯´★`¯)*¤°•.'], ['꒰ | ꒱'], ['୨ | ୧'], ['»»—— | ——««'], ['♡ | ♡'],
+];
+let deco = '';
+$('decos').innerHTML = DECOS.map(([d, n], i) => `<button class="chip" data-d="${i}" aria-pressed="${i === 0}">${n || d.replace('|', '…')}</button>`).join('');
+$('decos').addEventListener('click', e => {
+  const b = e.target.closest('.chip'); if (!b) return;
+  deco = DECOS[+b.dataset.d][0];
+  document.querySelectorAll('#decos .chip').forEach(x => x.setAttribute('aria-pressed', x === b));
+  draw();
+});
+
+function convert(text, fn) {
+  if (!fn) return [...text].reverse().map(FLIP).join('');
+  return [...text].map(fn).join('').trimEnd();
+}
+function wrap(s) { if (!deco) return s; const [a, b] = deco.split('|'); return a + s + b; }
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+
+function draw() {
+  const t = $('txt').value || 'xHaz';
+  $('list').innerHTML = STYLES.map(([es, en, fn], i) => {
+    const out = wrap(convert(t, fn));
+    return `<div class="item" role="listitem" data-i="${i}" tabindex="0"><span class="nm">${L(es, en)}</span><span class="out">${esc(out)}</span><span class="cp">${L('copiar', 'copy')}</span><button class="add" aria-label="${L('Sumar al nick', 'Add to nick')}">+</button></div>`;
+  }).join('');
+  $('toname').href = '../nombre/?nm=' + encodeURIComponent(t) + (new URLSearchParams(location.search).get('lang') ? '&lang=' + new URLSearchParams(location.search).get('lang') : '');
+}
+const comp = $('comp');
+function addComp(t) { comp.value += t; clen(); }
+function clen() { $('clen').textContent = [...comp.value].length; $('toname').href = '../nombre/?nm=' + encodeURIComponent(comp.value || $('txt').value); }
+$('list').addEventListener('click', e => {
+  const b = e.target.closest('.item'); if (!b) return;
+  const out = b.querySelector('.out').textContent;
+  if (e.target.closest('.add')) { addComp(out); return; }
+  copy(out);
+  $('toname').href = '../nombre/?nm=' + encodeURIComponent(out);
+});
+$('list').addEventListener('keydown', e => { const b = e.target.closest('.item'); if (b && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); copy(b.querySelector('.out').textContent); } });
+const SYMS = '♡ ♥ ❤ ❣ ❥ ღ ☆ ★ ✦ ✧ ✩ ✪ ✫ ✬ ✭ ✮ ✯ ⋆ ✰ ✿ ❀ ❁ ✾ ❃ ✻ ♪ ♫ ♬ ♩ ➳ ➵ ➸ ➹ ツ ϟ ☾ ☽ ☁ ☂ ☯ ♛ ♚ ♕ ✞ ⚡ ༄ ꨄ ꕤ ⊹ ˚ ₊ ‧ ୨୧ ꒰ ꒱ ❝ ❞ ☼ ∞ ⁂ ♱ ✝ ♔ ♤ ♧ ♢ ♠ ♣ ♦ ☠ ☮ ✌ ☺ ☹ ✉ ✎ ✂ ⌘ ⚘ ⚜ ⚝ ✺ ✹ ✸ ✷ ✶ ✵ ✴ ❂ ⦁ ◦ • ‣ ⁎ ⁑ ⁕'.split(' ');
+const KAO = ['(◕‿◕)', 'ʕ•ᴥ•ʔ', '(｡♥‿♥｡)', '¯\\_(ツ)_/¯', '(ノ◕ヮ◕)ノ*:･ﾟ✧', '(っ◔◡◔)っ ♥', '(✿◠‿◠)', '(⁄ ⁄•⁄ω⁄•⁄ ⁄)', '( ˘ ³˘)♥', '(•‿•)', '(ᵔᴥᵔ)', '(◍•ᴗ•◍)', '(*≧ω≦)', '(¬‿¬)', '(╥﹏╥)', '(ง •̀_•́)ง', '٩(◕‿◕)۶', '(∩^o^)⊃━☆', 'ʕっ•ᴥ•ʔっ', '(=^･ω･^=)', '( •_•)>⌐■-■', '(⌐■_■)', '☆*:.｡.o(≧▽≦)o.｡.:*☆', '(´｡• ᵕ •｡`)'];
+$('syms').innerHTML = SYMS.map(c => `<button data-s="${esc(c)}">${esc(c)}</button>`).join('');
+$('kao').innerHTML = KAO.map(c => `<button data-s="${esc(c)}">${esc(c)}</button>`).join('');
+document.addEventListener('click', e => { const b = e.target.closest('[data-s]'); if (b) { addComp(b.dataset.s); toast(L('Sumado a tu nick', 'Added to your nick')); } });
+$('compcopy').onclick = () => comp.value && copy(comp.value);
+$('compclr').onclick = () => { comp.value = ''; clen(); };
+comp.addEventListener('input', clen);
+// mezcla: cada letra en un estilo distinto (solo estilos que cambian letra por letra)
+$('mix').onclick = () => {
+  const t = $('txt').value || 'xHaz', pool = STYLES.filter(s => s[2] && s[0] !== 'Espaciada' && s[0] !== 'Al revés').map(s => s[2]);
+  comp.value = wrap([...t].map(ch => pool[Math.floor(Math.random() * pool.length)](ch)).join('')); clen();
+};
+$('txt').addEventListener('input', draw);
+draw();
+</script>
+</body>
+</html>
