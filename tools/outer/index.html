@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Outer con nieve · xHaz Tools</title>
+<link rel="stylesheet" href="../assets/base.css">
+<style>
+main{max-width:1100px}.snow-editor{display:grid;grid-template-columns:minmax(260px,1fr) minmax(0,1.6fr);gap:16px;margin-top:20px;align-items:start}.snow-editor form{display:grid;gap:13px}.snow-editor iframe{display:block;width:100%;aspect-ratio:16/10;border:1px solid var(--line);border-radius:12px;background:#101a32}.snow-result{display:grid;gap:10px;margin-top:18px}.rowlinks{display:flex;flex-wrap:wrap;gap:8px}.rowlinks a{text-decoration:none}@media(max-width:760px){.snow-editor{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="top"></header>
+<main>
+<div class="head">
+<h1 data-en="Outer background with snow">Outer con nieve</h1>
+<p data-en="Use your own outer image and add falling snow. Visitors can switch it off.">Usa tu propia imagen exterior y añade nieve. Quien visite la sala puede apagarla.</p>
+</div>
+<div class="snow-editor">
+<form class="note" id="settings">
+<label class="f"><span data-en="Direct image link (HTTPS)">Enlace directo de la imagen (HTTPS)</span><input type="url" id="image" placeholder="https://…" spellcheck="false" maxlength="1600"></label>
+<label class="f"><span data-en="Image fit">Ajuste de la imagen</span><select id="fit"><option value="cover" data-en="Fill the screen">Llenar pantalla</option><option value="contain" data-en="Show the whole image">Ver imagen completa</option></select></label>
+<label class="f"><span data-en="Snow density">Cantidad de nieve</span><select id="density"><option value="low" data-en="Light">Ligera</option><option value="normal" selected data-en="Medium">Media</option><option value="high" data-en="Heavy">Abundante</option></select></label>
+<label class="chip"><input type="checkbox" id="snow" checked> <span data-en="Start with snow on">Empezar con nieve activa</span></label>
+<button class="btn" type="submit" data-en="Update preview">Actualizar vista previa</button>
+</form>
+<iframe id="preview" title="Vista previa del fondo exterior" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe>
+</div>
+<section class="note snow-result" aria-label="Enlace del xatframe">
+<label class="f"><span data-en="xatframe link">Enlace del xatframe</span><input id="result" readonly spellcheck="false"></label>
+<div class="rowlinks"><button class="btn" type="button" id="copy" data-en="Copy link">Copiar enlace</button><a class="btn ghost" id="open" target="_blank" rel="noopener" data-en="Open preview">Abrir vista previa</a></div>
+<p id="status" role="status"></p>
+<p data-en="In your group settings, go to Group → xatframe, paste the link and preview it before saving. If xat rejects it, check its xatframe rules.">En los ajustes de tu sala, entra en Grupo → xatframe, pega el enlace y pruébalo en la vista previa antes de guardar. Si xat lo rechaza, consulta las reglas de xatframe.</p>
+<p><a href="https://xat.com/chats" data-en="Open xat group settings">Abrir ajustes de grupo en xat</a> · <a href="https://wiki.xat.com/Xatframe#rules" data-en="xatframe rules">Reglas de xatframe</a></p>
+</section>
+</main>
+<footer class="foot"></footer>
+<script type="module">
+import { shell, L, EN } from '../assets/core.js';
+shell('outer');
+const byId = id => document.getElementById(id);
+const status = byId('status');
+const frame = new URL('./ver/', location.href);
+function update() {
+  const value = byId('image').value.trim();
+  const url = new URL(frame);
+  try {
+    if (value) {
+      const image = new URL(value);
+      if (image.protocol !== 'https:' || image.username || image.password) throw Error();
+      url.searchParams.set('bg', image.href);
+    }
+  } catch {
+    status.textContent = L('Usa un enlace directo que empiece con https://.', 'Use a direct image link starting with https://.');
+    return;
+  }
+  if (byId('fit').value === 'contain') url.searchParams.set('fit','contain');
+  if (byId('density').value !== 'normal') url.searchParams.set('density',byId('density').value);
+  if (!byId('snow').checked) url.searchParams.set('snow','0');
+  if (EN) url.searchParams.set('lang','en');
+  byId('preview').src = url.href;
+  byId('result').value = url.href;
+  byId('open').href = url.href;
+  status.textContent = '';
+}
+byId('settings').addEventListener('submit', event => { event.preventDefault(); update(); });
+for (const id of ['fit','density','snow']) byId(id).addEventListener('change', update);
+byId('copy').addEventListener('click', async () => {
+  if (!byId('result').value) return;
+  try { await navigator.clipboard.writeText(byId('result').value); status.textContent = L('Enlace copiado.', 'Link copied.'); }
+  catch { byId('result').focus(); byId('result').select(); status.textContent = L('Enlace seleccionado. Puedes copiarlo.', 'Link selected. You can copy it.'); }
+});
+update();
+</script>
+</body>
+</html>
