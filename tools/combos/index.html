@@ -63,7 +63,7 @@
       <div class="box">
         <span class="gt" data-en="Check any code">Revisar cualquier código</span>
         <div class="codebox"><input type="text" id="own" placeholder="cool#hug#shine" spellcheck="false" style="flex:1"><button class="btn ghost" id="check" data-en="Check">Revisar</button></div>
-        <p class="hint" data-en="It tells you which powers your code needs and what they cost. If it is in the gallery, you also see it moving.">Te dice qué powers necesita tu código y cuánto cuestan. Si está en la galería, también lo ves en movimiento.</p>
+        <p class="hint" data-en="Write your own combination: you see how it looks, which powers it needs and what they cost.">Escribe tu propia combinación: ves cómo queda, qué powers necesita y cuánto cuestan.</p>
       </div>
     </aside>
   </div>
@@ -134,7 +134,14 @@ async function pick(code, author) {
   const big = $('big'); big.innerHTML = '<div class="sm"></div>';
   const known = S.byCode.get(code.toLowerCase());
   if (known) animate(big.firstChild, known.code, 150);
-  else big.innerHTML = `<span class="hint" style="text-align:center;padding:10px">${L('Esta combinación no está en la galería, así que no hay vista previa. El código igual funciona en xat si tienes los powers.', 'This combination is not in the gallery, so there is no preview. The code still works on xat if you have the powers.')}</span>`;
+  else {
+    // fuera de la galería: el render oficial de xat dibuja la combinación (imagen fija)
+    const im = new Image(); im.referrerPolicy = 'no-referrer'; im.alt = ''; im.style.maxWidth = '150px'; im.style.maxHeight = '150px';
+    im.onload = () => { big.innerHTML = ''; big.appendChild(im); };
+    im.onerror = () => { big.innerHTML = `<span class="hint" style="text-align:center;padding:10px">${L('xat no pudo dibujar esta combinación aquí. El código igual funciona en el chat si tienes los powers.', 'xat could not draw this combination here. The code still works in chat if you have the powers.')}</span>`; };
+    big.innerHTML = `<span class="hint">${L('Dibujando…', 'Drawing…')}</span>`;
+    im.src = `https://gs.xat.com/a_(${encodeURIComponent(code.replace(/#/g, '*'))})_80`;
+  }
   $('author').textContent = author ? L('Hecho por ', 'Made by ') + author : '';
   $('pw').innerHTML = `<span class="hint">${L('Revisando…', 'Checking…')}</span>`; $('price').textContent = '';
   try {

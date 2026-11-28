@@ -59,10 +59,10 @@
     <aside class="try">
       <div class="box">
         <span class="gt" data-en="Try it">Pruébalo</span>
-        <div class="bigpawn"><img id="bigimg" alt="" src="" hidden></div>
+        <div class="bigpawn"><img id="bigimg" alt="" src="" hidden referrerpolicy="no-referrer"></div>
         <label class="f"><span data-en="Your name">Tu nombre</span><input type="text" id="nm" value="xHaz" maxlength="30"></label>
         <div class="vis" id="vis">
-          <div class="vrow"><img id="rowimg" alt="" hidden><span class="pawn" id="rowdef"></span><span id="rowname">xHaz</span></div>
+          <div class="vrow"><img id="rowimg" alt="" hidden referrerpolicy="no-referrer"><span class="pawn" id="rowdef"></span><span id="rowname">xHaz</span></div>
           <div class="vrow dim"><span class="pawn"></span><span data-en="Visitor">Visitante</span></div>
         </div>
         <label class="chip" style="display:flex;gap:6px;align-items:center;width:max-content"><input type="checkbox" id="dark"> <span data-en="Night mode">Modo noche</span></label>
@@ -82,9 +82,15 @@ import { shell, L, copy } from '../assets/core.js';
 shell('pawns');
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
-const STRIP = c => `https://s0.xat.com/web_gear/chat/GetStrip8.php?c=a_(${encodeURIComponent(c)})_80`;
+// Render oficial de xat (gs.xat.com) pedido sin referrer; si falla, la tira clásica GetStrip
+const STRIP = c => `https://gs.xat.com/a_(${encodeURIComponent(c)})_80`;
+const OLD = c => `https://s0.xat.com/web_gear/chat/GetStrip8.php?c=a_(${encodeURIComponent(c)})_80`;
 const PICON = n => `https://xat.com/images/smw/${encodeURIComponent(n)}.png`;
-document.addEventListener('error', e => { const t = e.target; if (t.tagName === 'IMG' && t.dataset.fb === 'hide') t.style.visibility = 'hidden'; }, true);
+document.addEventListener('error', e => {
+  const t = e.target; if (t.tagName !== 'IMG') return;
+  if (t.dataset.c && !t.dataset.tried) { t.dataset.tried = '1'; t.src = OLD(t.dataset.c); return; }
+  if (t.dataset.fb === 'hide' || t.dataset.c) t.style.visibility = 'hidden';
+}, true);
 
 const DEFAULT_HATS = ['a', 'b', 'e', 'f', 'g', 'p', 'r', 't', 'u', 'w', 'x'];
 const S = { tab: 'pawns', pawns: null, topsh: null, pnames: null, shown: 120, sel: null };
@@ -116,21 +122,21 @@ async function draw() {
       const by = new Map();
       list.forEach(p => { if (!by.has(p.power)) by.set(p.power, { id: p.id, items: [] }); by.get(p.power).items.push(p); });
       out.innerHTML = [...by].sort((a, b) => b[1].id - a[1].id).map(([pw, g]) => `<div class="grp"><h3><img src="${PICON(pw)}" alt="" data-fb="hide">${esc(pw)} <span class="hint">· ${g.items.length}</span></h3><div class="grid">${
-        g.items.sort((a, b) => a.img.localeCompare(b.img, undefined, { numeric: true })).map(p => `<button class="cell" data-pawn="${esc(p.img)}" data-hat="${esc(p.hat)}" data-pw="${esc(pw)}"><img src="${STRIP(p.img)}" alt="" loading="lazy" data-fb="hide"><code>${esc(p.hat)}</code></button>`).join('')}</div></div>`).join('')
+        g.items.sort((a, b) => a.img.localeCompare(b.img, undefined, { numeric: true })).map(p => `<button class="cell" data-pawn="${esc(p.img)}" data-hat="${esc(p.hat)}" data-pw="${esc(pw)}"><img src="${STRIP(p.img)}" data-c="${esc(p.img)}" referrerpolicy="no-referrer" alt="" loading="lazy"><code>${esc(p.hat)}</code></button>`).join('')}</div></div>`).join('')
         || `<p class="empty">${L('Ningún pawn activo con esa búsqueda.', 'No active pawn matches that search.')}</p>`;
     } else if (S.tab === 'hats') {
       out.innerHTML = `<div class="box" style="margin-bottom:14px"><span class="gt">${L('Color del hat (opcional)', 'Hat color (optional)')}</span>
         <div class="row" style="justify-content:flex-start"><input type="color" id="hc" value="#ff0000" style="flex:none"><label class="chip" style="display:flex;gap:6px;align-items:center;flex:none"><input type="checkbox" id="hcon"> ${L('Usar color', 'Use color')}</label></div>
         <p class="hint">${L('Party, Santa, Single y Uncle Sam no se pueden colorear. Los códigos distinguen mayúsculas.', 'Party, Santa, Single and Uncle Sam cannot be colored. Codes are case sensitive.')}</p></div>
-        <div class="hatlist">${DEFAULT_HATS.map(h => `<button class="cell" data-hat="(hat#${h})" data-def="1"><code style="font-size:15px">(hat#${h})</code><em>${h === 'g' ? L('requiere 1 regalo', 'needs 1 gift') : h === 'e' ? L('huevo', 'egg') : h === 'r' ? L('orejas de conejo', 'bunny ears') : h === 't' ? L('gorra', 'cap') : '&nbsp;'}</em></button>`).join('')}</div>
-        <p class="hint" style="margin-top:12px">${L('Estos solo necesitan el power Hat. xat no publica una imagen de cada hat, por eso aquí se muestran como código.', 'These only need the Hat power. xat does not publish an image of each hat, so they are shown as code here.')}</p>`;
+        <div class="hatlist">${DEFAULT_HATS.map(h => `<button class="cell" data-hat="(hat#${h})" data-def="1" data-pawn="p1pwn*00c000*hat1*w0i0i${h}"><img src="${STRIP('p1pwn*00c000*hat1*w0i0i' + h)}" data-c="p1pwn*00c000*hat1*w0i0i${h}" referrerpolicy="no-referrer" alt="" loading="lazy"><code style="font-size:15px">(hat#${h})</code><em>${h === 'g' ? L('requiere 1 regalo', 'needs 1 gift') : h === 'e' ? L('huevo', 'egg') : h === 'r' ? L('orejas de conejo', 'bunny ears') : h === 't' ? L('gorra', 'cap') : '&nbsp;'}</em></button>`).join('')}</div>
+        <p class="hint" style="margin-top:12px">${L('Estos solo necesitan el power Hat. La vista previa muestra el hat sin color.', 'These only need the Hat power. The preview shows the hat without color.')}</p>`;
       $('hc').oninput = $('hcon').onchange = () => S.sel && S.sel.def && pick(S.sel);
     } else {
       out.innerHTML = `<p class="empty">${L('Cargando smileys…', 'Loading smileys…')}</p>`;
       await smileys();
       const all = Object.entries(S.topsh).filter(([s, id]) => !q || s.includes(q) || (S.pnames[id] || '').includes(q));
       out.innerHTML = `<p class="hint" style="margin-bottom:10px">${all.length.toLocaleString()} smileys${q ? '' : ' · ' + L('busca por nombre o por power', 'search by name or power')}</p><div class="grid">${
-        all.slice(0, S.shown).map(([s, id]) => `<button class="cell" data-sm="(${esc(s)})"><img src="${STRIP(s)}" alt="" loading="lazy" data-fb="hide"><code>(${esc(s)})</code><em>${esc(S.pnames[id] || L('gratis', 'free'))}</em></button>`).join('')}</div>`;
+        all.slice(0, S.shown).map(([s, id]) => `<button class="cell" data-sm="(${esc(s)})"><img src="${STRIP(s)}" data-c="${esc(s)}" referrerpolicy="no-referrer" alt="" loading="lazy"><code>(${esc(s)})</code><em>${esc(S.pnames[id] || L('gratis', 'free'))}</em></button>`).join('')}</div>`;
       $('more').hidden = all.length <= S.shown;
     }
   } catch (e) {
@@ -147,8 +153,8 @@ function pick(sel) {
   $('code').textContent = code;
   $('combo').hidden = !!sel.def || !/^\(hat#h/.test(sel.hat);
   if (sel.img) {
-    $('bigimg').src = STRIP(sel.img); $('bigimg').hidden = false;
-    $('rowimg').src = STRIP(sel.img); $('rowimg').hidden = false; $('rowdef').hidden = true;
+    for (const id of ['bigimg', 'rowimg']) { const im = $(id); delete im.dataset.tried; im.dataset.c = sel.img; im.style.visibility = ''; im.src = STRIP(sel.img); im.hidden = false; }
+    $('rowdef').hidden = true;
   } else { $('bigimg').hidden = true; $('rowimg').hidden = true; $('rowdef').hidden = false; }
   $('how').textContent = sel.def
     ? L('Pega el código al final de tu nombre. Solo necesitas el power Hat.', 'Paste the code at the end of your name. You only need the Hat power.')
