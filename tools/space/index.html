@@ -82,8 +82,9 @@ details.sec > .group{margin-top:10px}
             <label class="f"><span data-en="Letters">Letra</span><select id="f">
               <option value="Outfit">Outfit</option><option value="Bricolage Grotesque">Bricolage</option><option value="Space Grotesk">Space Grotesk</option>
               <option value="JetBrains Mono">JetBrains Mono</option><option value="Playfair Display">Playfair</option><option value="Bungee">Bungee</option>
-              <option value="Orbitron">Orbitron</option><option value="Michroma">Michroma</option><option value="Syncopate">Syncopate</option><option value="Audiowide">Audiowide</option>
+              <option value="Barlow Condensed">Barlow Condensed</option><option value="Orbitron">Orbitron</option><option value="Michroma">Michroma</option><option value="Syncopate">Syncopate</option><option value="Audiowide">Audiowide</option>
               <option value="Major Mono Display">Major Mono</option><option value="Rubik Glitch">Rubik Glitch</option><option value="Kaushan Script">Kaushan</option></select></label>
+            <label class="f"><span data-en="Name weight">Grosor del nombre</span><select id="fw"><option value="" data-en="By style">Según estilo</option><option value="400" data-en="Regular">Normal</option><option value="600" data-en="Semibold">Seminegrita</option><option value="700" data-en="Bold">Negrita</option><option value="900" data-en="Black">Ultranegrita</option></select></label>
             <label class="f"><span data-en="Panels">Paneles</span><select id="th"><option value="dark" data-en="Dark">Oscuros</option><option value="light" data-en="Light">Claros</option><option value="glass" data-en="Liquid glass">Vidrio líquido</option><option value="neon" data-en="Neon edge">Borde neón</option><option value="void" data-en="Minimal black">Negro minimal</option></select></label>
           </div>
         </div>
@@ -168,6 +169,7 @@ let D = {
 // looks rápidos inspirados en diseño web moderno
 const LOOKS = {
   glitch: ['Glitch', 'Glitch', { bg: { t: 'art', v: 'glitch', p: 'glitch' }, ac: '#08d9d6', f: 'Rubik Glitch', th: 'void' }],
+  umbral: ['Umbral digital', 'Digital threshold', { bg: { t: 'art', v: 'umbral', p: 'glitch' }, ac: '#08d9d6', f: 'Barlow Condensed', fw: '900', th: 'void' }],
   miami: ['Neón Miami', 'Miami neon', { bg: { t: 'art', v: 'synthwave', p: 'vice' }, ac: '#ff5ca8', f: 'Audiowide', th: 'neon' }],
   vidrio: ['Vidrio líquido', 'Liquid glass', { bg: { t: 'art', v: 'vidrio', p: 'lavanda' }, ac: '#c4b5fd', f: 'Outfit', th: 'glass' }],
   eclipse: ['Eclipse', 'Eclipse', { bg: { t: 'art', v: 'eclipse', p: 'brasa' }, ac: '#ff6a1a', f: 'Syncopate', th: 'void' }],
@@ -183,7 +185,7 @@ $('looks').innerHTML = Object.entries(LOOKS).map(([k, [es, en]]) => `<button cla
 $('looks').addEventListener('click', e => {
   const b = e.target.closest('[data-look]'); if (!b) return;
   read(); const v = LOOKS[b.dataset.look][2];
-  D = { ...D, ...v, bg: { ...D.bg, ...v.bg } };
+  D = { ...D, fw: '', ...v, bg: { ...D.bg, ...v.bg } };
   document.querySelectorAll('#looks .chip').forEach(x => x.setAttribute('aria-pressed', x === b));
   fill(); update();
 });
@@ -199,7 +201,7 @@ function rowHTML(kind, v = []) {
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 function fill() {
   ['n', 'i', 's', 'l', 'a', 'b', 'yt'].forEach(k => ($(k).value = D[k] || ''));
-  $('e').checked = !!D.e; $('ac').value = D.ac; $('f').value = D.f; $('th').value = D.th;
+  $('e').checked = !!D.e; $('ac').value = D.ac; $('f').value = D.f; $('fw').value = D.fw || ''; $('th').value = D.th;
   $('art').value = D.bg.v && STYLES[D.bg.v] ? D.bg.v : 'aurora'; $('pal').value = D.bg.p || 'noche';
   $('bgimg').value = D.bg.t === 'img' ? D.bg.v : ''; $('tint').value = D.bg.k ?? 35; $('bgc').value = D.bg.c || '#fff4ec';
   if (D.bg.t === 'pattern') $('pat').value = D.bg.v;
@@ -212,7 +214,7 @@ function showBg() { document.querySelectorAll('[data-bg]').forEach(g => (g.hidde
 
 function read() {
   ['n', 'i', 's', 'l', 'a', 'b', 'yt'].forEach(k => (D[k] = $(k).value.trim()));
-  D.e = $('e').checked; D.ac = $('ac').value; D.f = $('f').value; D.th = $('th').value;
+  D.e = $('e').checked; D.ac = $('ac').value; D.f = $('f').value; D.fw = $('fw').value; D.th = $('th').value;
   const t = D.bg.t;
   D.bg = { t, c: $('bgc').value, k: +$('tint').value };
   if (t === 'art') { D.bg.v = $('art').value; D.bg.p = $('pal').value; }

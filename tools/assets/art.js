@@ -579,6 +579,62 @@ export const STYLES = {
     }
   } },
 
+  umbral: { es: 'Umbral digital', en: 'Digital threshold', draw(ctx, w, h, p, o) {
+    fillBg(ctx, w, h, o);
+    const u = Math.min(w, h);
+    const x = w * .73, y = h * .48;
+    const halo = ctx.createRadialGradient(x, y, u * .07, x, y, u * .56);
+    halo.addColorStop(0, rgba(o.c[0], .62));
+    halo.addColorStop(.5, rgba(o.c[1], .18));
+    halo.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = halo;
+    ctx.fillRect(0, 0, w, h);
+    stars(ctx, w, h, p, o, 80, .44);
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(u, u);
+    ctx.beginPath();
+    ctx.moveTo(-.31, .53);
+    ctx.quadraticCurveTo(-.29, .32, -.13, .25);
+    ctx.quadraticCurveTo(-.20, .14, -.17, -.03);
+    ctx.quadraticCurveTo(-.14, -.27, .04, -.32);
+    ctx.quadraticCurveTo(.19, -.28, .22, -.07);
+    ctx.quadraticCurveTo(.24, .08, .13, .24);
+    ctx.quadraticCurveTo(.29, .32, .34, .53);
+    ctx.closePath();
+    const coat = ctx.createLinearGradient(-.24, -.2, .26, .3);
+    coat.addColorStop(0, o.bg);
+    coat.addColorStop(.58, '#080910');
+    coat.addColorStop(1, mixh('#080910', o.c[0], .24));
+    ctx.fillStyle = coat;
+    ctx.fill();
+    ctx.strokeStyle = rgba(o.c[0], .68);
+    ctx.lineWidth = .004;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(-.085, .035);
+    ctx.lineTo(.093, -.005);
+    ctx.lineTo(.081, .021);
+    ctx.lineTo(-.07, .063);
+    ctx.closePath();
+    ctx.fillStyle = rgba(o.c[0], .72 + .22 * Math.sin(TAU * p));
+    ctx.shadowColor = o.c[0];
+    ctx.shadowBlur = u * .04;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    const random = rng(o.seed + 48);
+    for (let i = 0; i < 55; i++) {
+      const sx = .04 + random() * .31, sy = -.26 + random() * .72;
+      const width = .008 + random() * .07;
+      const alpha = .12 + .36 * (.5 + .5 * Math.sin(TAU * p + i));
+      ctx.fillStyle = rgba(o.c[i % 2], alpha);
+      ctx.fillRect(sx, sy, width, .003 + random() * .006);
+    }
+    ctx.restore();
+  } },
   eclipse: { es: 'Eclipse', en: 'Eclipse', draw(ctx, w, h, p, o) {
     fillBg(ctx, w, h, o);
     stars(ctx, w, h, p, o, 50 + o.density * 120, .45);

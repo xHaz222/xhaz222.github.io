@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Fondos con título · xHaz Tools</title>
 <link rel="stylesheet" href="../assets/base.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pacifico&family=Kaushan+Script&family=Lobster&family=Yellowtail&family=Great+Vibes&family=Bebas+Neue&family=Anton&family=Bungee&family=Cinzel:wght@700&family=Monoton&family=Righteous&family=Orbitron:wght@700;900&family=Rubik+Glitch&family=Major+Mono+Display&family=Zen+Dots&family=Michroma&family=Audiowide&family=Syncopate:wght@700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Pacifico&family=Kaushan+Script&family=Lobster&family=Yellowtail&family=Great+Vibes&family=Bebas+Neue&family=Anton&family=Bungee&family=Cinzel:wght@700&family=Monoton&family=Righteous&family=Orbitron:wght@700;900&family=Rubik+Glitch&family=Major+Mono+Display&family=Zen+Dots&family=Michroma&family=Audiowide&family=Syncopate:wght@700&display=swap">
 <style>
 .sizes{display:flex;flex-wrap:wrap;gap:6px}
 .size{font:inherit;font-size:13px;text-align:left;color:#cfd3f5;background:var(--ink);border:1px solid var(--line);border-radius:var(--r-md);padding:7px 11px;cursor:pointer;line-height:1.25}
@@ -58,7 +58,7 @@
             <option value="Righteous">Righteous</option><option value="Bricolage Grotesque">Bricolage</option>
             <option value="Orbitron">Orbitron (futurista)</option><option value="Michroma">Michroma (tech)</option><option value="Syncopate">Syncopate (ancha)</option>
             <option value="Audiowide">Audiowide</option><option value="Zen Dots">Zen Dots</option><option value="Major Mono Display">Major Mono (minimal)</option>
-            <option value="Rubik Glitch">Rubik Glitch</option>
+            <option value="Rubik Glitch">Rubik Glitch</option><option value="Barlow Condensed">Barlow Condensed</option>
           </select>
         </div>
         <span class="hint" data-en="Finish">Acabado</span>
@@ -67,6 +67,7 @@
           <label class="f"><span data-en="Size">Tamaño</span><input type="range" id="tsize" min="0.08" max="0.36" step="0.005" value="0.27"></label>
           <label class="f"><span data-en="Depth">Volumen</span><input type="range" id="depth" min="0" max="1" step="0.05" value="0.5"></label>
         </div>
+        <label class="f"><span data-en="Title weight">Grosor del título</span><select id="weight"><option value="400" data-en="Regular">Normal</option><option value="600" data-en="Semibold">Seminegrita</option><option value="700" data-en="Bold">Negrita</option><option value="900" data-en="Black">Ultranegrita</option></select></label>
         <label class="f"><span data-en="Letter spacing (V O I D style)">Separación de letras (estilo V O I D)</span><input type="range" id="spacing" min="0" max="0.7" step="0.01" value="0"></label>
         <div class="row">
           <label class="f"><span data-en="Left / right">Izquierda / derecha</span><input type="range" id="tx" min="0.15" max="0.85" step="0.01" value="0.5"></label>
@@ -292,6 +293,7 @@ const SCENES = {
     palm(w * .1, h * .62, .18, 0); palm(w * .2, h * .44, -.1, 1.4); palm(w * .9, h * .58, -.2, 2.6);
   } },
   glitch: { es: 'Glitch', en: 'Glitch', draw: art('glitch', 'glitch', .45) },
+  umbral: { es: 'Umbral digital', en: 'Digital threshold', draw: art('umbral', 'glitch', .55) },
   eclipse: { es: 'Eclipse', en: 'Eclipse', draw: art('eclipse', 'brasa', .4) },
   agujero: { es: 'Agujero negro', en: 'Black hole', draw: art('agujero', 'noche', .55) },
   tinta: { es: 'Tinta y sol rojo', en: 'Ink and red sun', draw: art('tinta', 'rubi', .4) },
@@ -336,8 +338,8 @@ function title(ctx, w, h, p) {
   const fam = $('font').value, F = FIN[S.fin];
   let fs = Math.min(h, w * .6) * +$('tsize').value * (S.size.id === 'outer' ? .7 : 1);
   const sp = +$('spacing').value;
-  ctx.font = `400 ${fs}px "${fam}", "Bricolage Grotesque", system-ui, sans-serif`; ctx.letterSpacing = `${fs * sp}px`;
-  let tw = ctx.measureText(t).width; if (tw > w * .9) { fs *= w * .9 / tw; ctx.font = `400 ${fs}px "${fam}", "Bricolage Grotesque", system-ui, sans-serif`; ctx.letterSpacing = `${fs * sp}px`; tw = ctx.measureText(t).width; }
+  ctx.font = `${$('weight').value} ${fs}px "${fam}", "Bricolage Grotesque", system-ui, sans-serif`; ctx.letterSpacing = `${fs * sp}px`;
+  let tw = ctx.measureText(t).width; if (tw > w * .9) { fs *= w * .9 / tw; ctx.font = `${$('weight').value} ${fs}px "${fam}", "Bricolage Grotesque", system-ui, sans-serif`; ctx.letterSpacing = `${fs * sp}px`; tw = ctx.measureText(t).width; }
   const x = w * +$('tx').value + fs * sp / 2, y = h * +$('ty').value; // el espaciado deja un hueco al final
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
   if (S.fin === 'glitch') { glitchTitle(ctx, t, x, y, fs, tw, p, w, h); ctx.letterSpacing = '0px'; return { fs, x, y }; }
@@ -455,8 +457,8 @@ function loop(now) {
   render(ctx, S.p, cv.width, cv.height);
   requestAnimationFrame(loop);
 }
-async function fontsReady() { try { await document.fonts.load(`400 40px "${$('font').value}"`); await document.fonts.load('400 20px "Great Vibes"'); await document.fonts.load('600 20px "Outfit"'); } catch (e) {} }
-$('font').addEventListener('change', fontsReady);
+async function fontsReady() { try { await document.fonts.load(`${$('weight').value} 40px "${$('font').value}"`); await document.fonts.load('400 20px "Great Vibes"'); await document.fonts.load('600 20px "Outfit"'); } catch (e) {} }
+['font', 'weight'].forEach(id => $(id).addEventListener('change', fontsReady));
 
 // ---------- exportar ----------
 function show(blob, name, animated) {

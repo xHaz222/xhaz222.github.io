@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>xatspace</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Outfit:wght@300;400;600&family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@500&family=Playfair+Display:wght@700&family=Bungee&family=Orbitron:wght@700;900&family=Michroma&family=Syncopate:wght@700&family=Audiowide&family=Major+Mono+Display&family=Rubik+Glitch&family=Kaushan+Script&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=Outfit:wght@300;400;600&family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@500&family=Playfair+Display:wght@700&family=Bungee&family=Orbitron:wght@700;900&family=Michroma&family=Syncopate:wght@700&family=Audiowide&family=Major+Mono+Display&family=Rubik+Glitch&family=Kaushan+Script&display=swap">
 <style>
 :root{--ac:#4d7cff;--bg:#0d0f1e;--fg:#eef0ff;--mu:rgba(238,240,255,.68);--card:rgba(14,16,32,.62);--line:rgba(255,255,255,.12);--font:'Outfit'}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -21,14 +21,14 @@ body.neon .h{text-shadow:0 0 22px color-mix(in srgb,var(--ac) 70%,transparent)}
 body.neon .av,body.neon .friends img{box-shadow:0 0 18px color-mix(in srgb,var(--ac) 60%,transparent)}
 /* negro minimal: paneles casi invisibles, letras separadas */
 body.void{--card:rgba(0,0,0,.42);--line:rgba(255,255,255,.1);--mu:rgba(238,240,255,.55)}
-body.void .h{letter-spacing:.32em;font-weight:700;text-transform:uppercase}
+body.void .h{letter-spacing:.32em;font-weight:var(--name-weight,700);text-transform:uppercase}
 body.void .panel{border-radius:4px}
 body.void .links a,body.void .chip{border-radius:2px;letter-spacing:.12em;text-transform:uppercase;font-size:12px}
 a{color:inherit}
 #bgc{position:fixed;inset:0;width:100%;height:100%;z-index:-2}
 #bgi{position:fixed;inset:0;background-size:cover;background-position:center;z-index:-2}
 #tint{position:fixed;inset:0;z-index:-1;pointer-events:none}
-.h{font-family:var(--font),'Outfit',system-ui,sans-serif;font-weight:800;letter-spacing:-.02em;line-height:1.02}
+.h{font-family:var(--font),'Outfit',system-ui,sans-serif;font-weight:var(--name-weight,800);letter-spacing:-.02em;line-height:1.02}
 .av{border-radius:22%;object-fit:cover;background:var(--card);border:3px solid var(--ac)}
 .chip{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:4px 12px;border-radius:99px;background:var(--card);border:1px solid var(--line);backdrop-filter:blur(8px)}
 .links{display:flex;flex-wrap:wrap;gap:8px}
@@ -134,6 +134,8 @@ function background(D) {
   cancelAnimationFrame(artRAF);
   const bg = D.bg || {}, ac = D.ac || '#4d7cff';
   document.documentElement.style.setProperty('--ac', ac);
+  const weight = String(D.fw || '');
+  document.documentElement.style.setProperty('--name-weight', ['400', '600', '700', '900'].includes(weight) ? weight : '');
   for (const c of ['light', 'glass', 'neon', 'void']) document.body.classList.toggle(c, D.th === c);
   document.documentElement.style.setProperty('--bg', bg.c || (D.th === 'light' ? '#f3f1ee' : '#0d0f1e'));
   document.documentElement.style.setProperty('--font', `'${(D.f || 'Outfit').replace(/'/g, '')}'`);

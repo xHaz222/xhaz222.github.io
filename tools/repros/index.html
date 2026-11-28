@@ -66,8 +66,10 @@
           <option value="round" data-en="Rounded">Redondeada</option>
           <option value="serif" data-en="Classic">Clásica</option>
           <option value="mono" data-en="Mono">Monoespaciada</option>
+          <option value="condensed" data-en="Condensed">Condensada</option>
           <option value="impact" data-en="Bold">Gruesa</option>
         </select>
+        <label class="f"><span data-en="Station name weight">Grosor del nombre</span><select id="weight"><option value="400" data-en="Regular">Normal</option><option value="600" data-en="Semibold">Seminegrita</option><option value="700" selected data-en="Bold">Negrita</option><option value="900" data-en="Black">Ultranegrita</option></select></label>
         <p class="hint" data-en="System letters only: xatRadio does not allow loading outside fonts.">Solo letras del sistema: xatRadio no deja cargar fuentes externas.</p>
       </div>
       <div class="group">
@@ -120,6 +122,7 @@ const FONTS = {
   round: "'Arial Rounded MT Bold','Varela Round','Trebuchet MS',system-ui,sans-serif",
   serif: "Georgia,'Times New Roman',serif",
   mono: "ui-monospace,Consolas,'Courier New',monospace",
+  condensed: "'Bahnschrift Condensed','Arial Narrow','Liberation Sans Narrow',sans-serif",
   impact: "Impact,'Arial Black','Franklin Gothic Heavy',sans-serif",
 };
 const S = { lay: 'image', img: '' };
@@ -169,7 +172,7 @@ body{font-family:${FONTS[cfg.font]};color:${cfg.fg};background:${cfg.bg};positio
 .on .pp i{width:${narrow ? 14 : 18}px;height:${narrow ? 16 : 22}px;border:0;margin:0;border-left:${narrow ? 5 : 6}px solid #fff;border-right:${narrow ? 5 : 6}px solid #fff}
 .vol{-webkit-appearance:none;appearance:none;width:${narrow ? 80 : 110}px;height:4px;border-radius:4px;background:rgba(255,255,255,.3);accent-color:${cfg.ac};cursor:pointer}
 .vol::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:${cfg.ac};border:2px solid #fff}
-.name{font-weight:700;font-size:${narrow ? 15 : 22}px;line-height:1.1}
+.name{font-weight:${cfg.weight};font-size:${narrow ? 15 : 22}px;line-height:1.1}
 .mq{overflow:hidden;white-space:nowrap;font-size:${narrow ? 12 : 14}px;opacity:.85;max-width:100%}
 .mq span{display:inline-block;padding-left:100%;animation:mq 14s linear infinite}
 @keyframes mq{to{transform:translateX(-100%)}}
@@ -239,7 +242,7 @@ meta();`;
 
 function cfg() {
   return { url: $('url').value.trim(), name: $('name').value.trim() || 'Radio', room: /^https:\/\/(www\.)?xat\.com\//i.test($('room').value.trim()) ? $('room').value.trim() : '',
-    lay: S.lay, img: S.img, size: $('size').value, ac: $('ac').value, bg: $('bg').value, fg: $('fg').value, font: $('font').value, credit: $('credit').checked };
+    lay: S.lay, img: S.img, size: $('size').value, ac: $('ac').value, bg: $('bg').value, fg: $('fg').value, font: $('font').value, weight: Number($('weight').value), credit: $('credit').checked };
 }
 let html = '';
 function update() {
