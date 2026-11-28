@@ -50,6 +50,7 @@ h2{font-size:clamp(38px,5vw,60px);margin:0 0 14px}
 .entry p{font-size:14px;color:var(--copy);margin:0}
 .entry-icon,.arrow{color:var(--action)}
 .entry-icon{font-size:21px;line-height:1}
+.trade-mark{display:inline-block;width:1em;aspect-ratio:1;flex:none;border-radius:50%;border:1px solid #0c1533;background:conic-gradient(from -19deg,#f5d729 0 48%,#163671 52% 98%,#f5d729);mask-image:radial-gradient(circle,transparent 0 21%,#000 25%);box-shadow:inset 0 0 4px #0009}
 .empty{color:var(--copy);padding:15px 0}
 .guide{margin-top:42px;padding:16px 0;border-top:1px solid var(--edge);color:var(--copy)}
 .guide summary{cursor:pointer;font-weight:700;color:var(--heading)}
@@ -110,6 +111,9 @@ body.day main::before{opacity:.12}
 .news-links{display:flex;gap:8px;flex-wrap:wrap}
 .news-links a{display:inline-flex;align-items:center;gap:8px;border-radius:999px;text-decoration:none;padding:7px 12px;background:var(--canvas);font-size:13px}
 .news-links a span{color:var(--action)}
+.help-mark{display:inline-grid;place-items:center;width:1.35em;height:1.35em;flex:none;border-radius:50%;background:radial-gradient(circle at 35% 25%,#88b2ff,#304aa4 55%,#151a66);box-shadow:inset 0 1px 2px #e3efff90,0 1px 3px #13235790;color:#fff!important;font:bold 1em/1 system-ui,sans-serif}
+.xat-link-mark{display:inline-block;position:relative;flex:none;width:1.25em;height:1.25em;border-radius:50%;background:radial-gradient(circle at 32% 28%,#63ddf4,#00a9cb 65%,#007aab);box-shadow:inset 0 1px 2px #d6faff}
+.xat-link-mark::after{content:"";position:absolute;inset:33% -25%;border:2px solid #ffce46;border-top-color:transparent;border-radius:50%;transform:rotate(-29deg)}
 .pawn-fleet{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-left:auto;padding-left:8px}
 .pawn-orb{height:32px;width:32px;border-radius:50%;position:relative;display:grid;place-items:center;background:radial-gradient(circle at 32% 25%,#d7f3ff6b,transparent 55%),#14234f;box-shadow:inset 0 0 8px var(--orb),0 0 10px #9ac3ff35}
 .pawn-orb:nth-child(1){--orb:#e38cff;transform:translateY(2px) rotate(-13deg)}
@@ -161,8 +165,8 @@ body:not(.day) .night-sky{display:block;position:absolute;inset:0 0 auto;height:
   <div class="appearance"><button class="flat" id="theme" type="button" aria-pressed="false">Modo día</button></div>
   <section class="hero" aria-labelledby="home-title">
     <div>
-      <h1 id="home-title">xHaz Tools<span data-en="Create for xat">Crea para xat</span></h1>
-      <p data-en="Design your profile and room. Preview your edits, then download a GIF or copy the code for xat.">Diseña tu perfil y tu sala. Prueba tus cambios y descarga un GIF o copia el código para xat.</p>
+      <h1 id="home-title">xHaz Tools<span data-en="xat Studio">Estudio xat</span></h1>
+      <p data-en="Profiles, backgrounds and animation for xat.">Perfiles, fondos y animación para xat.</p>
       <div class="actions">
         <a href="space/" data-en="Design my profile">Diseñar mi perfil</a>
         <a href="#herramientas" data-filter="sala" data-en="Customize my room">Personalizar mi sala</a>
@@ -170,7 +174,7 @@ body:not(.day) .night-sky{display:block;position:absolute;inset:0 0 auto;height:
     </div>
     <div class="demo" id="demo">
       <div class="demo-bar">
-        <span data-en="Live background preview">Demostración de fondos</span>
+        <span data-en="Background preview">Vista previa de fondos</span>
         <button class="flat" type="button" id="motion" aria-pressed="false">Pausar</button>
       </div>
       <div class="stage" id="demo-stage" data-active="powers">
@@ -196,8 +200,8 @@ body:not(.day) .night-sky{display:block;position:absolute;inset:0 0 auto;height:
     <h2 id="news-title" data-en="Explore xat">Explora xat</h2>
     <div class="news-links">
       <a class="pill" href="pawns/"><span aria-hidden="true">✧</span><b data-en="Pawns and hats">Peones y hats</b></a>
-      <a class="pill" href="https://beta.xat.com/powers"><span aria-hidden="true">⚡</span><b data-en="Powers on xat Beta">Powers en xat Beta</b></a>
-      <a class="pill" href="tickets/"><span aria-hidden="true">✉</span><b data-en="Ticket guide">Guía de tickets</b></a>
+      <a class="pill" href="https://beta.xat.com/powers"><span class="xat-link-mark" aria-hidden="true"></span><b data-en="Powers on xat Beta">Powers en xat Beta</b></a>
+      <a class="pill" href="tickets/"><span class="help-mark" aria-hidden="true">?</span><b data-en="Ticket guide">Guía de tickets</b></a>
       <a class="pill" href="https://forum.xat.com/forum/3-announcements-and-feedback/"><span aria-hidden="true">✦</span><b data-en="Forum and news">Foro y novedades</b></a>
     </div>
     <div class="pawn-fleet" aria-hidden="true">
@@ -205,7 +209,7 @@ body:not(.day) .night-sky{display:block;position:absolute;inset:0 0 auto;height:
     </div>
   </section>
   <section class="catalog" id="herramientas" aria-labelledby="catalog-title">
-    <h2 id="catalog-title" data-en="Find a tool">Encuentra tu herramienta</h2>
+    <h2 id="catalog-title" data-en="Tool library">Biblioteca de herramientas</h2>
     <div class="catalog-bar">
       <div class="filters" id="filters">
         <button class="pill" type="button" data-filter="all" aria-pressed="true" data-en="All">Todas</button>
@@ -289,16 +293,16 @@ body:not(.day) .night-sky{display:block;position:absolute;inset:0 0 auto;height:
         <span class="card-preview" aria-hidden="true"><span class="card-preview-inner mini-bars-wrap"><span class="mini mini-bars"><strong>◇</strong><small>xats · days</small></span></span></span>
       </a>
       <a class="entry" href="precios/?tab=trade" data-group="recursos" data-keywords="Trade justo Fair trade Compara lo que das y lo que recibes. Compare what you give and what you get. intercambio trade">
-        <span class="entry-icon" aria-hidden="true">✦</span>
+        <span class="entry-icon trade-mark" aria-hidden="true"></span>
         <div><h3 data-en="Fair trade">Trade justo</h3><p data-en="Compare what you give and what you get.">Compara lo que das y lo que recibes.</p></div>
         <span class="arrow" aria-hidden="true">↗</span>
-        <span class="card-preview" aria-hidden="true"><span class="card-preview-inner mini-bars-wrap"><span class="mini mini-bars"><strong>◇ ↔ ◇</strong><small>Trade</small></span></span></span>
+        <span class="card-preview" aria-hidden="true"><span class="card-preview-inner mini-bars-wrap"><span class="mini mini-bars"><strong class="trade-mark"></strong><small>Trade</small></span></span></span>
       </a>
       <a class="entry" href="tickets/" data-group="recursos" data-keywords="guia ticket soporte ayuda support cuenta bloqueada correo">
-        <span class="entry-icon" aria-hidden="true">✉</span>
+        <span class="entry-icon help-mark" aria-hidden="true">?</span>
         <div><h3 data-en="Ticket guide">Guía de tickets</h3><p data-en="Choose a support topic and copy an example in English.">Elige la categoría de soporte y copia un ejemplo en inglés.</p></div>
         <span class="arrow" aria-hidden="true">↗</span>
-        <span class="card-preview" aria-hidden="true"><span class="card-preview-inner"><span class="mini"><strong>✉</strong><small>Help Topic</small></span></span></span>
+        <span class="card-preview" aria-hidden="true"><span class="card-preview-inner"><span class="mini"><strong class="help-mark">?</strong><small>Help Topic</small></span></span></span>
       </a>
       <a class="entry" href="arcade/" data-group="recursos" data-keywords="arcade juegos games plataforma laberinto pinball">
         <span class="entry-icon" aria-hidden="true">✦</span>

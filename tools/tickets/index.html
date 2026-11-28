@@ -9,7 +9,7 @@
 main{max-width:1060px}.support-hero{position:relative;isolation:isolate;overflow:hidden;padding:clamp(22px,5vw,56px);border:1px solid #6578bd66;border-radius:20px;background:radial-gradient(ellipse at 90% 0,#303a85,transparent 62%),#111633}
 .support-hero h1{font-size:clamp(32px,6vw,62px);line-height:1.05;max-width:15ch}
 .support-hero p{max-width:48ch;margin:14px 0 0;color:#d0d6fb}
-.spark{position:absolute;right:9%;top:15%;z-index:-1;font-size:clamp(60px,19vw,205px);color:#839dff;text-shadow:0 0 40px #6382ef;opacity:.23;animation:spark 3s ease-in-out infinite alternate}
+.spark{position:absolute;right:9%;top:15%;z-index:-1;font-size:clamp(60px,19vw,205px);width:1.16em;height:1.16em;display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle at 36% 26%,#91b5ff,#344aa6 55%,#151a65);box-shadow:inset 0 1px 3px #e4ecffa1,0 0 38px #6382ef;color:white;font-weight:800;line-height:1;opacity:.23;animation:spark 3s ease-in-out infinite alternate}
 @keyframes spark{to{opacity:.45;transform:translateY(6px)}}
 .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0 26px;padding:0;list-style:none;counter-reset:step}
 .steps li{counter-increment:step;display:flex;gap:9px;align-items:center;padding:12px;background:var(--panel);border:1px solid var(--line);border-radius:10px}
@@ -28,13 +28,14 @@ main{max-width:1060px}.support-hero{position:relative;isolation:isolate;overflow
 .privacy{margin:16px 0 0;color:var(--mute);font-size:13px}
 @media(max-width:680px){.layout,.steps{grid-template-columns:1fr}.steps{gap:6px}}
 @media(prefers-reduced-motion:reduce){.spark{animation:none}}
+.translator{margin-top:22px}.translator form,.translator #translate-result{display:grid;gap:9px}.translator [hidden]{display:none!important}.translator #translate-result .btn{justify-self:start;text-decoration:none}.translator #translate-result p,.translator #translate-status{font-size:13px;color:var(--mute)}.translator label{font-size:14px}.translator textarea{resize:vertical}
 </style>
 </head>
 <body>
 <header class="top"></header>
 <main>
 <section class="support-hero">
-  <span class="spark" aria-hidden="true">✦</span>
+  <span class="spark" aria-hidden="true">?</span>
   <h1 data-en="How to open a ticket on xat">Cómo abrir un ticket en xat</h1>
   <p data-en="Choose what happened and use the example to write your support request in English.">Elige qué te pasó y usa el ejemplo para escribir tu solicitud de soporte en inglés.</p>
 </section>
@@ -68,6 +69,29 @@ main{max-width:1060px}.support-hero{position:relative;isolation:isolate;overflow
     <span class="label" id="note" role="status"></span>
   </section>
 </div>
+<section class="example translator" aria-labelledby="translate-title">
+  <h2 id="translate-title" data-en="Write your ticket in Spanish">Escribe tu ticket en español</h2>
+  <p data-en="The English version can be reviewed and edited before you paste it into the official form.">Podrás revisar y editar el inglés antes de pegarlo en el formulario oficial.</p>
+  <form id="translate-form">
+    <label class="f"><span data-en="Subject in Spanish">Asunto en español</span><input id="source-subject" maxlength="150" required></label>
+    <label class="f"><span data-en="Message in Spanish">Mensaje en español</span><textarea id="source-message" rows="4" maxlength="4000" required></textarea></label>
+    <div class="buttons"><button type="submit" id="translate" class="btn" data-en="Translate to English">Traducir al inglés</button></div>
+  </form>
+  <p id="translate-status" role="status"></p>
+  <div id="translate-result" hidden>
+    <label class="f"><span data-en="Subject in English">Asunto en inglés</span><input id="english-subject" lang="en" spellcheck="false"></label>
+    <button class="btn ghost" type="button" data-copy-target="english-subject" data-en="Copy subject">Copiar asunto</button>
+    <label class="f"><span data-en="Message in English">Mensaje en inglés</span><textarea id="english-message" lang="en" spellcheck="false" rows="5"></textarea></label>
+    <button class="btn ghost" type="button" data-copy-target="english-message" data-en="Copy message">Copiar mensaje</button>
+    <a class="btn ghost" href="https://util.xat.com/support/open.php" data-en="Open official form">Abrir formulario oficial</a>
+    <p id="translation-copy-status" role="status"></p>
+  </div>
+  <div id="translate-fallback" hidden>
+    <p data-en="Use the English examples above or open an external translator and paste the text yourself.">Usa los ejemplos en inglés de arriba o abre un traductor externo y pega el texto tú mismo.</p>
+    <a href="https://translate.google.com/?sl=es&amp;tl=en&amp;op=translate" target="_blank" rel="noopener noreferrer" data-en="Open Google Translate">Abrir Google Traductor</a>
+  </div>
+<noscript><p>Activa JavaScript para usar la traducción integrada.</p></noscript>
+</section>
 <p class="privacy" data-en="Some categories require a previous xats purchase. Keep passwords and personal information out of the message. Use one ticket per issue.">Algunas categorías requieren haber comprado xats. Evita incluir contraseñas y datos personales en el mensaje. Usa un solo ticket por problema.</p>
 <div class="footlinks">
   <a href="https://util.xat.com/support/view.php" data-en="Check ticket status">Ver estado del ticket</a>
@@ -108,6 +132,77 @@ byId('copy').addEventListener('click', async () => {
   }
 });
 show('locked');
+const translateForm = byId('translate-form');
+const translateButton = byId('translate');
+const translateStatus = byId('translate-status');
+const translateResult = byId('translate-result');
+const translateFallback = byId('translate-fallback');
+const translationPair = { sourceLanguage: 'es', targetLanguage: 'en' };
+let translator;
+if (!('Translator' in globalThis)) {
+  translateButton.disabled = true;
+  translateStatus.textContent = L('Este navegador no ofrece traducción integrada.', 'This browser does not offer built-in translation.');
+  translateFallback.hidden = false;
+}
+
+translateForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  if (translateButton.disabled) return;
+  const subject = byId('source-subject').value.trim();
+  const message = byId('source-message').value.trim();
+  if (!subject || !message) {
+    translateStatus.textContent = L('Escribe el asunto y el mensaje.', 'Enter both the subject and the message.');
+    return;
+  }
+
+  translateButton.disabled = true;
+  translateResult.hidden = true;
+  translateFallback.hidden = true;
+  byId('translation-copy-status').textContent = '';
+  translateStatus.textContent = L('Preparando el traductor…', 'Preparing the translator…');
+  try {
+    if (!translator) {
+      translator = await Translator.create({
+        ...translationPair,
+        monitor(monitor) {
+          monitor.addEventListener('downloadprogress', event => {
+            const percent = Math.round(event.loaded * 100);
+            translateStatus.textContent = L('Preparando el idioma… ', 'Preparing language pack… ') + percent + '%';
+          });
+        },
+      });
+    }
+    translateStatus.textContent = L('Traduciendo…', 'Translating…');
+    byId('english-subject').value = await translator.translate(subject);
+    byId('english-message').value = await translator.translate(message);
+    translateResult.hidden = false;
+    translateStatus.textContent = L('Traducción lista. Revisa nombres, fechas y códigos antes de copiar.', 'Translation ready. Check names, dates and codes before copying.');
+  } catch {
+    translator?.destroy?.();
+    translator = null;
+    translateFallback.hidden = false;
+    translateStatus.textContent = L('La traducción integrada no estuvo disponible.', 'Built-in translation was unavailable.');
+  } finally {
+    translateButton.disabled = false;
+  }
+});
+
+for (const button of document.querySelectorAll('[data-copy-target]')) {
+  button.addEventListener('click', async () => {
+    const field = byId(button.dataset.copyTarget);
+    if (!field.value.trim()) return;
+    const feedback = byId('translation-copy-status');
+    try {
+      await navigator.clipboard.writeText(field.value);
+      feedback.textContent = L('Copiado.', 'Copied.');
+    } catch {
+      field.focus();
+      field.select();
+      feedback.textContent = L('Texto seleccionado. Cópialo desde tu navegador.', 'Text selected. Copy it from your browser.');
+    }
+  });
+}
+
 </script>
 </body>
 </html>

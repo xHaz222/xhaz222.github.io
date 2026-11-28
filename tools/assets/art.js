@@ -633,6 +633,98 @@ export const STYLES = {
 
   eco: { es: 'Eco glitch', en: 'Glitch echo', draw: illustrated('eco', 'umbral') },
   orbital: { es: 'Robot orbital', en: 'Orbital robot', draw: illustrated('orbital', 'hud') },
+  planetaFracturado: { es: 'Planeta fracturado', en: 'Fractured planet', draw(ctx, w, h, p, o) {
+    ctx.fillStyle = '#060c12';
+    ctx.fillRect(0, 0, w, h);
+    stars(ctx, w, h, p, o, 55, .38);
+    const x = w * .72, y = h * .42, r = Math.min(w, h) * .39;
+    const glow = ctx.createRadialGradient(x, y, r * .92, x, y, r * 1.48);
+    glow.addColorStop(0, '#7ef4ff7d');
+    glow.addColorStop(1, 'transparent');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, w, h);
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(r, r);
+    ctx.beginPath(); ctx.arc(0, 0, 1, 0, TAU); ctx.clip();
+    const frost = ctx.createRadialGradient(.45, -.58, .04, -.35, .47, 1.55);
+    frost.addColorStop(0, '#cadce1');
+    frost.addColorStop(.51, '#4e6a79');
+    frost.addColorStop(1, '#0c171f');
+    ctx.fillStyle = frost;
+    ctx.fillRect(-1, -1, 2, 2);
+    const random = rng(874);
+    for (let i = 0; i < 145; i++) {
+      const px = random() * 2 - 1, py = random() * 2 - 1, size = .02 + random() * .22;
+      ctx.beginPath();
+      ctx.moveTo(px - size, py);
+      ctx.lineTo(px - size * .2, py - size * .32);
+      ctx.lineTo(px + size, py - size * .13);
+      ctx.lineTo(px + size * .28, py + size * .25);
+      ctx.closePath();
+      ctx.fillStyle = i % 3 ? '#09182126' : '#d0edf426';
+      ctx.fill();
+    }
+    const cracks = [
+      [[-.77,-.93],[-.63,-.5],[-.42,-.38],[-.48,-.08],[-.1,.04],[.13,.27],[.04,.55],[.32,.88]],
+      [[-.48,-.08],[-.66,.09],[-.67,.34],[-.89,.51]],
+      [[-.1,.04],[.14,-.14],[.14,-.35],[.47,-.56],[.61,-.92]],
+      [[.13,.27],[.43,.21],[.64,.34],[.91,.26]],
+      [[.04,.55],[-.17,.65],[-.31,.99]],
+    ];
+    const pulse = .71 + .19 * Math.cos(TAU * p);
+    for (const points of cracks) {
+      ctx.beginPath();
+      for (const [i, [px, py]] of points.entries()) {
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.lineJoin = 'bevel';
+      ctx.lineWidth = .075;
+      ctx.strokeStyle = rgba('#26d9ee', pulse * .33);
+      ctx.stroke();
+      ctx.lineWidth = .035;
+      ctx.strokeStyle = '#06151b';
+      ctx.stroke();
+      ctx.lineWidth = .011;
+      ctx.strokeStyle = rgba('#a5fcff', pulse);
+      ctx.stroke();
+    }
+    const dark = ctx.createLinearGradient(0, -.77, 0, .93);
+    dark.addColorStop(.2, 'transparent');
+    dark.addColorStop(1, '#030811c9');
+    ctx.fillStyle = dark;
+    ctx.fillRect(-1, -1, 2, 2);
+    ctx.restore();
+  } },
+
+  meteoros: { es: 'Lluvia de meteoros', en: 'Meteor shower', draw(ctx, w, h, p, o) {
+    ctx.fillStyle = '#05060e';
+    ctx.fillRect(0, 0, w, h);
+    stars(ctx, w, h, p, o, 69, .36);
+    const unit = Math.min(w, h);
+    const streaks = [[.27,.62,.16], [.52,.51,.44], [.80,.74,.70], [.94,.48,.94]];
+    for (const [x, y, offset] of streaks) {
+      const t = (p * o.speed + offset) % 1;
+      const opacity = .78 * Math.sin(Math.PI * t) ** 2;
+      const px = x * w - (t - .5) * unit * .53, py = y * h + (t - .5) * unit * .64;
+      const len = unit * (.29 + offset * .22);
+      const tail = ctx.createLinearGradient(px, py, px + len * .62, py - len);
+      tail.addColorStop(0, rgba('#b2deff', opacity));
+      tail.addColorStop(.28, rgba('#9a83ff', opacity * .77));
+      tail.addColorStop(1, 'transparent');
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = tail;
+      ctx.lineWidth = Math.max(.65, unit * .006);
+      ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px + len * .62, py - len); ctx.stroke();
+      const halo = ctx.createRadialGradient(px, py, 0, px, py, unit * .028);
+      halo.addColorStop(0, rgba('#64adff', opacity * .4));
+      halo.addColorStop(1, 'transparent');
+      ctx.fillStyle = halo;
+      ctx.fillRect(px - unit * .028, py - unit * .028, unit * .056, unit * .056);
+    }
+  } },
+
   azulOro: { es: 'Azul y oro', en: 'Blue and gold', draw(ctx, w, h, p, o) {
     const a = TAU * p * o.speed;
     const sky = ctx.createLinearGradient(0, 0, 0, h);
