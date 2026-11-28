@@ -128,7 +128,7 @@
 
 <script type="module">
 import { shell, L, toast, download, makeGIF, canvasPNG, fmtBytes } from '../assets/core.js';
-import { rng, rgba, STYLES, PALETTES } from '../assets/art.js';
+import { rng, rgba, STYLES, PALETTES, loadArtImage } from '../assets/art.js';
 shell('disenos');
 const $ = id => document.getElementById(id);
 const TAU = Math.PI * 2;
@@ -136,7 +136,7 @@ const TAU = Math.PI * 2;
 const SIZES = [
   { id: 'chat', w: 728, h: 486, es: 'Chatbox (fondo del chat)', en: 'Chatbox (chat background)', mock: 'chat', gif: true },
   { id: 'pcback', w: 728, h: 486, es: 'PCBack (tus privados)', en: 'PCBack (your private chats)', mock: 'chat', gif: true },
-  { id: 'outer', w: 1920, h: 1080, es: 'Fondo exterior', en: 'Outer background', mock: 'outer', gif: false },
+  { id: 'outer', w: 2560, h: 1440, es: 'Fondo exterior', en: 'Outer background', mock: 'outer', gif: false },
 ];
 
 // ---------- escenas propias, todas en bucle ----------
@@ -293,6 +293,10 @@ const SCENES = {
     palm(w * .1, h * .62, .18, 0); palm(w * .2, h * .44, -.1, 1.4); palm(w * .9, h * .58, -.2, 2.6);
   } },
   glitch: { es: 'Glitch', en: 'Glitch', draw: art('glitch', 'glitch', .45) },
+  eco: { es: 'Eco glitch', en: 'Glitch echo', draw: art('eco', 'glitch', .55) },
+  orbital: { es: 'Robot orbital', en: 'Orbital robot', draw: art('orbital', 'noche', .55) },
+  azulOro: { es: 'Azul y oro', en: 'Blue and gold', draw: art('azulOro', 'noche', .55) },
+  pawnGlitch: { es: 'Peón glitch', en: 'Glitch pawn', draw: art('pawnGlitch', 'glitch', .55) },
   umbral: { es: 'Umbral digital', en: 'Digital threshold', draw: art('umbral', 'glitch', .55) },
   eclipse: { es: 'Eclipse', en: 'Eclipse', draw: art('eclipse', 'brasa', .4) },
   agujero: { es: 'Agujero negro', en: 'Black hole', draw: art('agujero', 'noche', .55) },
@@ -473,6 +477,7 @@ function show(blob, name, animated) {
 }
 $('png').onclick = async () => {
   await fontsReady();
+  if (!await loadArtImage(S.bg ? '' : S.scene)) { toast(L('No cargó la ilustración.', 'The illustration could not load.')); return; }
   const { w, h } = S.size, c = document.createElement('canvas'); c.width = w; c.height = h;
   render(c.getContext('2d'), S.p, w, h);
   show(await canvasPNG(c), `xhaz-${S.size.id}-${S.scene}.png`, false);
@@ -480,6 +485,7 @@ $('png').onclick = async () => {
 $('gif').onclick = async () => {
   if (!S.size.gif) return;
   await fontsReady();
+  if (!await loadArtImage(S.bg ? '' : S.scene)) { toast(L('No cargó la ilustración.', 'The illustration could not load.')); return; }
   const btn = $('gif'); btn.disabled = true; btn.textContent = L('Creando…', 'Making…');
   try {
     const blob = await makeGIF({ w: S.size.w, h: S.size.h, frames: FRAMES, fps: FPS, render, onProgress: v => ($('prog').style.width = v * 100 + '%') });

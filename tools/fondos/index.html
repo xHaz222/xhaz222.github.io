@@ -53,6 +53,7 @@
       <div class="group">
         <span class="gt" data-en="Style">Estilo</span>
         <div class="chips" id="styles"></div>
+        <label class="f"><span data-en="Use my image">Usar mi imagen</span><input type="file" id="bgfile" accept="image/*"></label>
       </div>
       <div class="group">
         <span class="gt" data-en="Colors">Colores</span>
@@ -137,7 +138,7 @@
 
 <script type="module">
 import { shell, L, EN, toast, download, makeGIF, canvasPNG, fmtBytes } from '../assets/core.js';
-import { STYLES, PALETTES, finish, rgba } from '../assets/art.js';
+import { STYLES, PALETTES, finish, rgba, drawCover, loadArtImage } from '../assets/art.js';
 shell('fondos');
 
 const SIZES = [
@@ -149,7 +150,7 @@ const SIZES = [
   { id: 'mobv',   w: 1080, h: 1920, es: 'Móvil vertical', en: 'Mobile portrait', gif: false },
   { id: 'mobh',   w: 1920, h: 1080, es: 'Móvil horizontal', en: 'Mobile landscape', gif: false },
 ];
-const S = { size: SIZES[0], style: 'aurora', pal: 'noche', c: [...PALETTES.noche], seed: 7, playing: true, p: 0 };
+const S = { size: SIZES[0], style: 'aurora', pal: 'noche', c: [...PALETTES.noche], seed: 7, playing: true, p: 0, photo: null };
 const $ = id => document.getElementById(id);
 const cv = $('cv'), ctx = cv.getContext('2d');
 
@@ -161,7 +162,7 @@ const syncColors = () => S.c.forEach((v, i) => ($('c' + i).value = v));
 syncColors();
 
 $('sizes').addEventListener('click', e => { const b = e.target.closest('.size'); if (!b) return; S.size = SIZES[+b.dataset.i]; press('#sizes .size', b); layout(); });
-$('styles').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; S.style = b.dataset.s; press('#styles .chip', b); });
+$('styles').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; backgroundRequest++; S.style = b.dataset.s; press('#styles .chip', b); });
 $('pals').addEventListener('click', e => { const b = e.target.closest('.sw'); if (!b) return; S.pal = b.dataset.p; S.c = [...PALETTES[S.pal]]; syncColors(); press('#pals .sw', b); });
 [0, 1, 2, 3].forEach(i => $('c' + i).addEventListener('input', e => { S.c[i] = e.target.value; document.querySelectorAll('#pals .sw').forEach(b => b.setAttribute('aria-pressed', 'false')); }));
 $('seed').onclick = () => { S.seed = (S.seed * 48271 + 11) % 2147483647; };
@@ -169,6 +170,22 @@ $('play').onclick = () => { S.playing = !S.playing; $('play').textContent = S.pl
 $('showmock').onchange = layout;
 function press(sel, b) { document.querySelectorAll(sel).forEach(x => x.setAttribute('aria-pressed', x === b)); }
 
+let backgroundRequest = 0;
+$('bgfile').addEventListener('change', async event => {
+  const file = event.target.files[0];
+  if (!file) return;
+  event.target.value = '';
+  const request = ++backgroundRequest;
+  try {
+    const image = await createImageBitmap(file);
+    if (request !== backgroundRequest) { image.close(); return; }
+    S.photo?.close();
+    S.photo = image;
+    S.style = 'photo'; press('#styles .chip', null);
+  } catch {
+    if (request === backgroundRequest) toast(L('No pude abrir esa imagen.', 'Could not open that image.'));
+  }
+});
 function opts() {
   return { bg: S.c[0], c: [S.c[1], S.c[2], S.c[3]], density: +$('density').value, speed: +$('speed').value, seed: S.seed };
 }
@@ -195,7 +212,8 @@ function drawText(c, w, h, p) {
 }
 
 function render(c, p, w, h) {
-  STYLES[S.style].draw(c, w, h, p, opts());
+  if (S.style === 'photo') drawCover(c, S.photo, w, h);
+  else STYLES[S.style].draw(c, w, h, p, opts());
   finish(c, w, h, { grain: +$('grain').value, vignette: +$('vig').value });
   drawText(c, w, h, p);
 }
@@ -238,6 +256,7 @@ async function fontsReady() {
 let lastBlob, lastName;
 $('png').onclick = async () => {
   await fontsReady();
+  if (!await loadArtImage(S.style)) { toast(L('No cargó la ilustración.', 'The illustration could not load.')); return; }
   const { w, h } = S.size, c = document.createElement('canvas');
   c.width = w; c.height = h;
   render(c.getContext('2d'), S.p, w, h);
@@ -247,6 +266,7 @@ $('png').onclick = async () => {
 $('gif').onclick = async () => {
   if (!S.size.gif) return;
   await fontsReady();
+  if (!await loadArtImage(S.style)) { toast(L('No cargó la ilustración.', 'The illustration could not load.')); return; }
   const btn = $('gif'); btn.disabled = true; btn.textContent = L('Creando…', 'Making…');
   const { w, h } = S.size;
   try {

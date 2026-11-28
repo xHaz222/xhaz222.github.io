@@ -90,6 +90,7 @@
       <div class="group">
         <span class="gt" data-en="Background">Fondo</span>
         <select id="bg" aria-label="Fondo"></select>
+        <label class="f"><span data-en="Use my image as the background">Usar mi imagen de fondo</span><input type="file" id="bgfile" accept="image/*"></label>
         <div class="row" style="justify-content:flex-start"><input type="color" id="bgc" value="#141629" aria-label="Color de fondo" style="flex:none"><span class="hint" id="bghint"></span></div>
       </div>
       <div class="group">
@@ -120,13 +121,14 @@
 
 <script type="module">
 import { shell, L, toast, download, makeGIF, canvasPNG, fmtBytes } from '../assets/core.js';
-import { STYLES, PALETTES, rgba } from '../assets/art.js';
+import { STYLES, PALETTES, rgba, drawCover, loadArtImage } from '../assets/art.js';
 shell('texto');
 const $ = id => document.getElementById(id);
 const TAU = Math.PI * 2;
 
 const SIZES = [
-  { id: 'avatar', w: 80, h: 80, es: 'Avatar', en: 'Avatar', zoom: 3 },
+  { id: 'avatar', w: 80, h: 80, es: 'Avatar ampliado / GIF 3D', en: 'Zoom avatar / 3D GIF', zoom: 3 },
+  { id: 'avatar-small', w: 30, h: 30, es: 'Avatar estándar / GIF 2D', en: 'Default avatar / 2D GIF', zoom: 6 },
   { id: 'avatar2', w: 160, h: 160, es: 'Avatar grande', en: 'Big avatar', zoom: 2 },
   { id: 'banner', w: 728, h: 90, es: 'Banner', en: 'Banner', zoom: 1 },
   { id: 'pstyle', w: 760, h: 200, es: 'Pstyle', en: 'Pstyle', zoom: 1 },
@@ -154,7 +156,7 @@ const FX = {
   revelar: { dim: 'char', es: 'Escribir al pasar', en: 'Write as it walks' },
   saltar:  { dim: 'char', es: 'Saltar letras', en: 'Hop on letters' },
 };
-const S = { fx: 'giro3d', size: SIZES[0], fill: 'grad', seed: 11 };
+const S = { fx: 'giro3d', size: SIZES[0], fill: 'grad', seed: 11, photo: null };
 
 document.querySelectorAll('[data-dim]').forEach(box => {
   box.innerHTML = Object.entries(FX).filter(([, f]) => f.dim === box.dataset.dim)
@@ -164,6 +166,25 @@ $('sizes').innerHTML = SIZES.map((s, i) => `<button class="size" data-i="${i}" a
 $('bg').innerHTML = `<option value="transparent">${L('Transparente', 'Transparent')}</option><option value="color">${L('Color liso', 'Solid color')}</option>`
   + Object.entries(STYLES).map(([k, v]) => `<option value="${k}">${L(v.es, v.en)}</option>`).join('');
 $('bg').value = 'color';
+let backgroundRequest = 0;
+$('bgfile').addEventListener('change', async event => {
+  const file = event.target.files[0];
+  if (!file) return;
+  event.target.value = '';
+  const request = ++backgroundRequest;
+  try {
+    const image = await createImageBitmap(file);
+    if (request !== backgroundRequest) { image.close(); return; }
+    S.photo?.close();
+    S.photo = image;
+    if (!$('bg').querySelector('option[value="photo"]')) $('bg').add(new Option(L('Mi imagen', 'My image'), 'photo'));
+    $('bg').value = 'photo';
+    $('bg').dispatchEvent(new Event('change'));
+  } catch {
+    if (request === backgroundRequest) toast(L('No pude abrir esa imagen.', 'Could not open that image.'));
+  }
+});
+$('bg').addEventListener('change', () => { backgroundRequest++; });
 
 document.addEventListener('click', e => {
   const f = e.target.closest('[data-fx]');
@@ -216,6 +237,7 @@ function darker(hex, k) {
 function background(ctx, w, h, p) {
   const v = $('bg').value;
   if (v === 'transparent') return;
+  if (v === 'photo') { drawCover(ctx, S.photo, w, h); return; }
   if (v === 'color') { ctx.fillStyle = $('bgc').value; ctx.fillRect(0, 0, w, h); return; }
   const pal = PALETTES.noche;
   STYLES[v].draw(ctx, w, h, p, { bg: $('bgc').value, c: [$('c2').value, $('gc').value, pal[3]], density: .5, speed: 1, seed: S.seed });
@@ -474,8 +496,44 @@ const PIX = {
   bolt: ['...XXX', '..XXX.', '.XXX..', 'XXXXXX', '..XXX.', '.XXX..', 'XX....'],
   gem: ['.XXXXX.', 'XXXXXXX', '.XXXXX.', '..XXX..', '...X...'],
 };
+const CHARACTERS = {
+  explorer: [
+    ['..AAA....', '.AAAAA...', '.ABABA...', '..BBB....', '..CCC....', '.BCCCB...', '...D.D...', '..DD.DD..'],
+    ['..AAA....', '.AAAAA...', '.ABABA...', '..BBB....', '..CCC....', '.BCCCB...', '..D.D....', '..DDD....'],
+  ],
+  robot: [
+    ['....A....', '...AAA...', '..CCCCC..', '.BCBCBC..', '.CCCCCCC.', '..DADAD..', '..CCCCC..', '.DD...DD.'],
+    ['....A....', '...AAA...', '..CCCCC..', '.BCBCBC..', '.CCCCCCC.', '..DADAD..', '..CCCCC..', '..DD.DD..'],
+  ],
+  cat: [
+    ['.A...A...', '.AA.AA...', '.AAAAA...', '.ADADA...', '..BBB....', '..AAA.A..', '.AAAAAA..', '..D.D....'],
+    ['.A...A...', '.AA.AA...', '.AAAAA...', '.ADADA...', '..BBB....', '..AAA....', '.AAAAA.A.', '..D.DAA..'],
+  ],
+};
+const CHARACTER_COLORS = {
+  explorer: { A: '#62edc9', B: '#f7d6ae', C: '#6c50dc', D: '#283050' },
+  robot: { A: '#ffe069', B: '#ff648f', C: '#4ac8de', D: '#313752' },
+  cat: { A: '#c797ee', B: '#fff3dd', D: '#302345' },
+};
+function character(ctx, key, p, size) {
+  const rows = CHARACTERS[key][Math.floor(p * 8) % 2];
+  const colors = CHARACTER_COLORS[key];
+  const unit = Math.max(1, Math.floor(size / 9));
+  ctx.save();
+  ctx.translate(-Math.floor(9 * unit / 2), -4 * unit);
+  for (const [y, row] of rows.entries()) {
+    for (let x = 0; x < row.length; x++) {
+      const color = colors[row[x]];
+      if (!color) continue;
+      ctx.fillStyle = color;
+      ctx.fillRect(x * unit, y * unit, unit, unit);
+    }
+  }
+  ctx.restore();
+}
 const STK = [['none', 'Ninguno', 'None'], ['heart', 'Corazón', 'Heart'], ['star', 'Estrella', 'Star'], ['crown', 'Corona', 'Crown'],
-  ['note', 'Nota', 'Note'], ['bolt', 'Rayo', 'Bolt'], ['gem', 'Gema', 'Gem'], ['planet', 'Planeta', 'Planet']];
+  ['note', 'Nota', 'Note'], ['bolt', 'Rayo', 'Bolt'], ['gem', 'Gema', 'Gem'], ['planet', 'Planeta', 'Planet'],
+  ['explorer', 'Explorador pixel', 'Pixel explorer'], ['robot', 'Robot de laberinto', 'Maze robot'], ['cat', 'Gato de cómic', 'Comic cat']];
 const ST = { k: 'none', img: null, frames: null, total: 0 };
 $('stk').innerHTML = STK.map(([k, es, en]) => `<button class="chip" data-k="${k}" aria-pressed="${k === 'none'}">${L(es, en)}</button>`).join('');
 $('stk').addEventListener('click', e => {
@@ -536,6 +594,8 @@ function sticker(ctx, p, cx, cy, size, still = false) {
     const g = ctx.createLinearGradient(-R, -R, R, R); g.addColorStop(0, $('c1').value); g.addColorStop(1, col);
     ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, R, 0, TAU); ctx.fill();
     ctx.beginPath(); ctx.ellipse(0, 0, R * 1.7, R * .5, -.35, 0, Math.PI); ctx.stroke();
+  } else if (CHARACTERS[ST.k]) {
+    character(ctx, ST.k, p % 1, size);
   } else if (PIX[ST.k]) {
     ctx.imageSmoothingEnabled = false;
     pixel(ctx, PIX[ST.k], size, col, 'rgba(10,12,30,.85)');
@@ -616,6 +676,7 @@ $('font').addEventListener('change', fontsReady);
 let lastBlob, lastName;
 $('gif').onclick = async () => {
   await fontsReady();
+  if (!await loadArtImage($('bg').value)) { toast(L('No cargó la ilustración.', 'The illustration could not load.')); return; }
   const btn = $('gif'); btn.disabled = true; btn.textContent = L('Creando…', 'Making…');
   const { w, h } = S.size, dur = +$('dur').value, fps = w * h > 100000 ? 15 : 20;
   try {
@@ -628,6 +689,7 @@ $('gif').onclick = async () => {
 };
 $('png').onclick = async () => {
   await fontsReady();
+  if (!await loadArtImage($('bg').value)) { toast(L('No cargó la ilustración.', 'The illustration could not load.')); return; }
   const c = document.createElement('canvas'); c.width = S.size.w; c.height = S.size.h;
   render(c.getContext('2d'), p, c.width, c.height);
   show(await canvasPNG(c), `xhaz-${S.fx}-${S.size.id}.png`);

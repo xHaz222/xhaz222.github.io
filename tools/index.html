@@ -1,175 +1,434 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>xHaz Tools · herramientas para xat</title>
-<meta name="description" content="Fondos, GIFs 2D/3D, nombres y status para xat. Gratis, sin registro.">
+<title>xHaz Tools · Herramientas para xat</title>
+<meta name="description" content="Crea tu xatspace, personaliza tu sala y encuentra códigos, peones y powers.">
 <link rel="stylesheet" href="assets/base.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&display=swap">
 <style>
-.hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:clamp(20px,4vw,56px);align-items:center;margin:10px 0 56px}
-.hero h1{font-size:clamp(38px,5.4vw,72px);letter-spacing:-.035em;line-height:.98}
-.hero p{color:var(--mute);font-size:17px;margin-top:18px;max-width:46ch}
-.hero .cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
-.hero .cta a{text-decoration:none}
-/* el escenario: fondo vivo + chat de xat a su proporción real (728×486) */
-.scene{position:relative;border-radius:22px;overflow:hidden;border:1px solid var(--line);aspect-ratio:16/10;background:#000;box-shadow:0 34px 90px -40px rgba(77,124,255,.55)}
-/* una luz que recorre el borde del escenario */
-@property --ang{syntax:'<angle>';inherits:false;initial-value:0deg}
-.scene::after{content:'';position:absolute;inset:0;border-radius:inherit;padding:1.5px;background:conic-gradient(from var(--ang),transparent 0 68%,rgba(77,124,255,.9) 80%,#ffb48f 87%,transparent 95%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;animation:ring 9s linear infinite;z-index:2}
-@keyframes ring{to{--ang:360deg}}
-@media (prefers-reduced-motion:reduce){.scene::after{animation:none}}
-.scene canvas{position:absolute;inset:0;width:100%;height:100%}
-.xchat{position:absolute;left:50%;top:50%;width:62%;aspect-ratio:728/486;transform:translate(-50%,-50%);border-radius:10px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.45);display:grid;grid-template-columns:1fr 27%;grid-template-rows:1fr 11%;background:rgba(236,239,247,.93);font-size:clamp(9px,1vw,13px);color:#20253a}
-.xchat .msgs{padding:5% 5% 3%;display:flex;flex-direction:column;justify-content:flex-end;gap:6%}
-.xchat .m{display:flex;gap:6px;align-items:flex-start;line-height:1.25}
-.xchat .m i{width:1.9em;height:1.9em;border-radius:5px;flex:none}
-.xchat .m b{display:block;font-weight:700}
-.xchat .ul{grid-row:span 2;background:#fff;border-left:1px solid #dde1ec;padding:9% 8%;display:flex;flex-direction:column;gap:7%}
-.xchat .u{display:flex;align-items:center;gap:6px;font-weight:600;white-space:nowrap;overflow:hidden}
-.xchat .u::before{content:'';width:.85em;height:1em;border-radius:50% 50% 35% 35%;background:var(--pc,#4cc35a);flex:none}
-.xchat .in{background:#fff;border-top:1px solid #dde1ec;display:flex;align-items:center;padding:0 4%;color:#8a90a8}
-.gname{font-weight:800;background:linear-gradient(90deg,#ffbaed,#e854af,#ffbaed);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:gw 3s linear infinite}
-@keyframes gw{to{background-position:-200% 0}}
-.scene .tag{position:absolute;left:14px;bottom:12px;font-size:12px;color:rgba(255,255,255,.8);background:rgba(0,0,0,.35);padding:4px 10px;border-radius:99px}
+body{--surface:#10131d;--canvas:#090b12;--heading:#f5f5ff;--copy:#b8bdd3;--edge:#34394e;--action:#bfafff;--on-action:#171227;background:var(--canvas);color:var(--heading);color-scheme:dark}
+body.day{--surface:#fff;--canvas:#f4f3f9;--heading:#19162a;--copy:#55516a;--edge:#d7d2e5;--action:#513ca4;--on-action:#fff;color-scheme:light}
+body.day .top{background:rgba(255,255,255,.94);--text:#19162a;--mute:#55516a;--panel:#fff;--deep:#f4f3f9;--raise:#eeeafa;--line:#d7d2e5}
+body.day .top .menu summary,body.day .top .drop a{color:var(--heading)}
+body.day .top .drop a:hover,body.day .top .menu summary:hover{color:var(--action)}
+body.day .foot{color:var(--copy);border-color:var(--edge)}
+main{max-width:1260px}
+a{color:inherit}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--action);outline-offset:4px}
+[hidden]{display:none!important}
+.appearance{display:flex;justify-content:flex-end;margin-bottom:14px}
+.flat,.pill{font:inherit;color:var(--heading);background:var(--surface);border:1px solid var(--edge);cursor:pointer;border-radius:8px;padding:7px 13px}
+.pill[aria-pressed="true"],.flat[aria-pressed="true"]{background:var(--action);color:var(--on-action);border-color:var(--action)}
+.hero{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(24px,5vw,72px);align-items:center}
+h1,h2{font-family:"Barlow Condensed","Outfit",system-ui,sans-serif;font-weight:800;line-height:.98}
+h1{font-size:clamp(54px,7.1vw,105px);max-width:13ch}
+h1 span{display:block;color:var(--action)}
+.hero p{max-width:41ch;margin:20px 0;color:var(--copy);font-size:clamp(16px,1.6vw,20px)}
+.actions,.filters,.styles{display:flex;flex-wrap:wrap;gap:8px}
+.actions a{color:var(--on-action);background:var(--action);border:1px solid var(--action);padding:11px 16px;border-radius:8px;text-decoration:none;font-weight:700}
+.actions a+a{border-color:var(--edge);color:var(--heading);background:var(--surface)}
+.demo{background:var(--surface);border:1px solid var(--edge);border-radius:18px;padding:12px;min-width:0}
+.demo-bar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;color:var(--copy);font-size:13px}
+.stage{position:relative;display:grid;align-items:center;isolation:isolate;overflow:hidden;border-radius:12px;aspect-ratio:16/9;background:#10101b;color:#fff}
+.stage canvas{position:absolute;width:100%;height:100%;inset:0;z-index:-1}
+.sample{width:min(48%,240px);margin-left:7%;padding:clamp(9px,2vw,24px);border:1px solid #ffffff45;border-radius:12px;background:#111221b8;backdrop-filter:blur(8px)}
+.sample strong{display:block;font:800 clamp(30px,5vw,68px)/1 "Barlow Condensed",system-ui;letter-spacing:.08em}
+.sample span{display:block;font-size:clamp(11px,1.4vw,15px);color:#ebe3ff;margin-top:7px}
+.styles{margin-top:10px}
+.styles .pill{font-size:13px}
+.catalog{margin-top:clamp(48px,7vw,90px);scroll-margin-top:125px}
+h2{font-size:clamp(38px,5vw,60px);margin:0 0 14px}
+.catalog-bar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:15px}
+.catalog input{font:inherit;padding:10px 13px;width:min(100%,290px);border:1px solid var(--edge);border-radius:8px;background:var(--surface);color:var(--heading)}
+.catalog input::placeholder{color:var(--copy)}
+.entries{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.entry{display:grid;grid-template-columns:auto 1fr auto;align-items:start;gap:12px;padding:16px;background:var(--surface);border:1px solid var(--edge);border-radius:12px;text-decoration:none;min-width:0}
+.entry:hover,.actions a:hover{border-color:var(--action)}
+.entry h3{font-size:17px;margin:0 0 4px;line-height:1.2}
+.entry p{font-size:14px;color:var(--copy);margin:0}
+.entry-icon,.arrow{color:var(--action)}
+.entry-icon{font-size:21px;line-height:1}
+.empty{color:var(--copy);padding:15px 0}
+.guide{margin-top:42px;padding:16px 0;border-top:1px solid var(--edge);color:var(--copy)}
+.guide summary{cursor:pointer;font-weight:700;color:var(--heading)}
+.guide ol{margin:10px 0 0;padding-left:22px;line-height:1.65}
+@media(max-width:850px){.entries{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:680px){.hero{grid-template-columns:1fr;gap:24px}.appearance{margin-bottom:8px}.catalog{scroll-margin-top:150px}}
+@media(max-width:470px){.entries{grid-template-columns:1fr}.catalog input{width:100%}.sample{width:52%}}
+body:not(.day){--surface:#111831;--canvas:#080c21;--edge:#293765;--action:#a4c7ff;background:radial-gradient(ellipse at 75% 8%,#172750 0,transparent 38rem),var(--canvas)}
+main{position:relative;isolation:isolate}
+main::before{content:"";position:absolute;z-index:-1;pointer-events:none;inset:0;background-image:radial-gradient(circle at 13px 19px,#aec9ff9c 1px,transparent 1.8px),radial-gradient(circle at 47px 35px,#7289d478 1px,transparent 1.8px),radial-gradient(circle at 93px 75px,#7bb5ff95 1px,transparent 2px);background-size:137px 109px,167px 149px,233px 173px;mask-image:linear-gradient(#000,transparent 85%);opacity:.28}
+body.day main::before{opacity:.12}
+.demo{box-shadow:0 14px 54px #4d7cff22,inset 0 1px #83b2ff30}
+.stage[data-active="powers"] canvas{opacity:0}
+.stage[data-active="powers"]{background:radial-gradient(ellipse at 72% 50%,#101740,#070827 72%)}
+.powers-art{display:none;position:absolute;inset:0 0 0 auto;width:74%;height:100%;object-fit:contain;object-position:right center;z-index:-1}
+.stage[data-active="powers"] .powers-art{display:block}
+.stage .powers-glitch{display:none;pointer-events:none}
+.stage[data-active="powers"][data-motion="true"] .powers-glitch{display:block;opacity:0;animation:powers-glitch 5s linear infinite}
+@keyframes powers-glitch{
+  0%,70%,77%,100%{opacity:0;transform:none}
+  71%{opacity:.85;clip-path:inset(27% 0 62% 15%);transform:translateX(7px);filter:hue-rotate(26deg) saturate(1.65)}
+  73%{opacity:.75;clip-path:inset(53% 0 37% 25%);transform:translateX(-5px);filter:hue-rotate(-28deg) saturate(1.65)}
+  75%{opacity:.8;clip-path:inset(70% 0 20% 20%);transform:translateX(9px);filter:hue-rotate(35deg) saturate(1.55)}
+}
+@media(prefers-reduced-motion:reduce){.stage[data-active="powers"][data-motion="true"] .powers-glitch{display:none}}
+.stage[data-active="powers"] .sample{width:min(36%,190px);margin-left:5%;background:#0b1028db}
+.stage[data-active="powers"]::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(90deg,#070c1a65,transparent 75%), repeating-linear-gradient(0deg,transparent 0 3px,#6fc8ff0c 4px 5px)}
+.stage[data-active="powers"][data-motion="true"]::after{animation:screen-glow 5s ease-in-out infinite alternate}
+@keyframes screen-glow{from{opacity:.3}to{opacity:.85}}
+.sample{background:#0c1324a3;border-color:#a6caff54;box-shadow:inset 0 1px #a6caff30}
+.flat,.pill,.actions a,.entry{transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,background-color .18s ease}
+.flat:hover,.pill:hover,.actions a:hover{transform:translateY(-2px);border-color:var(--action);box-shadow:0 5px 18px #597cfd36}
+.entry{position:relative;min-height:96px}
+.entry:hover,.entry:focus-visible,.entry:focus-within{transform:translateY(-3px);border-color:var(--action);box-shadow:0 12px 25px #537dff2b;z-index:2}
+.entry .arrow{transition:transform .18s ease}
+.entry:hover .arrow,.entry:focus-visible .arrow{transform:translate(2px,-2px)}
+.card-preview{display:grid;grid-column:1/-1;position:absolute;left:10px;right:10px;top:calc(100% + 3px);pointer-events:none;visibility:hidden;opacity:0;transform:translateY(-4px);transition:opacity .2s ease,transform .2s ease}
+.entry:hover .card-preview,.entry:focus .card-preview{visibility:visible;opacity:1;transform:none}
+.card-preview-inner{min-height:0;overflow:hidden}
+.mini{min-height:76px;display:flex;align-items:center;justify-content:center;gap:14px;overflow:hidden;position:relative;border-radius:8px;background:radial-gradient(ellipse at 72% 120%,#373d9a,transparent 67%),#0c142a;color:#edf6ff;border:1px solid #6a91e54a}
+.mini strong{color:#def2ff;letter-spacing:.04em}
+.mini small{color:#c0cdea}
+.mini-profile{background:linear-gradient(110deg,#091226,#142f62a6),url("assets/eco-glitch.jpg") right center/cover}
+.mini-profile strong{padding:6px 10px;background:#1b294a;box-shadow:0 0 15px #6bbdff4d;border-radius:7px}
+.mini-glow strong{font-size:1.35em;color:#f8e4ff;text-shadow:0 0 10px #ed87ff,0 0 22px #a470ff}
+.mini-sunset{background:linear-gradient(0deg,#171335 13%,#5e257c 50%,#121337 95%)}
+.mini-sunset::before{content:"";position:absolute;width:48px;aspect-ratio:1;border-radius:50%;top:13px;background:repeating-linear-gradient(0deg,#ff9b87 0 5px,#f3578a 6px 8px);opacity:.8}
+.mini-sunset strong{z-index:1;text-shadow:0 2px 10px #0a0d20}
+.mini-bars{background:radial-gradient(ellipse at 80% 65%,#3156a9,#0c142a 71%)}
+.mini-bars strong{letter-spacing:.22em;color:#69e4ff;text-shadow:0 0 8px #63caff}
+.mini-icons strong{font-size:1.35em;letter-spacing:.12em}
+@media(hover:none){.card-preview{position:static;visibility:visible;opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.flat,.pill,.actions a,.entry,.arrow,.card-preview{transition:none}.stage[data-active="powers"]::after{animation:none!important}}
 
-h2.sec{font-size:clamp(22px,2.4vw,30px);margin:0 0 6px}
-p.secd{color:var(--mute);margin-bottom:20px}
-.ready{display:grid;grid-template-columns:1.4fr 1fr;grid-template-rows:auto auto;gap:18px;margin-bottom:56px}
-.tool{position:relative;display:flex;flex-direction:column;text-decoration:none;background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden}
-.tool:hover{border-color:#4a5199}
-.tool:first-child{grid-row:span 3}
-.tool .pv{position:relative;flex:1;min-height:170px;background:var(--deep)}
-.tool .pv canvas{position:absolute;inset:0;width:100%;height:100%}
-.tool .tx{padding:16px 18px 18px}
-.tool h3{font-size:21px}
-.tool p{color:var(--mute);font-size:14px;margin-top:4px}
-.namedemo{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:12px;flex-direction:column;font-family:'Outfit',system-ui,sans-serif}
-.namedemo span{font-size:clamp(26px,3vw,40px);font-weight:700}
-.namedemo code{font-size:12px;color:#cfe0ff;background:rgba(0,0,0,.3);padding:5px 10px;border-radius:8px}
-.next{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:2px 28px;margin-bottom:20px}
-.next div{padding:12px 0;border-top:1px solid var(--line)}
-.next b{font-weight:600}
-.next p{color:var(--mute);font-size:14px}
-.next a{text-decoration:none}.next a:hover b{color:var(--peach)}
-@media (max-width:980px){.hero{grid-template-columns:1fr}.ready{grid-template-columns:1fr}.tool:first-child{grid-row:auto}.tool .pv{min-height:200px}}
+
+.news-strip{display:flex;align-items:center;flex-wrap:wrap;gap:12px 18px;padding:14px 15px;margin-top:22px;border-radius:14px;background:var(--surface);border:1px solid var(--edge)}
+.news-strip h2{font:700 14px/1.2 "Outfit",system-ui,sans-serif;margin:0;color:var(--heading)}
+.news-links{display:flex;gap:8px;flex-wrap:wrap}
+.news-links a{display:inline-flex;align-items:center;gap:8px;border-radius:999px;text-decoration:none;padding:7px 12px;background:var(--canvas);font-size:13px}
+.news-links a span{color:var(--action)}
+.pawn-fleet{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-left:auto;padding-left:8px}
+.pawn-orb{height:32px;width:32px;border-radius:50%;position:relative;display:grid;place-items:center;background:radial-gradient(circle at 32% 25%,#d7f3ff6b,transparent 55%),#14234f;box-shadow:inset 0 0 8px var(--orb),0 0 10px #9ac3ff35}
+.pawn-orb:nth-child(1){--orb:#e38cff;transform:translateY(2px) rotate(-13deg)}
+.pawn-orb:nth-child(2){--orb:#8fedff;transform:translateY(-3px)}
+.pawn-orb:nth-child(3){--orb:#a5a1ff;transform:translateY(2px) rotate(13deg)}
+.pawn-orb i{display:block;width:13px;height:16px;position:relative;filter:drop-shadow(0 0 3px var(--orb))}
+.pawn-orb i::before,.pawn-orb i::after{content:"";position:absolute;left:50%;transform:translateX(-50%);background:linear-gradient(120deg,#fff 0%,var(--orb) 42%,#32568e 100%)}
+.pawn-orb i::before{top:0;border-radius:50%;width:6px;height:6px}
+.pawn-orb i::after{bottom:1px;border-radius:55% 55% 25% 25%;width:10px;height:8px}
+.pawn-star{color:var(--action);text-shadow:0 0 9px #69bdff;font-size:13px}
+.stage[data-active="powers"][data-motion="true"] .stage-stars{animation:xhaz-starlight 6s ease-in-out infinite}
+.stage-stars{display:none;position:absolute;inset:0;pointer-events:none;z-index:1;color:#ebf5ff;text-shadow:0 0 9px #7fc5ff}
+.stage[data-active="powers"] .stage-stars{display:block}
+.stage-stars span{position:absolute;font-size:11px}
+.stage-stars span:nth-child(1){top:17%;left:17%}
+.stage-stars span:nth-child(2){top:25%;right:6%;font-size:15px}
+.stage-stars span:nth-child(3){bottom:14%;left:12%}
+.stage-stars span:nth-child(4){top:9%;left:50%}
+@keyframes xhaz-starlight{0%,100%{opacity:.35}50%{opacity:.9}}
+@media(max-width:540px){.pawn-fleet{margin-left:0}.news-strip{gap:9px 12px}}
+@media(prefers-reduced-motion:reduce){.stage[data-active="powers"][data-motion="true"] .stage-stars{animation:none}}
+
+.night-sky{display:none}
+body:not(.day) .night-sky{display:block;position:absolute;inset:0 0 auto;height:clamp(690px,105vw,1100px);overflow:hidden;pointer-events:none;z-index:-1;mask-image:linear-gradient(#000 0 75%,transparent)}
+.night-planet{position:absolute;top:1%;right:26%;width:clamp(98px,16vw,205px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 32% 24%,#385c9b,#192f68 25%,#101c44 49%,#0b132e 67%);box-shadow:inset 3px 2px 10px #8dcbff43,0 0 48px #668cff30;opacity:.6}
+.night-orbit{position:absolute;top:44%;left:-27%;width:155%;height:25%;border:1px solid #94b6e976;border-radius:50%;transform:rotate(-27deg)}
+.night-orbit::after{content:"";position:absolute;right:12%;bottom:8%;width:4px;height:4px;border-radius:50%;background:#c9e5ff;box-shadow:0 0 10px #99c9ff}
+.night-sky .star{position:absolute;color:#cce5ff;font-size:11px;text-shadow:0 0 8px #85b7ff;opacity:.6;animation:night-twinkle 6s ease-in-out infinite alternate}
+.night-sky .star:nth-of-type(1){top:11%;left:12%}
+.night-sky .star:nth-of-type(2){top:17%;left:43%;animation-delay:-3s}
+.night-sky .star:nth-of-type(3){top:38%;left:4%;animation-delay:-2s}
+.night-sky .star:nth-of-type(4){top:63%;right:9%;animation-delay:-4s}
+.night-sky .meteor{position:absolute;top:12%;left:62%;width:78px;height:1px;background:linear-gradient(90deg,transparent,#97c1ffc0,#e2f2ff);transform:rotate(-24deg);opacity:0;animation:night-meteor 19s linear infinite}
+.night-sky .meteor+.meteor{top:49%;left:15%;width:53px;animation-delay:-10s;animation-duration:27s}
+@keyframes night-twinkle{from{opacity:.22}to{opacity:.72}}
+@keyframes night-meteor{0%,86%{opacity:0;transform:translate(0,0) rotate(-24deg)}88%{opacity:.72}92%,100%{opacity:0;transform:translate(110px,-49px) rotate(-24deg)}}
+@media(max-width:680px){.night-planet{top:36px;right:8%;opacity:.43}}
+@media(prefers-reduced-motion:reduce){.night-sky .star{animation:none}.night-sky .meteor{display:none}}
 </style>
 </head>
 <body>
 <header class="top"></header>
 <main>
-  <section class="hero">
+  <div class="night-sky" aria-hidden="true">
+    <div class="night-planet"><div class="night-orbit"></div></div>
+    <span class="star">✦</span><span class="star">✧</span><span class="star">✧</span><span class="star">✦</span>
+    <span class="meteor"></span><span class="meteor"></span>
+  </div>
+  <div class="appearance"><button class="flat" id="theme" type="button" aria-pressed="false">Modo día</button></div>
+  <section class="hero" aria-labelledby="home-title">
     <div>
-      <h1 data-en="Make your xat look like you.">Haz que tu xat se vea como tú.</h1>
-      <p data-en="Animated backgrounds, 2D and 3D GIFs, name and status codes. Everything is made in your browser, sized for xat, free and with no sign-up.">Fondos animados, GIFs 2D y 3D, códigos de nombre y status. Todo se crea en tu navegador, a la medida de xat, gratis y sin registro.</p>
-      <div class="cta">
-        <a class="btn" href="fondos/" data-en="Make a background">Crear un fondo</a>
-        <a class="btn ghost" href="texto/" data-en="Animate my name">Animar mi nombre</a>
+      <h1 id="home-title">xHaz Tools<span data-en="Create for xat">Crea para xat</span></h1>
+      <p data-en="Design your profile and room. Preview your edits, then download a GIF or copy the code for xat.">Diseña tu perfil y tu sala. Prueba tus cambios y descarga un GIF o copia el código para xat.</p>
+      <div class="actions">
+        <a href="space/" data-en="Design my profile">Diseñar mi perfil</a>
+        <a href="#herramientas" data-filter="sala" data-en="Customize my room">Personalizar mi sala</a>
       </div>
     </div>
-    <div class="scene" aria-label="Ejemplo: un fondo creado aquí con el chat de xat encima">
-      <canvas id="heroCv"></canvas>
-      <div class="xchat" aria-hidden="true">
-        <div class="msgs">
-          <div class="m"><i style="background:linear-gradient(135deg,#ffd0e8,#e854af)"></i><div><b class="gname">xHaz</b><span data-en="this background was made in xHaz Tools">este fondo lo hice en xHaz Tools</span></div></div>
-          <div class="m"><i style="background:linear-gradient(135deg,#bfe3ff,#4d7cff)"></i><div><b>Visitante</b><span data-en="it moves! how?">¡se mueve! ¿cómo?</span></div></div>
-        </div>
-        <div class="ul"><span class="u"><span class="gname">xHaz</span></span><span class="u" style="--pc:#5b8cff">Visitante</span><span class="u" style="--pc:#5b8cff">Invitado</span></div>
-        <div class="in" data-en="Type here…">Escribe aquí…</div>
+    <div class="demo" id="demo">
+      <div class="demo-bar">
+        <span data-en="Live background preview">Demostración de fondos</span>
+        <button class="flat" type="button" id="motion" aria-pressed="false">Pausar</button>
       </div>
-      <span class="tag" id="heroTag"></span>
+      <div class="stage" id="demo-stage" data-active="powers">
+        <canvas id="heroCv" aria-hidden="true"></canvas>
+        <img class="powers-art" src="assets/personaje-powers.png" alt="" width="580" height="348">
+        <img class="powers-art powers-glitch" src="assets/personaje-powers.png" alt="" aria-hidden="true" width="580" height="348">
+        <div class="stage-stars" aria-hidden="true"><span>✧</span><span>✦</span><span>✧</span><span>✦</span></div>
+        <div class="sample" aria-hidden="true"><strong>xHAZ</strong><span data-en="Profile preview">Vista de perfil</span></div>
+      </div>
+      <div class="styles">
+        <button class="pill" data-scene="powers" type="button" aria-pressed="true" data-en="xat Powers">Powers de xat</button>
+        <button class="pill" data-scene="eco" type="button" aria-pressed="false" data-en="Glitch echo">Eco glitch</button>
+        <button class="pill" data-scene="orbital" type="button" aria-pressed="false" data-en="Orbital robot">Robot orbital</button>
+        <button class="pill" data-scene="azulOro" type="button" aria-pressed="false" data-en="Blue and gold">Azul y oro</button>
+        <button class="pill" data-scene="seda" type="button" aria-pressed="false" data-en="Purple silk">Seda morada</button>
+        <button class="pill" data-scene="synthwave" type="button" aria-pressed="false" data-en="Miami neon">Neón Miami</button>
+        <button class="pill" data-scene="niebla" type="button" aria-pressed="false" data-en="Mist">Niebla</button>
+      </div>
     </div>
   </section>
 
-  <h2 class="sec" data-en="Ready to use">Listas para usar</h2>
-  <p class="secd" data-en="What you see in each one is being drawn right now.">Lo que ves en cada una se está dibujando en este momento.</p>
-  <section class="ready">
-    <a class="tool" href="fondos/">
-      <div class="pv"><canvas id="pvF"></canvas></div>
-      <div class="tx"><h3 data-en="Background maker">Creador de fondos</h3><p data-en="12 styles, including a 4D tesseract. Chat, PCBack, Pstyle, banner, outer and mobile backgrounds, as an image or animated GIF.">12 estilos, incluido un teseracto 4D. Fondos de chat, PCBack, Pstyle, banner, exterior y móvil, en imagen o GIF animado.</p></div>
-    </a>
-    <a class="tool" href="texto/">
-      <div class="pv"><canvas id="pvT"></canvas></div>
-      <div class="tx"><h3 data-en="2D/3D animated text">Texto animado 2D/3D</h3><p data-en="Your name with wave, turn with depth, orbit or hologram, as a GIF for your avatar or banner.">Tu nombre con onda, giro con volumen, órbita u holograma, en GIF para tu avatar o banner.</p></div>
-    </a>
-    <a class="tool" href="nombre/">
-      <div class="pv"><div class="namedemo"><span class="gname">xHaz</span><code>(glow#0#grad#FFBAED#E854AF)</code></div></div>
-      <div class="tx"><h3 data-en="Name and status">Nombre y status</h3><p data-en="Glow, color, gradient, wave and flag for your name; glow, color and Statusfx for your status.">Brillo, color, degradado, onda y bandera para tu nombre; brillo, color y Statusfx para tu status.</p></div>
-    </a>
-    <a class="tool" href="letras/">
-      <div class="pv"><div class="namedemo"><span style="font-size:clamp(22px,2.4vw,32px);font-family:system-ui,sans-serif">꧁ 𝔵ℌ𝔞𝔷 ꧂ · 𝐱𝐇𝐚𝐳 · ⓧⒽⓐⓩ</span></div></div>
-      <div class="tx"><h3 data-en="Letters for your nick">Letras para nick</h3><p data-en="28 Unicode styles, frames, symbols, kaomojis and a builder for your nick.">28 estilos Unicode, marcos, símbolos, kaomojis y un armador para tu nick.</p></div>
-    </a>
+  <section class="news-strip" aria-labelledby="news-title">
+    <h2 id="news-title" data-en="Explore xat">Explora xat</h2>
+    <div class="news-links">
+      <a class="pill" href="pawns/"><span aria-hidden="true">✧</span><b data-en="Pawns and hats">Peones y hats</b></a>
+      <a class="pill" href="https://beta.xat.com/powers"><span aria-hidden="true">⚡</span><b data-en="Powers on xat Beta">Powers en xat Beta</b></a>
+      <a class="pill" href="tickets/"><span aria-hidden="true">✉</span><b data-en="Ticket guide">Guía de tickets</b></a>
+      <a class="pill" href="https://forum.xat.com/forum/3-announcements-and-feedback/"><span aria-hidden="true">✦</span><b data-en="Forum and news">Foro y novedades</b></a>
+    </div>
+    <div class="pawn-fleet" aria-hidden="true">
+      <span class="pawn-star">✧</span><span class="pawn-orb"><i></i></span><span class="pawn-orb"><i></i></span><span class="pawn-orb"><i></i></span><span class="pawn-star">✦</span>
+    </div>
   </section>
-
-  <h2 class="sec" data-en="Also ready">También listas</h2>
-  <section class="next" style="margin-bottom:56px">
-    <div><a href="disenos/"><b data-en="Backgrounds with a title">Fondos con título</b></a><p data-en="Metallic title over a themed scene, your photo and the smiley bar squares: for chatbox, PCBack and outer background.">Título metálico sobre una escena temática, tu foto y los cuadritos de smileys: para chatbox, PCBack y exterior.</p></div>
-    <div><a href="space/"><b data-en="xatspace generator">Generador de xatspace</b></a><p data-en="Your own xatspace with your photos, songs and links: you get the link ready for the xatframe field.">Tu propio xatspace con tus fotos, canciones y links: te da el link listo para el campo xatframe.</p></div>
-    <div><a href="avatar/"><b data-en="Avatar with shape and frame">Avatar con forma y marco</b></a><p data-en="Crop your photo into a circle, heart, star and more, with a still or animated frame.">Recorta tu foto en círculo, corazón, estrella y más, con marco quieto o animado.</p></div>
-    <div><a href="combos/"><b data-en="Combined smileys">Smileys combinados</b></a><p data-en="5,901 community combinations, animated, with the powers each one needs.">5.901 combinaciones de la comunidad, animadas, con los powers que necesita cada una.</p></div>
-    <div><a href="pawns/"><b data-en="Pawns, hats and smileys">Pawns, hats y smileys</b></a><p data-en="Try the active pawns next to your name and copy their code; search every smiley.">Prueba los pawns activos junto a tu nombre y copia su código; busca cualquier smiley.</p></div>
-    <div><a href="precios/"><b data-en="Fairtrade prices">Precios fairtrade</b></a><p data-en="Every power with its trade price, in xats or days.">Todos los powers con su precio de trade, en xats o días.</p></div>
-    <div><a href="precios/?tab=trade"><b data-en="Fair trade">Trade justo</b></a><p data-en="What you give against what you get: it tells you if the trade is fair.">Lo que das contra lo que recibes: te dice si el trade es justo.</p></div>
-    <div><a href="repros/"><b data-en="Players for your room">Repros para tu sala</b></a><p data-en="Design the music player for the tab under your chat, ready to upload to xatRadio.">Diseña el reproductor para la pestaña de abajo de tu chat, listo para subir a xatRadio.</p></div>
-    <div><a href="radio/"><b data-en="Free radio">Radio gratis</b></a><p data-en="Test your radio link, get the codes and see options without monthly fees.">Prueba el link de tu radio, saca los códigos y mira opciones sin mensualidad.</p></div>
+  <section class="catalog" id="herramientas" aria-labelledby="catalog-title">
+    <h2 id="catalog-title" data-en="Find a tool">Encuentra tu herramienta</h2>
+    <div class="catalog-bar">
+      <div class="filters" id="filters">
+        <button class="pill" type="button" data-filter="all" aria-pressed="true" data-en="All">Todas</button>
+        <button class="pill" type="button" data-filter="perfil" aria-pressed="false" data-en="Profile">Perfil</button>
+        <button class="pill" type="button" data-filter="sala" aria-pressed="false" data-en="Room">Sala</button>
+        <button class="pill" type="button" data-filter="recursos" aria-pressed="false" data-en="Resources">Recursos</button>
+      </div>
+      <input type="search" id="search" placeholder="Buscar herramienta…" aria-label="Buscar herramienta" data-en-ph="Find a tool…">
+    </div>
+    <div class="entries">
+      <a class="entry" href="space/" data-group="perfil" data-keywords="xatspace xatspace Crea tu perfil con fotos, música y enlaces. Build your profile with photos, music and links. perfil xatframe profile tumblr">
+        <span class="entry-icon" aria-hidden="true">◈</span>
+        <div><h3 data-en="xatspace">xatspace</h3><p data-en="Build your profile with photos, music and links.">Crea tu perfil con fotos, música y enlaces.</p></div>
+        <span class="arrow" aria-hidden="true">↗</span>
+        <span class="card-preview" aria-hidden="true"><span class="card-preview-inner mini-profile-wrap"><span class="mini mini-profile"><strong>xHAZ</strong><small>xatspace</small></span></span></span>
+      </a>
+      <a class="entry" href="avatar/" data-group="perfil" data-keywords="Avatares Avatars Recorta tu foto y ponle un marco animado. Crop your photo and add an animated frame. foto gif avatar">
+        <span class="entry-icon" aria-hidden="true">◈</span>
+        <div><h3 data-en="Avatars">Avatares</h3><p data-en="Crop your photo and add an animated frame.">Recorta tu foto y ponle un marco animado.</p></div>
+        <span class="arrow" aria-hidden="true">↗</span>
+        <span class="card-preview" aria-hidden="true"><span class="card-preview-inner mini-icons-wrap"><span class="mini mini-icons"><strong>◉</strong><small>GIF</small></span></span></span>
+      </a>
+      <a class="entry" href="nombre/" data-group="perfil" data-keywords="Nombre y estado Name and status Crea códigos de color, brillo y degradado. Create color, glow and gradient codes. nick namegrad nameglow status">
+        <span class="entry-icon" aria-hidden="true">◈</span>
+        <div><h3 data-en="Name and status">Nombre y estado</h3><p data-en="Create color, glow and gradient codes.">Crea códigos de color, brillo y degradado.</p></div>
+        <span class="arrow" aria-hidden="true">↗</span>
+        <span class="card-preview" aria-hidden="true"><span class="card-preview-inner mini-glow-wrap"><span class="mini mini-glow"><strong>xHaz</strong><small>namegrad</small></span></span></span>
+      </a>
+      <a class="entry" href="letras/" data-group="perfil" data-keywords="Letras para nick Nickname letters Combina letras Unicode, marcos y símbolos. Mix Unicode letters, frames and symbols. font fuentes símbolos">
+        <span class="entry-icon" aria-hidden="true">◈</span>
+        <div><h3 data-en="Nickname letters">Letras para nick</h3><p data-en="Mix Unicode letters, frames and symbols.">Combina letras Unicode, marcos y símbolos.</p></div>
+        <span class="arrow" aria-hidden="true">↗</span>
+        <span class="card-preview" aria-hidden="true"><span class="card-preview-inner mini-glow-wrap"><span class="mini mini-glow"><strong>꧁ 𝔵ℌ𝔞𝔷 ꧂</strong><small>Unicode</small></span></span></span>
+      </a>
+      <a class="entry" href="fondos/" data-group="sala" data-keywords="Fondos animados Animated backgrounds Exporta fondos para tu chat como imagen o GIF. Export chat backgrounds as images or GIFs. pcback outer pstyle banner">
+        <span class="entry-icon" aria-hidden="true">▧</span>
+        <div><h3 data-en="Animated backgrounds">Fondos animados</h3><p data-en="Export chat backgrounds as images or GIFs.">Exporta fondos para tu chat como imagen o GIF.</p></div>
+        <span class="arrow" aria-hidden="true">↗</span>
+        <span class="card-preview" aria-hidden="true"><span class="card-preview-inner mini-sunset-wrap"><span class="mini mini-sunset"><strong></strong><small>GIF</small></span></span></span>
+      </a>
+      <a class="entry" href="disenos/" data-group="sala" data-keywords="Fondos con título Titled backgrounds Diseña la imagen de tu sala en formato Inner, Outer o PCBack. Design your room artwork in Inner, Outer or PCBack format. banner pcback inner outer">
+        <span class="entry-icon" aria-hidden="true">▧</span>
+        <div><h3 data-en="Titled backgrounds">Fondos con título</h3><p data-en="Design your room artwork in Inner, Outer or PCBack format.">Diseña la imagen de tu sala en formato Inner, Outer o PCBack.</p></div>
+        <span class="arrow" aria-hidden="true">↗</span>
+        <span class="card-preview" aria-hidden="true"><span class="card-preview-inner mini-sunset-wrap"><span class="mini mini-sunset"><strong>xHAZ</strong><small>Inner · Outer</small></span></span></span>
+      </a>
+      <a class="entry" href="texto/" data-group="sala" data-keywords="Texto animado 2D/3D 2D/3D animated text Anima un nombre o título y guárdalo como GIF. Animate a name or title and save it as a GIF. nombre texto gif">
+        <span class="entry-icon" aria-hidden="true">▧</span>
+        <div><h3 data-en="2D/3D animated text">Texto animado 2D/3D</h3><p data-en="Animate a name or title and save it as a GIF.">Anima un nombre o título y guárdalo como GIF.</p></div>
+        <span class="arrow" aria-hidden="true">↗</span>
+        <span class="card-preview" aria-hidden="true"><span class="card-preview-inner mini-glow-wrap"><span class="mini mini-glow"><strong>xHAZ</strong><small>GIF 2D / 3D</small></span></span></span>
+      </a>
+      <a class="entry" href="repros/" data-group="sala" data-keywords="Reproductores Players Diseña un reproductor para la pestaña de tu sala. Design a player for your room tab. repros xatradio música">
+        <span class="entry-icon" aria-hidden="true">▧</span>
+        <div><h3 data-en="Players">Reproductores</h3><p data-en="Design a player for your room tab.">Diseña un reproductor para la pestaña de tu sala.</p></div>
+        <span class="arrow" aria-hidden="true">↗</span>
+        <span class="card-preview" aria-hidden="true"><span class="card-preview-inner mini-bars-wrap"><span class="mini mini-bars"><strong>▂▅▃▆▇▂</strong><small>xatRadio</small></span></span></span>
+      </a>
+      <a class="entry" href="radio/" data-group="sala" data-keywords="Radio Radio Prueba el enlace de tu radio y genera su código. Test your radio stream and generate its code. stream audio">
+        <span class="entry-icon" aria-hidden="true">▧</span>
+        <div><h3 data-en="Radio">Radio</h3><p data-en="Test your radio stream and generate its code.">Prueba el enlace de tu radio y genera su código.</p></div>
+        <span class="arrow" aria-hidden="true">↗</span>
+        <span class="card-preview" aria-hidden="true"><span class="card-preview-inner mini-bars-wrap"><span class="mini mini-bars"><strong>●  ◉  ▂▅▇</strong><small>Streaming</small></span></span></span>
+      </a>
+      <a class="entry" href="pawns/" data-group="recursos" data-keywords="Pawns, hats y smileys Pawns, hats and smileys Previsualiza peones y sombreros y copia sus códigos. Preview pawns and hats and copy their codes. muñecos peones">
+        <span class="entry-icon" aria-hidden="true">✦</span>
+        <div><h3 data-en="Pawns, hats and smileys">Pawns, hats y smileys</h3><p data-en="Preview pawns and hats and copy their codes.">Previsualiza peones y sombreros y copia sus códigos.</p></div>
+        <span class="arrow" aria-hidden="true">↗</span>
+        <span class="card-preview" aria-hidden="true"><span class="card-preview-inner mini-icons-wrap"><span class="mini mini-icons"><strong>♟  ♜  ✧</strong><small>Pawns</small></span></span></span>
+      </a>
+      <a class="entry" href="combos/" data-group="recursos" data-keywords="Smileys combinados Combined smileys Explora combinaciones y los powers que usan. Explore combinations and the powers they use. emoticonos combos">
+        <span class="entry-icon" aria-hidden="true">✦</span>
+        <div><h3 data-en="Combined smileys">Smileys combinados</h3><p data-en="Explore combinations and the powers they use.">Explora combinaciones y los powers que usan.</p></div>
+        <span class="arrow" aria-hidden="true">↗</span>
+        <span class="card-preview" aria-hidden="true"><span class="card-preview-inner mini-icons-wrap"><span class="mini mini-icons"><strong>☺  ✦  ♡</strong><small>Smileys</small></span></span></span>
+      </a>
+      <a class="entry" href="precios/" data-group="recursos" data-keywords="Precios Fairtrade Fairtrade prices Consulta precios de powers en xats y días. Check power prices in xats and days. precio powers">
+        <span class="entry-icon" aria-hidden="true">✦</span>
+        <div><h3 data-en="Fairtrade prices">Precios Fairtrade</h3><p data-en="Check power prices in xats and days.">Consulta precios de powers en xats y días.</p></div>
+        <span class="arrow" aria-hidden="true">↗</span>
+        <span class="card-preview" aria-hidden="true"><span class="card-preview-inner mini-bars-wrap"><span class="mini mini-bars"><strong>◇</strong><small>xats · days</small></span></span></span>
+      </a>
+      <a class="entry" href="precios/?tab=trade" data-group="recursos" data-keywords="Trade justo Fair trade Compara lo que das y lo que recibes. Compare what you give and what you get. intercambio trade">
+        <span class="entry-icon" aria-hidden="true">✦</span>
+        <div><h3 data-en="Fair trade">Trade justo</h3><p data-en="Compare what you give and what you get.">Compara lo que das y lo que recibes.</p></div>
+        <span class="arrow" aria-hidden="true">↗</span>
+        <span class="card-preview" aria-hidden="true"><span class="card-preview-inner mini-bars-wrap"><span class="mini mini-bars"><strong>◇ ↔ ◇</strong><small>Trade</small></span></span></span>
+      </a>
+      <a class="entry" href="tickets/" data-group="recursos" data-keywords="guia ticket soporte ayuda support cuenta bloqueada correo">
+        <span class="entry-icon" aria-hidden="true">✉</span>
+        <div><h3 data-en="Ticket guide">Guía de tickets</h3><p data-en="Choose a support topic and copy an example in English.">Elige la categoría de soporte y copia un ejemplo en inglés.</p></div>
+        <span class="arrow" aria-hidden="true">↗</span>
+        <span class="card-preview" aria-hidden="true"><span class="card-preview-inner"><span class="mini"><strong>✉</strong><small>Help Topic</small></span></span></span>
+      </a>
+      <a class="entry" href="arcade/" data-group="recursos" data-keywords="arcade juegos games plataforma laberinto pinball">
+        <span class="entry-icon" aria-hidden="true">✦</span>
+        <div><h3 data-en="Arcade">Arcade</h3><p data-en="Play three original games with keyboard or touch controls.">Juega tres minijuegos originales con teclado o pantalla táctil.</p></div>
+        <span class="arrow" aria-hidden="true">↗</span>
+        <span class="card-preview" aria-hidden="true"><span class="card-preview-inner"><span class="mini mini-icons"><strong>◆ ⌁ ◉</strong><small>Arcade</small></span></span></span>
+      </a>
+      <a class="entry" href="https://wiki.xat.com/Images" data-group="recursos" data-keywords="wiki xat medidas dimensiones imágenes inner outer avatar recursos">
+        <span class="entry-icon" aria-hidden="true">✦</span>
+        <div><h3 data-en="xat Wiki image guide">Guía de imágenes de xat</h3><p data-en="Check recommended image dimensions and how to use a direct link.">Consulta las medidas recomendadas y cómo usar un enlace directo.</p></div>
+        <span class="arrow" aria-hidden="true">↗</span>
+        <span class="card-preview" aria-hidden="true"><span class="card-preview-inner"><span class="mini"><strong>728 × 486</strong><small>Inner</small></span></span></span>
+      </a>
+    </div>
+    <p id="empty" class="empty" role="status" hidden data-en="No tools match your search.">No hay herramientas que coincidan con tu búsqueda.</p>
   </section>
-
-  <h2 class="sec" data-en="Coming soon">Lo que viene</h2>
-  <p class="secd" data-en="Tools nobody has made yet, with live xat data.">Herramientas que nadie tiene todavía, con datos de xat en vivo.</p>
-  <section class="next">
-    <div><b data-en="Price history">Historial de precios</b><p data-en="How each power's trade price moves over time.">Cómo sube o baja el precio de trade de cada power con el tiempo.</p></div>
-    <div><b data-en="Rarity index">Índice de rareza</b><p data-en="Units released versus price: which powers are cheap for how scarce they are.">Unidades liberadas contra precio: qué powers están baratos para lo escasos que son.</p></div>
-    <div><b>Pawn World</b><p data-en="The active pawns, alive and walking: tap one to copy its code.">Los pawns activos, vivos y caminando: toca uno para copiar su código.</p></div>
-    <div><b data-en="Countdown">Cuenta regresiva</b><p data-en="Count power codes with colors, ready to paste.">Códigos del power Count con colores, listos para pegar.</p></div>
-  </section>
+  <details class="guide">
+    <summary data-en="How do I use my design in xat?">¿Cómo uso mi diseño en xat?</summary>
+    <ol>
+      <li data-en="Choose the format in the editor, such as Inner, Outer or PCBack.">Elige el formato en el editor, por ejemplo Inner, Outer o PCBack.</li>
+      <li data-en="Adjust your design in the preview before exporting.">Ajusta tu diseño en la vista previa antes de exportarlo.</li>
+      <li data-en="Download the file or copy the link or code the editor gives you.">Descarga el archivo o copia el enlace o código que te da el editor.</li>
+    </ol>
+    <p><a href="https://wiki.xat.com/Images" data-en="Recommended image sizes on xat wiki">Medidas recomendadas en la wiki de xat</a></p>
+  </details>
 </main>
 <footer class="foot"></footer>
-
 <script type="module">
 import { shell, L } from './assets/core.js';
 import { STYLES, PALETTES, finish } from './assets/art.js';
-shell('home');
 
-// Escenario principal: rota entre estilos cada 7 s
-const HERO = [['seda', 'luna'], ['agujero', 'noche'], ['tinta', 'rubi'], ['teseracto', 'lavanda'], ['eclipse', 'brasa'], ['synthwave', 'vice'], ['hud', 'oceano'], ['aurora', 'noche'], ['vidrio', 'vice'], ['glitch', 'glitch'], ['umbral', 'glitch']];
-function fit(cv) {
-  const r = cv.getBoundingClientRect(), k = Math.min(1.5, devicePixelRatio || 1);
-  const w = Math.max(2, Math.round(r.width * k)), h = Math.max(2, Math.round(r.height * k));
-  if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
-}
-const heroCv = document.getElementById('heroCv'), pvF = document.getElementById('pvF'), pvT = document.getElementById('pvT');
-const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-let t0 = performance.now();
-function frame(now) {
-  const t = Math.max(0, now - t0) / 1000;
-  const idx = Math.floor(t / 7) % HERO.length, [st, pal] = HERO[idx], c = PALETTES[pal];
-  const o = { bg: c[0], c: [c[1], c[2], c[3]], density: .55, speed: 1, seed: 7 };
-  const p = reduce ? .2 : (t / 6) % 1;
-  for (const cv of [heroCv, pvF]) {
-    fit(cv);
-    const x = cv.getContext('2d');
-    const [s2, p2] = cv === pvF ? HERO[(idx + 2) % HERO.length] : [st, pal];
-    const cc = PALETTES[p2];
-    STYLES[s2].draw(x, cv.width, cv.height, p, { ...o, bg: cc[0], c: [cc[1], cc[2], cc[3]] });
-    finish(x, cv.width, cv.height, { vignette: .35 });
+shell('home');
+const search = document.getElementById('search');
+search.setAttribute('aria-label', L('Buscar herramienta', 'Find a tool'));
+const entries = [...document.querySelectorAll('.entry')];
+const lang = new URLSearchParams(location.search).get('lang');
+if (lang) {
+  for (const link of document.querySelectorAll('.entry, .actions a[href="space/"], .news-links a')) {
+    const url = new URL(link.href);
+    if (url.origin !== location.origin) continue;
+    url.searchParams.set('lang', lang);
+    link.href = url.href;
   }
-  document.getElementById('heroTag').textContent = L('Estilo: ', 'Style: ') + L(STYLES[st].es, STYLES[st].en);
-  // texto 3D de muestra
-  fit(pvT);
-  const x = pvT.getContext('2d'), w = pvT.width, h = pvT.height;
-  x.fillStyle = '#121430'; x.fillRect(0, 0, w, h);
-  const ang = reduce ? .3 : Math.sin(t * 2.4) * .6, fs = Math.min(h * .42, w * .22);
-  x.save(); x.translate(w / 2, h / 2); x.transform(Math.cos(ang), Math.sin(ang) * .12, 0, 1, 0, 0);
-  x.font = `800 ${fs}px "Bricolage Grotesque", "Outfit", system-ui, sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle';
-  const d = Math.round(fs * .16);
-  for (let i = d; i > 0; i--) { x.fillStyle = `rgb(${30 + (d - i) * 3},${40 + (d - i) * 4},${110 + (d - i) * 5})`; x.fillText('xHaz', -Math.sin(ang) * i * .9, i * .7); }
-  const g = x.createLinearGradient(-fs * 1.4, 0, fs * 1.4, 0); g.addColorStop(0, '#ffffff'); g.addColorStop(1, '#7fa2ff');
-  x.shadowColor = 'rgba(77,124,255,.9)'; x.shadowBlur = fs * .25; x.fillStyle = g; x.fillText('xHaz', 0, 0);
-  x.restore();
-  requestAnimationFrame(frame);
 }
-requestAnimationFrame(frame);
+const filters = [...document.querySelectorAll('#filters button')];
+let category = 'all';
+const normalize = text => text.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '').trim();
+function updateCatalog() {
+  const words = normalize(search.value).split(/\s+/).filter(Boolean);
+  let shown = 0;
+  for (const entry of entries) {
+    const keywords = normalize(entry.dataset.keywords);
+    entry.hidden = (category !== 'all' && entry.dataset.group !== category) || !words.every(word => keywords.includes(word));
+    if (!entry.hidden) shown++;
+  }
+  document.getElementById('empty').hidden = shown !== 0;
+}
+for (const control of document.querySelectorAll('[data-filter]')) {
+  control.addEventListener('click', () => {
+    category = control.dataset.filter;
+    for (const button of filters) button.setAttribute('aria-pressed', String(button.dataset.filter === category));
+    updateCatalog();
+  });
+}
+search.addEventListener('input', updateCatalog);
+
+const theme = document.getElementById('theme');
+let day = false;
+try { day = localStorage.getItem('xhaz-tools-theme') === 'day'; } catch {}
+function applyTheme() {
+  document.body.classList.toggle('day', day);
+  theme.setAttribute('aria-pressed', String(day));
+  theme.textContent = day ? L('Modo noche', 'Night mode') : L('Modo día', 'Day mode');
+}
+theme.addEventListener('click', () => {
+  day = !day;
+  applyTheme();
+  try { localStorage.setItem('xhaz-tools-theme', day ? 'day' : 'night'); } catch {}
+});
+applyTheme();
+
+const scenes = { eco: 'glitch', orbital: 'noche', azulOro: 'noche', seda: 'luna', synthwave: 'vice', niebla: 'oceano' };
+const canvas = document.getElementById('heroCv');
+const stage = document.getElementById('demo-stage');
+const ctx = canvas.getContext('2d');
+const motion = document.getElementById('motion');
+const buttons = [...document.querySelectorAll('[data-scene]')];
+let scene = 'powers';
+let paused = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let visible = true;
+let frame = 0;
+let phase = 0;
+let last = 0;
+function draw() {
+  if (scene === 'powers') return;
+  const scale = Math.min(1.5, devicePixelRatio || 1);
+  const width = Math.max(2, Math.round(canvas.clientWidth * scale));
+  const height = Math.max(2, Math.round(canvas.clientHeight * scale));
+  if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
+  const [bg, ...c] = PALETTES[scenes[scene]];
+  STYLES[scene].draw(ctx, width, height, phase, { bg, c, density: .55, speed: 1, seed: 7 });
+  finish(ctx, width, height, { vignette: .25 });
+}
+function tick(now) {
+  if (last) phase = (phase + Math.min(now - last, 50) / 6000) % 1;
+  last = now;
+  draw();
+  frame = requestAnimationFrame(tick);
+}
+function syncMotion() {
+  cancelAnimationFrame(frame);
+  last = 0;
+  motion.textContent = paused ? L('Animar', 'Play') : L('Pausar', 'Pause');
+  motion.setAttribute('aria-pressed', String(paused));
+  draw();
+  stage.dataset.motion = String(visible && !paused);
+  if (visible && !paused && scene !== 'powers') frame = requestAnimationFrame(tick);
+}
+for (const button of buttons) {
+  button.addEventListener('click', () => {
+    scene = button.dataset.scene;
+    stage.dataset.active = scene;
+    for (const choice of buttons) choice.setAttribute('aria-pressed', String(choice === button));
+    syncMotion();
+  });
+}
+motion.addEventListener('click', () => { paused = !paused; syncMotion(); });
+new ResizeObserver(draw).observe(canvas);
+new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; syncMotion(); }).observe(canvas);
+syncMotion();
 </script>
 </body>
 </html>

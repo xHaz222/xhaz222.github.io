@@ -64,6 +64,58 @@ function fillBg(ctx, w, h, o) {
   ctx.fillStyle = o.bg; ctx.fillRect(0, 0, w, h);
 }
 
+const ILLUSTRATIONS = {
+  eco: 'eco-glitch.jpg',
+  orbital: 'robot-orbital.jpg',
+};
+const artwork = new Map();
+export function loadArtImage(style) {
+  if (!Object.hasOwn(ILLUSTRATIONS, style)) return Promise.resolve(true);
+  if (!artwork.has(style)) {
+    const image = new Image();
+    image.src = new URL(ILLUSTRATIONS[style], import.meta.url).href;
+    const entry = { image, ready: false };
+    entry.loaded = image.decode().then(() => (entry.ready = true), () => false);
+    artwork.set(style, entry);
+  }
+  return artwork.get(style).loaded;
+}
+
+export function drawCover(ctx, image, w, h, focus = .5) {
+  const iw = image.naturalWidth || image.width, ih = image.naturalHeight || image.height;
+  const k = Math.max(w / iw, h / ih), dw = iw * k, dh = ih * k;
+  ctx.drawImage(image, (w - dw) * focus, (h - dh) / 2, dw, dh);
+}
+
+function illustrated(style, fallback) {
+  return (ctx, w, h, p, o) => {
+    const entry = artwork.get(style);
+    if (!entry?.ready) {
+      if (!entry) void loadArtImage(style);
+      STYLES[fallback].draw(ctx, w, h, p, o);
+      return;
+    }
+    drawCover(ctx, entry.image, w, h, .62);
+    const sweep = (Math.sin(TAU * p * o.speed) + 1) * h / 2;
+    const light = ctx.createLinearGradient(0, sweep - h * .12, 0, sweep + h * .12);
+    light.addColorStop(0, 'transparent');
+    light.addColorStop(.5, rgba(o.c[1], .16));
+    light.addColorStop(1, 'transparent');
+    ctx.fillStyle = light;
+    ctx.fillRect(0, 0, w, h);
+  };
+}
+
+function pawnShape(ctx) {
+  ctx.beginPath();
+  ctx.arc(-.015, -.205, .128, 0, TAU);
+  ctx.moveTo(-.18, .27);
+  ctx.bezierCurveTo(-.19, .18, -.13, .015, -.065, -.035);
+  ctx.quadraticCurveTo(0, -.09, .075, -.032);
+  ctx.bezierCurveTo(.14, .015, .19, .18, .18, .27);
+  ctx.quadraticCurveTo(0, .32, -.18, .27);
+}
+
 export const STYLES = {
   aurora: { es: 'Aurora', en: 'Aurora', draw(ctx, w, h, p, o) {
     fillBg(ctx, w, h, o);
@@ -578,6 +630,135 @@ export const STYLES = {
       ctx.strokeStyle = bd; ctx.lineWidth = 1.3 * s; ctx.beginPath(); ctx.roundRect(x + .5, y + .5, W - 1, H - 1, rr); ctx.stroke();
     }
   } },
+
+  eco: { es: 'Eco glitch', en: 'Glitch echo', draw: illustrated('eco', 'umbral') },
+  orbital: { es: 'Robot orbital', en: 'Orbital robot', draw: illustrated('orbital', 'hud') },
+  azulOro: { es: 'Azul y oro', en: 'Blue and gold', draw(ctx, w, h, p, o) {
+    const a = TAU * p * o.speed;
+    const sky = ctx.createLinearGradient(0, 0, 0, h);
+    sky.addColorStop(0, '#050817');
+    sky.addColorStop(.54, '#122962');
+    sky.addColorStop(1, '#040915');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, w, h);
+    stars(ctx, w, h * .51, p, o, 56, .37);
+
+    const cx = w * .66, cy = h * .58, r = Math.min(w, h);
+    const haze = ctx.createRadialGradient(cx, cy, r * .06, cx, cy, r * .74);
+    haze.addColorStop(0, '#d5992f66');
+    haze.addColorStop(.39, '#56549744');
+    haze.addColorStop(1, 'transparent');
+    ctx.fillStyle = haze;
+    ctx.fillRect(0, 0, w, h);
+
+    for (let tier = 0; tier < 4; tier++) {
+      const base = h * (.58 + tier * .103);
+      const curve = x => base + Math.sin(x / w * Math.PI) * h * .09;
+      ctx.beginPath();
+      ctx.moveTo(0, base + h * .075);
+      for (let i = 0; i <= 24; i++) ctx.lineTo(w * i / 24, curve(w * i / 24) + h * .075);
+      for (let i = 24; i >= 0; i--) ctx.lineTo(w * i / 24, curve(w * i / 24));
+      ctx.closePath();
+      ctx.fillStyle = tier % 2 ? '#091d4a' : '#0c2c66';
+      ctx.fill();
+      ctx.beginPath();
+      for (let i = 0; i <= 24; i++) {
+        const x = w * i / 24, y = curve(x);
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = tier === 1 ? '#ffcc4c' : '#678ed292';
+      ctx.lineWidth = Math.max(.8, h * (tier === 1 ? .012 : .003));
+      ctx.stroke();
+      const random = rng(130 + tier);
+      const dot = Math.max(1, r * .003);
+      for (let i = 0; i < 160; i++) {
+        const x = random() * w, y = curve(x) + h * (.012 + random() * .06);
+        ctx.fillStyle = random() > .66 ? '#ffd05cbd' : '#557ec3ae';
+        ctx.fillRect(x, y, dot, dot);
+      }
+    }
+    for (const [x, y] of [[w * .12, h * .43], [w * .83, h * .32]]) {
+      ctx.fillStyle = '#050818';
+      ctx.fillRect(x, y, Math.max(1, r * .007), h * .27);
+      const bloom = ctx.createRadialGradient(x, y, 0, x, y, r * .22);
+      bloom.addColorStop(0, '#dff3ffb5');
+      bloom.addColorStop(.25, '#84bbff47');
+      bloom.addColorStop(1, 'transparent');
+      ctx.fillStyle = bloom;
+      ctx.fillRect(x - r * .22, y - r * .22, r * .44, r * .44);
+      ctx.fillStyle = '#e2f4ff';
+      for (let row = 0; row < 2; row++) for (let col = -3; col <= 3; col++) {
+        ctx.fillRect(x + col * r * .016, y + row * r * .012, r * .011, r * .008);
+      }
+    }
+    for (let i = 0; i < 7; i++) {
+      const x = w * (.17 + i * .11) + Math.sin(a + i) * r * .065;
+      const y = h * (.68 - .07 * Math.sin(a + i * .9));
+      const radius = r * (.12 + (i % 3) * .041);
+      const smoke = ctx.createRadialGradient(x, y, 0, x, y, radius);
+      smoke.addColorStop(0, i % 2 ? '#f2ad454a' : '#5ba6ff49');
+      smoke.addColorStop(1, 'transparent');
+      ctx.fillStyle = smoke;
+      ctx.fillRect(x - radius, y - radius, 2 * radius, 2 * radius);
+    }
+    const floor = ctx.createLinearGradient(0, h * .82, 0, h);
+    floor.addColorStop(0, 'transparent');
+    floor.addColorStop(1, '#030817');
+    ctx.fillStyle = floor;
+    ctx.fillRect(0, h * .82, w, h * .18);
+  } },
+
+  pawnGlitch: { es: 'Peón glitch', en: 'Glitch pawn', draw(ctx, w, h, p, o) {
+    fillBg(ctx, w, h, o);
+    stars(ctx, w, h, p, o, 100, .48);
+    const x = w * .64, y = h * .5, s = Math.min(w, h);
+    const halo = ctx.createRadialGradient(x, y, s * .06, x, y, s * .68);
+    halo.addColorStop(0, rgba(o.c[1], .37));
+    halo.addColorStop(1, 'transparent');
+    ctx.fillStyle = halo;
+    ctx.fillRect(0, 0, w, h);
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(s, s);
+    const metal = ctx.createLinearGradient(-.15, -.28, .22, .27);
+    metal.addColorStop(0, '#ecfcff');
+    metal.addColorStop(.18, '#75f8e1');
+    metal.addColorStop(.47, '#3068a0');
+    metal.addColorStop(.78, '#362350');
+    metal.addColorStop(1, '#100e28');
+    pawnShape(ctx);
+    ctx.fillStyle = metal;
+    ctx.fill();
+    ctx.lineWidth = .006;
+    ctx.strokeStyle = '#95f3ff';
+    ctx.stroke();
+    ctx.save();
+    ctx.clip();
+    ctx.strokeStyle = '#ecfffcc2';
+    ctx.lineWidth = .008;
+    ctx.beginPath();
+    ctx.arc(-.014, -.205, .098, Math.PI * 1.03, Math.PI * 1.59);
+    ctx.stroke();
+    const r = rng(o.seed + 37), angle = TAU * p * o.speed;
+    for (let i = 0; i < 26; i++) {
+      const sy = r() * .64 - .34;
+      const shift = Math.floor((r() + .5) * 10) / 100;
+      const pulse = .5 + .5 * Math.sin(angle + i * 1.63);
+      ctx.fillStyle = rgba(o.bg, pulse * .77);
+      ctx.fillRect(shift - .07, sy, .21, .003 + r() * .018);
+    }
+    ctx.restore();
+    for (let i = 0; i < 58; i++) {
+      const sy = r() * .62 - .32;
+      const spread = .024 + r() ** 2 * .39;
+      const pulse = .5 + .5 * Math.sin(angle + i * 1.4);
+      ctx.fillStyle = rgba(o.c[i % 3], .12 + pulse * .65);
+      ctx.fillRect(spread + pulse * .029, sy, .009 + r() * .076, .003 + r() * .012);
+    }
+    ctx.restore();
+  } },
+
 
   umbral: { es: 'Umbral digital', en: 'Digital threshold', draw(ctx, w, h, p, o) {
     fillBg(ctx, w, h, o);

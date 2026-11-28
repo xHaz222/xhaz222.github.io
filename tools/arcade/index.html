@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arcade · xHaz Tools</title>
+<link rel="stylesheet" href="../assets/base.css">
+<style>
+main{max-width:930px}
+.deck{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0}
+.deck [aria-pressed="true"]{background:#405b9c;border-color:#86adff}
+.machine{max-width:690px;margin:auto;padding:clamp(12px,3vw,24px);border:1px solid #617cca67;border-radius:18px;background:linear-gradient(150deg,#161f3e,#121527);box-shadow:0 8px 45px #0a102c}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 12px}
+canvas{display:block;width:100%;height:auto;border:1px solid #576ca47a;border-radius:10px;background:#0a1024}
+.guide,#status{margin:12px 0 0;color:var(--mute);font-size:14px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.controls button{min-width:48px;min-height:42px;touch-action:manipulation}
+</style>
+</head>
+<body>
+<header class="top"></header>
+<main>
+  <div class="head"><h1>Arcade</h1><p data-en="Pick a game, then start a round with keyboard or touch controls.">Elige un juego y empieza una partida con el teclado o los controles táctiles.</p></div>
+  <div class="deck" id="games">
+    <button type="button" class="btn ghost" data-game="runner" aria-pressed="true">Salto orbital</button>
+    <button type="button" class="btn ghost" data-game="maze" aria-pressed="false">Laberinto neón</button>
+    <button type="button" class="btn ghost" data-game="pin" aria-pressed="false">Pinball Prisma</button>
+  </div>
+  <section class="machine" id="machine" tabindex="0">
+    <div class="toolbar"><strong id="score"></strong><button id="start" type="button" class="btn" data-en="Play">Jugar</button></div>
+    <canvas id="screen" width="480" height="330" aria-label="Escenario del juego"></canvas>
+    <p id="guide" class="guide"></p>
+    <div id="controls" class="controls"></div>
+    <p id="status" role="status"></p>
+  </section>
+</main>
+<footer class="foot"></footer>
+<script type="module" src="./games.js"></script>
+</body>
+</html>

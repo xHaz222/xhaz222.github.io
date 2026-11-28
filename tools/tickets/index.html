@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Guía de tickets · xHaz Tools</title>
+<link rel="stylesheet" href="../assets/base.css">
+<style>
+main{max-width:1060px}.support-hero{position:relative;isolation:isolate;overflow:hidden;padding:clamp(22px,5vw,56px);border:1px solid #6578bd66;border-radius:20px;background:radial-gradient(ellipse at 90% 0,#303a85,transparent 62%),#111633}
+.support-hero h1{font-size:clamp(32px,6vw,62px);line-height:1.05;max-width:15ch}
+.support-hero p{max-width:48ch;margin:14px 0 0;color:#d0d6fb}
+.spark{position:absolute;right:9%;top:15%;z-index:-1;font-size:clamp(60px,19vw,205px);color:#839dff;text-shadow:0 0 40px #6382ef;opacity:.23;animation:spark 3s ease-in-out infinite alternate}
+@keyframes spark{to{opacity:.45;transform:translateY(6px)}}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0 26px;padding:0;list-style:none;counter-reset:step}
+.steps li{counter-increment:step;display:flex;gap:9px;align-items:center;padding:12px;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.steps li::before{content:counter(step);display:grid;place-items:center;flex:none;width:26px;height:26px;border-radius:50%;background:#a7b6ff;color:#172047;font-weight:700}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.48fr);gap:16px}
+.case-list{display:flex;flex-direction:column;gap:7px;margin-top:12px}
+.case-list button{text-align:left;justify-content:flex-start}
+.case-list [aria-pressed=true]{background:#a7b6ff;color:#121a37}
+.example{display:grid;gap:10px;padding:18px;border-radius:16px;border:1px solid var(--line);background:var(--panel)}
+.example p{color:#c9ceed}.example code{font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+.label{font-size:12px;color:var(--mute)}
+.snippet{padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--deep);white-space:pre-wrap}
+.buttons,.footlinks{display:flex;gap:8px 14px;align-items:center;flex-wrap:wrap}
+.buttons a{text-decoration:none}
+.footlinks{margin-top:20px;color:#cbd6ff;font-size:14px}
+.privacy{margin:16px 0 0;color:var(--mute);font-size:13px}
+@media(max-width:680px){.layout,.steps{grid-template-columns:1fr}.steps{gap:6px}}
+@media(prefers-reduced-motion:reduce){.spark{animation:none}}
+</style>
+</head>
+<body>
+<header class="top"></header>
+<main>
+<section class="support-hero">
+  <span class="spark" aria-hidden="true">✦</span>
+  <h1 data-en="How to open a ticket on xat">Cómo abrir un ticket en xat</h1>
+  <p data-en="Choose what happened and use the example to write your support request in English.">Elige qué te pasó y usa el ejemplo para escribir tu solicitud de soporte en inglés.</p>
+</section>
+<ol class="steps">
+  <li data-en="Choose your case">Elige tu caso</li>
+  <li data-en="Adapt the English example">Adapta el ejemplo en inglés</li>
+  <li data-en="Submit it on the official site">Envíalo desde el sitio oficial</li>
+</ol>
+<div class="layout">
+  <section aria-labelledby="cases-title">
+    <h2 id="cases-title" data-en="What happened?">¿Qué te pasó?</h2>
+    <div class="case-list" id="cases">
+      <button class="btn ghost" type="button" data-case="locked" aria-pressed="true" data-en="xat locked me out">xat bloqueó mi inicio de sesión</button>
+      <button class="btn ghost" type="button" data-case="hold" aria-pressed="false" data-en="My account has a hold">Mi cuenta está retenida o bloqueada</button>
+      <button class="btn ghost" type="button" data-case="email" aria-pressed="false" data-en="I lost access to my email">Perdí acceso al correo</button>
+      <button class="btn ghost" type="button" data-case="chat" aria-pressed="false" data-en="My chat group is blocked">Mi grupo está bloqueado</button>
+      <button class="btn ghost" type="button" data-case="other" aria-pressed="false" data-en="I have a general question">Tengo otra consulta</button>
+    </div>
+  </section>
+  <section class="example" aria-labelledby="topic">
+    <span class="label">Help Topic</span><h2 id="topic"></h2>
+    <p id="hint"></p>
+    <span class="label" data-en="Subject · English">Asunto · en inglés</span>
+    <code class="snippet" id="subject"></code>
+    <span class="label" data-en="Message · English">Mensaje · en inglés</span>
+    <code class="snippet" id="message"></code>
+    <div class="buttons">
+      <button class="btn ghost" id="copy" type="button" data-en="Copy example">Copiar ejemplo</button>
+      <a class="btn" href="https://util.xat.com/support/open.php" data-en="Open official form">Abrir formulario oficial</a>
+    </div>
+    <span class="label" id="note" role="status"></span>
+  </section>
+</div>
+<p class="privacy" data-en="Some categories require a previous xats purchase. Keep passwords and personal information out of the message. Use one ticket per issue.">Algunas categorías requieren haber comprado xats. Evita incluir contraseñas y datos personales en el mensaje. Usa un solo ticket por problema.</p>
+<div class="footlinks">
+  <a href="https://util.xat.com/support/view.php" data-en="Check ticket status">Ver estado del ticket</a>
+  <a href="https://forum.xat.com/forum/4-general-support/" data-en="Support forum">Foro de soporte</a>
+  <a href="https://xat.com/help" data-en="Help chat">Chat de ayuda</a>
+</div>
+</main>
+<footer class="foot"></footer>
+<script type="module">
+import { shell, L } from '../assets/core.js';
+shell('tickets');
+const cases = {
+  locked: ['Locked Out', 'Elige esta categoría si xat te mostró un aviso de bloqueo al iniciar sesión.', 'Choose this topic if xat showed a Locked Out warning when signing in.', 'I am locked out of my account', 'Hello, xat displayed a Locked Out warning when I tried to sign in on [date]. The exact message was [message]. Could you help me regain access? Thank you.'],
+  hold: ['Account Hold / Account Block', 'Elige la opción que coincida con el aviso. Incluye el código de error y el tiempo de retención que muestra xat, si aparece.', 'Choose the option that matches the notice. Include the error code and the hold duration if xat shows one.', 'I need help with an account restriction', 'Hello, my account shows this restriction: [exact message or error code]. I first saw it on [date]. The notice shows [duration, if displayed]. Could you tell me what to do next? Thank you.'],
+  email: ['Lost Access / Email Change or Email Hint', 'Usa Lost Access si perdiste el acceso. Si solo necesitas identificar o cambiar el correo asociado, busca Email Change or Email Hint. Si no puedes usar el formulario, pide orientación en el chat de ayuda.', 'Use Lost Access if you lost access. If you only need to identify or change the linked email, look for Email Change or Email Hint. If the form is unavailable to you, ask in the help chat.', 'I need help with my linked email', 'Hello, I need help with the email linked to my account. The issue is [I cannot access the email / I do not remember which email is linked]. Please let me know the next step. Thank you.'],
+  chat: ['Chat Block', 'Úsalo si hay un problema de bloqueo, promoción o visibilidad de tu grupo. Incluye el enlace del grupo y qué acción falló.', 'Use this topic for a blocked group or a promotion or visibility issue. Include the group link and the action that failed.', 'I need help with my chat group', 'Hello, my chat group [group link] has this issue: [describe the problem]. I noticed it on [date] when I tried to [action]. Could you explain the next step? Thank you.'],
+  other: ['A General Question or Concern', 'Úsalo si tu consulta no encaja en una categoría más específica.', 'Use this topic if your question does not fit a more specific category.', 'I have a question about xat', 'Hello, I would like help with [short description]. I have already tried [steps you tried]. Could you tell me what to do next? Thank you.'],
+};
+const byId = id => document.getElementById(id);
+const options = [...document.querySelectorAll('[data-case]')];
+function show(key) {
+  const [topic, es, en, subject, message] = cases[key];
+  for (const button of options) button.setAttribute('aria-pressed', String(button.dataset.case === key));
+  byId('topic').textContent = topic;
+  byId('hint').textContent = L(es, en);
+  byId('subject').textContent = subject;
+  byId('message').textContent = message;
+  byId('note').textContent = '';
+}
+for (const button of options) button.addEventListener('click', () => show(button.dataset.case));
+byId('copy').addEventListener('click', async () => {
+  const text = 'Subject: ' + byId('subject').textContent + '\n\n' + byId('message').textContent;
+  try {
+    await navigator.clipboard.writeText(text);
+    byId('note').textContent = L('Copiado. Cambia lo que está entre corchetes antes de enviar.', 'Copied. Replace the bracketed text before submitting.');
+  } catch {
+    byId('note').textContent = L('Selecciona el texto y cópialo manualmente.', 'Select the text and copy it manually.');
+  }
+});
+show('locked');
+</script>
+</body>
+</html>

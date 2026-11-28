@@ -73,6 +73,7 @@ details.sec > .group{margin-top:10px}
           </div>
           <div class="row" data-bg="art"><select id="art" aria-label="Estilo"></select><select id="pal" aria-label="Colores"></select></div>
           <div data-bg="img" class="group"><input type="text" id="bgimg" placeholder="https://… (link directo de tu foto)" data-en-ph="https://… (direct link to your photo)" spellcheck="false">
+            <a class="up" href="https://xatimg.com/" target="_blank" rel="noopener" data-en="Upload your image and paste the direct link here">Sube tu imagen y pega aquí el enlace directo</a>
             <label class="f"><span data-en="Darken the photo">Oscurecer la foto</span><input type="range" id="tint" min="0" max="80" value="35"></label></div>
           <div class="row" data-bg="pattern"><select id="pat" aria-label="Patrón">
             <option value="dots" data-en="Dots">Puntos</option><option value="hearts" data-en="Hearts">Corazones</option><option value="stars" data-en="Stars">Estrellas</option><option value="checks" data-en="Checks">Cuadros</option><option value="stripes" data-en="Stripes">Rayas</option></select></div>
@@ -169,6 +170,10 @@ let D = {
 // looks rápidos inspirados en diseño web moderno
 const LOOKS = {
   glitch: ['Glitch', 'Glitch', { bg: { t: 'art', v: 'glitch', p: 'glitch' }, ac: '#08d9d6', f: 'Rubik Glitch', th: 'void' }],
+  eco: ['Eco glitch', 'Glitch echo', { bg: { t: 'art', v: 'eco', p: 'glitch' }, ac: '#a0baff', f: 'Barlow Condensed', fw: '900', th: 'void' }],
+  orbital: ['Robot orbital', 'Orbital robot', { bg: { t: 'art', v: 'orbital', p: 'noche' }, ac: '#7fb3ff', f: 'Orbitron', th: 'glass' }],
+  azulOro: ['Azul y oro', 'Blue and gold', { bg: { t: 'art', v: 'azulOro', p: 'noche' }, ac: '#ffcf51', f: 'Barlow Condensed', fw: '900', th: 'glass' }],
+  pawnGlitch: ['Peón glitch', 'Glitch pawn', { bg: { t: 'art', v: 'pawnGlitch', p: 'glitch' }, ac: '#08d9d6', f: 'Space Grotesk', th: 'neon' }],
   umbral: ['Umbral digital', 'Digital threshold', { bg: { t: 'art', v: 'umbral', p: 'glitch' }, ac: '#08d9d6', f: 'Barlow Condensed', fw: '900', th: 'void' }],
   miami: ['Neón Miami', 'Miami neon', { bg: { t: 'art', v: 'synthwave', p: 'vice' }, ac: '#ff5ca8', f: 'Audiowide', th: 'neon' }],
   vidrio: ['Vidrio líquido', 'Liquid glass', { bg: { t: 'art', v: 'vidrio', p: 'lavanda' }, ac: '#c4b5fd', f: 'Outfit', th: 'glass' }],
