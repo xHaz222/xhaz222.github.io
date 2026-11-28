@@ -84,6 +84,8 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
 // Render oficial de xat (gs.xat.com) pedido sin referrer; si falla, la tira clásica GetStrip
 const STRIP = c => `https://gs.xat.com/a_(${encodeURIComponent(c)})_80`;
+// vista previa de hats clásicos sobre pawn verde (el hat g usa otra posición, como en la wiki)
+const HP = h => `p1pwn*00c000*hat1*w${h === 'g' ? 3 : 0}i0i${h}`;
 const OLD = c => `https://s0.xat.com/web_gear/chat/GetStrip8.php?c=a_(${encodeURIComponent(c)})_80`;
 const PICON = n => `https://xat.com/images/smw/${encodeURIComponent(n)}.png`;
 document.addEventListener('error', e => {
@@ -128,7 +130,7 @@ async function draw() {
       out.innerHTML = `<div class="box" style="margin-bottom:14px"><span class="gt">${L('Color del hat (opcional)', 'Hat color (optional)')}</span>
         <div class="row" style="justify-content:flex-start"><input type="color" id="hc" value="#ff0000" style="flex:none"><label class="chip" style="display:flex;gap:6px;align-items:center;flex:none"><input type="checkbox" id="hcon"> ${L('Usar color', 'Use color')}</label></div>
         <p class="hint">${L('Party, Santa, Single y Uncle Sam no se pueden colorear. Los códigos distinguen mayúsculas.', 'Party, Santa, Single and Uncle Sam cannot be colored. Codes are case sensitive.')}</p></div>
-        <div class="hatlist">${DEFAULT_HATS.map(h => `<button class="cell" data-hat="(hat#${h})" data-def="1" data-pawn="p1pwn*00c000*hat1*w0i0i${h}"><img src="${STRIP('p1pwn*00c000*hat1*w0i0i' + h)}" data-c="p1pwn*00c000*hat1*w0i0i${h}" referrerpolicy="no-referrer" alt="" loading="lazy"><code style="font-size:15px">(hat#${h})</code><em>${h === 'g' ? L('requiere 1 regalo', 'needs 1 gift') : h === 'e' ? L('huevo', 'egg') : h === 'r' ? L('orejas de conejo', 'bunny ears') : h === 't' ? L('gorra', 'cap') : '&nbsp;'}</em></button>`).join('')}</div>
+        <div class="hatlist">${DEFAULT_HATS.map(h => `<button class="cell" data-hat="(hat#${h})" data-def="1" data-pawn="${HP(h)}"><img src="${STRIP(HP(h))}" data-c="${HP(h)}" referrerpolicy="no-referrer" alt="" loading="lazy"><code style="font-size:15px">(hat#${h})</code><em>${h === 'g' ? L('requiere 1 regalo', 'needs 1 gift') : h === 'e' ? L('huevo', 'egg') : h === 'r' ? L('orejas de conejo', 'bunny ears') : h === 't' ? L('gorra', 'cap') : '&nbsp;'}</em></button>`).join('')}</div>
         <p class="hint" style="margin-top:12px">${L('Estos solo necesitan el power Hat. La vista previa muestra el hat sin color.', 'These only need the Hat power. The preview shows the hat without color.')}</p>`;
       $('hc').oninput = $('hcon').onchange = () => S.sel && S.sel.def && pick(S.sel);
     } else {

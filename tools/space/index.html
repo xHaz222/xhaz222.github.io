@@ -44,6 +44,11 @@ details.sec > .group{margin-top:10px}
   <div class="work">
     <aside class="controls">
       <div class="group">
+        <span class="gt" data-en="Quick looks">Looks rápidos</span>
+        <div class="chips" id="looks"></div>
+        <p class="hint" data-en="One click changes background, colors, letters and panels. Then adjust what you want.">Un clic cambia fondo, colores, letra y paneles. Después ajusta lo que quieras.</p>
+      </div>
+      <div class="group">
         <span class="gt" data-en="Design">Diseño</span>
         <div class="tpl" id="tpl"></div>
       </div>
@@ -76,8 +81,10 @@ details.sec > .group{margin-top:10px}
             <label class="f"><span data-en="Accent color">Color de acento</span><input type="color" id="ac" value="#4d7cff"></label>
             <label class="f"><span data-en="Letters">Letra</span><select id="f">
               <option value="Outfit">Outfit</option><option value="Bricolage Grotesque">Bricolage</option><option value="Space Grotesk">Space Grotesk</option>
-              <option value="JetBrains Mono">JetBrains Mono</option><option value="Playfair Display">Playfair</option><option value="Bungee">Bungee</option></select></label>
-            <label class="f"><span data-en="Panels">Paneles</span><select id="th"><option value="dark" data-en="Dark">Oscuros</option><option value="light" data-en="Light">Claros</option></select></label>
+              <option value="JetBrains Mono">JetBrains Mono</option><option value="Playfair Display">Playfair</option><option value="Bungee">Bungee</option>
+              <option value="Orbitron">Orbitron</option><option value="Michroma">Michroma</option><option value="Syncopate">Syncopate</option><option value="Audiowide">Audiowide</option>
+              <option value="Major Mono Display">Major Mono</option><option value="Rubik Glitch">Rubik Glitch</option><option value="Kaushan Script">Kaushan</option></select></label>
+            <label class="f"><span data-en="Panels">Paneles</span><select id="th"><option value="dark" data-en="Dark">Oscuros</option><option value="light" data-en="Light">Claros</option><option value="glass" data-en="Liquid glass">Vidrio líquido</option><option value="neon" data-en="Neon edge">Borde neón</option><option value="void" data-en="Minimal black">Negro minimal</option></select></label>
           </div>
         </div>
       </details>
@@ -158,7 +165,28 @@ let D = {
   ln: [['xat', 'https://xat.com/xHaz']], ph: [], fr: [], mu: [], yt: '',
 };
 
+// looks rápidos inspirados en diseño web moderno
+const LOOKS = {
+  glitch: ['Glitch', 'Glitch', { bg: { t: 'art', v: 'glitch', p: 'glitch' }, ac: '#08d9d6', f: 'Rubik Glitch', th: 'void' }],
+  miami: ['Neón Miami', 'Miami neon', { bg: { t: 'art', v: 'synthwave', p: 'vice' }, ac: '#ff5ca8', f: 'Audiowide', th: 'neon' }],
+  vidrio: ['Vidrio líquido', 'Liquid glass', { bg: { t: 'art', v: 'vidrio', p: 'lavanda' }, ac: '#c4b5fd', f: 'Outfit', th: 'glass' }],
+  eclipse: ['Eclipse', 'Eclipse', { bg: { t: 'art', v: 'eclipse', p: 'brasa' }, ac: '#ff6a1a', f: 'Syncopate', th: 'void' }],
+  tinta: ['Tinta y sol rojo', 'Ink and red sun', { bg: { t: 'art', v: 'tinta', p: 'rubi' }, ac: '#c8102e', f: 'Playfair Display', th: 'dark' }],
+  hud: ['HUD futurista', 'Futuristic HUD', { bg: { t: 'art', v: 'hud', p: 'oceano' }, ac: '#22d3ee', f: 'Orbitron', th: 'neon' }],
+  seda: ['Seda morada', 'Purple silk', { bg: { t: 'art', v: 'seda', p: 'luna' }, ac: '#f3d6e4', f: 'Michroma', th: 'glass' }],
+  agujero: ['Agujero negro', 'Black hole', { bg: { t: 'art', v: 'agujero', p: 'noche' }, ac: '#8b5cf6', f: 'Major Mono Display', th: 'void' }],
+  codigo: ['Código', 'Code', { bg: { t: 'art', v: 'codigo', p: 'matrix' }, ac: '#22ff88', f: 'JetBrains Mono', th: 'neon' }],
+};
+
 // ---------- interfaz ----------
+$('looks').innerHTML = Object.entries(LOOKS).map(([k, [es, en]]) => `<button class="chip" data-look="${k}">${L(es, en)}</button>`).join('');
+$('looks').addEventListener('click', e => {
+  const b = e.target.closest('[data-look]'); if (!b) return;
+  read(); const v = LOOKS[b.dataset.look][2];
+  D = { ...D, ...v, bg: { ...D.bg, ...v.bg } };
+  document.querySelectorAll('#looks .chip').forEach(x => x.setAttribute('aria-pressed', x === b));
+  fill(); update();
+});
 $('tpl').innerHTML = TPL.map(([k, es, en, des, den]) => `<button class="tp" data-t="${k}" aria-pressed="${k === D.t}">${L(es, en)}<small>${L(des, den)}</small></button>`).join('');
 $('art').innerHTML = Object.entries(STYLES).map(([k, v]) => `<option value="${k}">${L(v.es, v.en)}</option>`).join('');
 $('pal').innerHTML = Object.keys(PALETTES).map(k => `<option value="${k}">${k}</option>`).join('');

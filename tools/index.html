@@ -13,7 +13,12 @@
 .hero .cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
 .hero .cta a{text-decoration:none}
 /* el escenario: fondo vivo + chat de xat a su proporción real (728×486) */
-.scene{position:relative;border-radius:22px;overflow:hidden;border:1px solid var(--line);aspect-ratio:16/10;background:#000}
+.scene{position:relative;border-radius:22px;overflow:hidden;border:1px solid var(--line);aspect-ratio:16/10;background:#000;box-shadow:0 34px 90px -40px rgba(77,124,255,.55)}
+/* una luz que recorre el borde del escenario */
+@property --ang{syntax:'<angle>';inherits:false;initial-value:0deg}
+.scene::after{content:'';position:absolute;inset:0;border-radius:inherit;padding:1.5px;background:conic-gradient(from var(--ang),transparent 0 68%,rgba(77,124,255,.9) 80%,#ffb48f 87%,transparent 95%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;animation:ring 9s linear infinite;z-index:2}
+@keyframes ring{to{--ang:360deg}}
+@media (prefers-reduced-motion:reduce){.scene::after{animation:none}}
 .scene canvas{position:absolute;inset:0;width:100%;height:100%}
 .xchat{position:absolute;left:50%;top:50%;width:62%;aspect-ratio:728/486;transform:translate(-50%,-50%);border-radius:10px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.45);display:grid;grid-template-columns:1fr 27%;grid-template-rows:1fr 11%;background:rgba(236,239,247,.93);font-size:clamp(9px,1vw,13px);color:#20253a}
 .xchat .msgs{padding:5% 5% 3%;display:flex;flex-direction:column;justify-content:flex-end;gap:6%}
@@ -127,7 +132,7 @@ import { STYLES, PALETTES, finish } from './assets/art.js';
 shell('home');
 
 // Escenario principal: rota entre estilos cada 7 s
-const HERO = [['aurora', 'noche'], ['teseracto', 'lavanda'], ['niebla', 'mono'], ['synthwave', 'neon'], ['olas', 'oceano'], ['malla', 'rosa']];
+const HERO = [['seda', 'luna'], ['agujero', 'noche'], ['tinta', 'rubi'], ['teseracto', 'lavanda'], ['eclipse', 'brasa'], ['synthwave', 'vice'], ['hud', 'oceano'], ['aurora', 'noche'], ['vidrio', 'vice'], ['glitch', 'glitch']];
 function fit(cv) {
   const r = cv.getBoundingClientRect(), k = Math.min(1.5, devicePixelRatio || 1);
   const w = Math.max(2, Math.round(r.width * k)), h = Math.max(2, Math.round(r.height * k));

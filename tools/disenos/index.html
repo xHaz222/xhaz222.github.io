@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Fondos con título · xHaz Tools</title>
 <link rel="stylesheet" href="../assets/base.css">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pacifico&family=Kaushan+Script&family=Lobster&family=Yellowtail&family=Great+Vibes&family=Bebas+Neue&family=Anton&family=Bungee&family=Cinzel:wght@700&family=Monoton&family=Righteous&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pacifico&family=Kaushan+Script&family=Lobster&family=Yellowtail&family=Great+Vibes&family=Bebas+Neue&family=Anton&family=Bungee&family=Cinzel:wght@700&family=Monoton&family=Righteous&family=Orbitron:wght@700;900&family=Rubik+Glitch&family=Major+Mono+Display&family=Zen+Dots&family=Michroma&family=Audiowide&family=Syncopate:wght@700&display=swap">
 <style>
 .sizes{display:flex;flex-wrap:wrap;gap:6px}
 .size{font:inherit;font-size:13px;text-align:left;color:#cfd3f5;background:var(--ink);border:1px solid var(--line);border-radius:var(--r-md);padding:7px 11px;cursor:pointer;line-height:1.25}
@@ -28,6 +28,7 @@
 .hosts a{font-size:13px;text-decoration:none;background:var(--raise);border:1px solid var(--line);border-radius:999px;padding:6px 12px}
 .warn{color:var(--peach)}
 .finish{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.fin.dark{color:#fff}
 .fin{font:inherit;font-size:13px;font-weight:700;border:1px solid var(--line);border-radius:var(--r-md);padding:8px 4px;cursor:pointer;color:#1a1a1a}
 .fin[aria-pressed="true"]{outline:2px solid var(--text);outline-offset:1px}
 </style>
@@ -55,6 +56,9 @@
             <option value="Yellowtail">Yellowtail</option><option value="Great Vibes">Great Vibes</option><option value="Bebas Neue">Bebas Neue</option>
             <option value="Anton">Anton</option><option value="Bungee">Bungee</option><option value="Cinzel">Cinzel</option><option value="Monoton">Monoton</option>
             <option value="Righteous">Righteous</option><option value="Bricolage Grotesque">Bricolage</option>
+            <option value="Orbitron">Orbitron (futurista)</option><option value="Michroma">Michroma (tech)</option><option value="Syncopate">Syncopate (ancha)</option>
+            <option value="Audiowide">Audiowide</option><option value="Zen Dots">Zen Dots</option><option value="Major Mono Display">Major Mono (minimal)</option>
+            <option value="Rubik Glitch">Rubik Glitch</option>
           </select>
         </div>
         <span class="hint" data-en="Finish">Acabado</span>
@@ -63,6 +67,7 @@
           <label class="f"><span data-en="Size">Tamaño</span><input type="range" id="tsize" min="0.08" max="0.36" step="0.005" value="0.27"></label>
           <label class="f"><span data-en="Depth">Volumen</span><input type="range" id="depth" min="0" max="1" step="0.05" value="0.5"></label>
         </div>
+        <label class="f"><span data-en="Letter spacing (V O I D style)">Separación de letras (estilo V O I D)</span><input type="range" id="spacing" min="0" max="0.7" step="0.01" value="0"></label>
         <div class="row">
           <label class="f"><span data-en="Left / right">Izquierda / derecha</span><input type="range" id="tx" min="0.15" max="0.85" step="0.01" value="0.5"></label>
           <label class="f"><span data-en="Up / down">Arriba / abajo</span><input type="range" id="ty" min="0.15" max="0.85" step="0.01" value="0.45"></label>
@@ -122,7 +127,7 @@
 
 <script type="module">
 import { shell, L, toast, download, makeGIF, canvasPNG, fmtBytes } from '../assets/core.js';
-import { rng, rgba } from '../assets/art.js';
+import { rng, rgba, STYLES, PALETTES } from '../assets/art.js';
 shell('disenos');
 const $ = id => document.getElementById(id);
 const TAU = Math.PI * 2;
@@ -159,6 +164,8 @@ function fall(ctx, w, h, p, key, n, draw, speed = 1) {
     draw(x, y, z, TAU * p * k + ph);
   });
 }
+// escenas que usan los estilos generativos con una paleta fija
+const art = (st, pal, density) => (ctx, w, h, p) => { const c = PALETTES[pal]; STYLES[st].draw(ctx, w, h, p, { bg: c[0], c: [c[1], c[2], c[3]], density, speed: 1, seed: 7 }); };
 const SCENES = {
   navidad: { es: 'Navidad', en: 'Christmas', draw(ctx, w, h, p) {
     grad(ctx, w, h, ['#2a0d0d', '#3b1410', '#0f1f14']);
@@ -250,6 +257,48 @@ const SCENES = {
     ctx.fillStyle = '#05060c';
     for (let x = 0; x < w;) { const bw = (30 + r() * 50) * s, bh = (80 + r() * 160) * s; ctx.fillRect(x, h - bh, bw - 3 * s, bh); for (let wy = h - bh + 8 * s; wy < h - 8 * s; wy += 12 * s) for (let wx = x + 5 * s; wx < x + bw - 10 * s; wx += 10 * s) { if (r() > .55) { ctx.fillStyle = rgba('#ffd27a', .35 + .3 * Math.sin(TAU * p + wx + wy)); ctx.fillRect(wx, wy, 4 * s, 5 * s); ctx.fillStyle = '#05060c'; } } x += bw; }
   } },
+  miami: { es: 'Atardecer Miami', en: 'Miami sunset', draw(ctx, w, h, p) {
+    const s = w / 728, hz = h * .64, a = TAU * p;
+    const sky = ctx.createLinearGradient(0, 0, 0, hz);
+    ['#120a33', '#3d1466', '#a42a7d', '#ff5ca8', '#ff9868'].forEach((c, i) => sky.addColorStop(i / 4, c));
+    ctx.fillStyle = sky; ctx.fillRect(0, 0, w, hz);
+    const ST = pts('mst', 70, r => [r(), r() * .5, r(), r() * TAU]);
+    ST.forEach(([x, y, z, ph]) => { ctx.fillStyle = `rgba(255,255,255,${(.2 + .5 * z) * (.5 + .5 * Math.sin(a * 2 + ph))})`; ctx.fillRect(x * w, y * h, (1 + z) * s, (1 + z) * s); });
+    const R = Math.min(w, h) * .24, cx = w / 2, cy = hz - R * .25;
+    ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.clip();
+    const sg = ctx.createLinearGradient(0, cy - R, 0, cy + R); sg.addColorStop(0, '#fff3a8'); sg.addColorStop(.55, '#ff9868'); sg.addColorStop(1, '#ff3d8b');
+    ctx.fillStyle = sg; ctx.fillRect(cx - R, cy - R, R * 2, R * 2);
+    ctx.fillStyle = '#a42a7d';
+    for (let i = 0; i < 6; i++) { const y = cy + R * (.08 + i * .15) + ((p * R * .15 * 2) % (R * .15)); ctx.fillRect(cx - R, y, R * 2, (1.5 + i * 1.3) * s); }
+    ctx.restore();
+    const r = rng(17); ctx.fillStyle = '#1a0c33';
+    for (let x = 0; x < w;) { const bw = (16 + r() * 34) * s, bh = (14 + r() * r() * 90) * s; ctx.fillRect(x, hz - bh, bw - 2 * s, bh);
+      for (let wy = hz - bh + 5 * s; wy < hz - 4 * s; wy += 7 * s) for (let wx = x + 3 * s; wx < x + bw - 6 * s; wx += 6 * s) if (r() > .72) { ctx.fillStyle = rgba(r() > .5 ? '#00f0ff' : '#ff5ca8', .35 + .35 * Math.sin(a + wx * .3 + wy)); ctx.fillRect(wx, wy, 2.2 * s, 2.6 * s); ctx.fillStyle = '#1a0c33'; }
+      x += bw; }
+    const sea = ctx.createLinearGradient(0, hz, 0, h); sea.addColorStop(0, '#2a0f4a'); sea.addColorStop(1, '#07031a');
+    ctx.fillStyle = sea; ctx.fillRect(0, hz, w, h - hz);
+    for (let i = 0; i < 16; i++) { const y = hz + (i + .5) * (h - hz) / 16, ww = R * (1.7 - i * .07) * (.75 + .25 * Math.sin(a * 2 + i)); ctx.fillStyle = rgba('#ff7aa8', .6 - i * .03); ctx.fillRect(cx - ww / 2 + Math.sin(a + i * .7) * 5 * s, y, ww, 2.4 * s); }
+    const palm = (x, H, lean, ph) => {
+      const tx = x + lean * H, ty = hz - H, sway = Math.sin(a + ph) * .06;
+      ctx.strokeStyle = ctx.fillStyle = '#0b0518'; ctx.lineCap = 'round'; ctx.lineWidth = 8 * s;
+      ctx.beginPath(); ctx.moveTo(x, hz + 6 * s); ctx.quadraticCurveTo(x + lean * H * .15, hz - H * .55, tx, ty); ctx.stroke();
+      for (let i = 0; i < 9; i++) {
+        const ang = -Math.PI / 2 + (i - 4) * .42 + sway, L = H * (.42 + (i % 2) * .08);
+        const ex = tx + Math.cos(ang) * L, ey = ty + Math.sin(ang) * L * .5 + L * .42 * Math.abs(Math.cos(ang));
+        const mx = tx + Math.cos(ang) * L * .5, my = ty + Math.sin(ang) * L * .45 - L * .06;
+        ctx.beginPath(); ctx.moveTo(tx, ty); ctx.quadraticCurveTo(mx, my - L * .1, ex, ey); ctx.quadraticCurveTo(mx, my + L * .08, tx, ty); ctx.fill();
+      }
+    };
+    palm(w * .1, h * .62, .18, 0); palm(w * .2, h * .44, -.1, 1.4); palm(w * .9, h * .58, -.2, 2.6);
+  } },
+  glitch: { es: 'Glitch', en: 'Glitch', draw: art('glitch', 'glitch', .45) },
+  eclipse: { es: 'Eclipse', en: 'Eclipse', draw: art('eclipse', 'brasa', .4) },
+  agujero: { es: 'Agujero negro', en: 'Black hole', draw: art('agujero', 'noche', .55) },
+  tinta: { es: 'Tinta y sol rojo', en: 'Ink and red sun', draw: art('tinta', 'rubi', .4) },
+  seda: { es: 'Seda morada', en: 'Purple silk', draw: art('seda', 'luna', .6) },
+  hud: { es: 'HUD futurista', en: 'Futuristic HUD', draw: art('hud', 'oceano', .5) },
+  codigo: { es: 'Lluvia de código', en: 'Code rain', draw: art('codigo', 'matrix', .7) },
+  vidrio: { es: 'Vidrio líquido', en: 'Liquid glass', draw: art('vidrio', 'vice', 0) },
 };
 
 // ---------- acabados del título ----------
@@ -260,12 +309,16 @@ const FIN = {
   hielo: { es: 'Hielo', en: 'Ice', stops: ['#ffffff', '#bfe9ff', '#3a6f8f', '#d9f4ff', '#7fb8d6'], edge: '#0b2233', glow: 'rgba(150,220,255,.6)', btn: 'linear-gradient(#fff,#7fb8d6)' },
   fuego: { es: 'Fuego', en: 'Fire', stops: ['#fff3b0', '#ffb703', '#d62828', '#ffdd57', '#e85d04'], edge: '#3a0a00', glow: 'rgba(255,120,40,.65)', btn: 'linear-gradient(#fff3b0,#d62828)' },
   neon: { es: 'Neón', en: 'Neon', stops: ['#ffffff', '#ffd6f6', '#ff4fd8', '#ffd6f6', '#ff4fd8'], edge: '#3b0033', glow: 'rgba(255,79,216,.9)', btn: 'linear-gradient(#ffd6f6,#ff4fd8)' },
+  vidrio: { es: 'Vidrio', en: 'Glass', stops: ['rgba(255,255,255,.62)', 'rgba(255,255,255,.22)', 'rgba(255,255,255,.08)', 'rgba(255,255,255,.18)', 'rgba(255,255,255,.5)'], edge: 'rgba(255,255,255,.28)', glow: 'rgba(255,255,255,.35)', btn: 'linear-gradient(135deg,#dfe7ff,#8fa0d8 55%,#e9eeff)', flat: true },
+  holo: { es: 'Holográfico', en: 'Holographic', stops: ['#ffffff', '#c7f9ff', '#d7b8ff', '#ffd1ec', '#b8ffe1'], edge: '#251a45', glow: 'rgba(190,170,255,.7)', btn: 'linear-gradient(90deg,#b8fff1,#d7b8ff,#ffc8ea,#fff3b8)' },
+  glitch: { es: 'Glitch', en: 'Glitch', stops: ['#ffffff', '#ffffff', '#e8e8e8', '#ffffff', '#dddddd'], edge: '#000000', glow: 'rgba(8,217,214,.6)', btn: 'linear-gradient(90deg,#ff2e63 0 33%,#111 33% 66%,#08d9d6 66%)', dark: true },
+  carmesi: { es: 'Carmesí', en: 'Crimson', stops: ['#ffd6dc', '#ff3b5c', '#6b0012', '#ff6b81', '#a3001b'], edge: '#1a0005', glow: 'rgba(255,40,70,.65)', btn: 'linear-gradient(#ff8a9b,#8b0018)', dark: true },
 };
 const S = { size: SIZES[0], scene: 'navidad', fin: 'cromo', bg: null, fig: null, playing: true, p: 0 };
 
 $('sizes').innerHTML = SIZES.map((s, i) => `<button class="size" data-i="${i}" aria-pressed="${i === 0}">${L(s.es, s.en)}<small>${s.w}×${s.h}${s.gif ? '' : ' · ' + L('solo imagen', 'image only')}</small></button>`).join('');
 $('scenes').innerHTML = Object.entries(SCENES).map(([k, v]) => `<button class="chip" data-s="${k}" aria-pressed="${k === S.scene}">${L(v.es, v.en)}</button>`).join('');
-$('finish').innerHTML = Object.entries(FIN).map(([k, v]) => `<button class="fin" data-f="${k}" aria-pressed="${k === S.fin}" style="background:${v.btn}">${L(v.es, v.en)}</button>`).join('');
+$('finish').innerHTML = Object.entries(FIN).map(([k, v]) => `<button class="fin${v.dark ? ' dark' : ''}" data-f="${k}" aria-pressed="${k === S.fin}" style="background:${v.btn}">${L(v.es, v.en)}</button>`).join('');
 const press = (sel, b) => document.querySelectorAll(sel).forEach(x => x.setAttribute('aria-pressed', x === b));
 $('sizes').onclick = e => { const b = e.target.closest('.size'); if (!b) return; S.size = SIZES[+b.dataset.i]; press('#sizes .size', b); layout(); };
 $('scenes').onclick = e => { const b = e.target.closest('.chip'); if (!b) return; S.scene = b.dataset.s; S.bg = null; $('dimw').hidden = true; press('#scenes .chip', b); };
@@ -282,17 +335,25 @@ function title(ctx, w, h, p) {
   const t = $('title').value.trim(); if (!t) return;
   const fam = $('font').value, F = FIN[S.fin];
   let fs = Math.min(h, w * .6) * +$('tsize').value * (S.size.id === 'outer' ? .7 : 1);
-  ctx.font = `400 ${fs}px "${fam}", "Bricolage Grotesque", system-ui, sans-serif`;
-  const tw = ctx.measureText(t).width; if (tw > w * .9) { fs *= w * .9 / tw; ctx.font = `400 ${fs}px "${fam}", "Bricolage Grotesque", system-ui, sans-serif`; }
-  const x = w * +$('tx').value, y = h * +$('ty').value;
+  const sp = +$('spacing').value;
+  ctx.font = `400 ${fs}px "${fam}", "Bricolage Grotesque", system-ui, sans-serif`; ctx.letterSpacing = `${fs * sp}px`;
+  let tw = ctx.measureText(t).width; if (tw > w * .9) { fs *= w * .9 / tw; ctx.font = `400 ${fs}px "${fam}", "Bricolage Grotesque", system-ui, sans-serif`; ctx.letterSpacing = `${fs * sp}px`; tw = ctx.measureText(t).width; }
+  const x = w * +$('tx').value + fs * sp / 2, y = h * +$('ty').value; // el espaciado deja un hueco al final
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
-  const depth = Math.round(fs * .12 * +$('depth').value);
+  if (S.fin === 'glitch') { glitchTitle(ctx, t, x, y, fs, tw, p, w, h); ctx.letterSpacing = '0px'; return { fs, x, y }; }
+  const depth = F.flat ? 0 : Math.round(fs * .12 * +$('depth').value);
   for (let d = depth; d > 0; d--) { ctx.fillStyle = d === depth ? 'rgba(0,0,0,.45)' : F.edge; ctx.fillText(t, x + d * .5, y + d * .8); }
   ctx.save(); ctx.shadowColor = F.glow; ctx.shadowBlur = fs * (S.fin === 'neon' ? .45 : .22);
   ctx.lineWidth = fs * .1; ctx.strokeStyle = F.edge; ctx.strokeText(t, x, y); ctx.restore();
-  ctx.lineWidth = fs * .035; ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.strokeText(t, x, y);
-  const g = ctx.createLinearGradient(0, y - fs * .5, 0, y + fs * .5);
-  F.stops.forEach((c, i) => g.addColorStop([0, .42, .5, .6, 1][i], c));
+  ctx.lineWidth = fs * (F.flat ? .02 : .035); ctx.strokeStyle = F.flat ? 'rgba(255,255,255,.95)' : 'rgba(255,255,255,.85)'; ctx.strokeText(t, x, y);
+  let g;
+  if (S.fin === 'holo') {
+    g = ctx.createLinearGradient(x - tw / 2, y - fs * .4, x + tw / 2, y + fs * .4);
+    for (let i = 0; i <= 6; i++) g.addColorStop(i / 6, `hsl(${(p * 360 + i * 55) % 360},95%,${i % 2 ? 82 : 74}%)`);
+  } else {
+    g = ctx.createLinearGradient(0, y - fs * .5, 0, y + fs * .5);
+    F.stops.forEach((c, i) => g.addColorStop([0, .42, .5, .6, 1][i], c));
+  }
   ctx.fillStyle = g; ctx.fillText(t, x, y);
   if ($('shine').checked) {
     ctx.save(); ctx.globalCompositeOperation = 'source-atop';
@@ -301,7 +362,29 @@ function title(ctx, w, h, p) {
     lg.addColorStop(0, 'rgba(255,255,255,0)'); lg.addColorStop(.5, 'rgba(255,255,255,.8)'); lg.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = lg; ctx.fillRect(0, 0, w, h); ctx.restore();
   }
+  ctx.letterSpacing = '0px';
   return { fs, x, y };
+}
+// título partido en rojo y cian, con cortes que se mueven (se repite en bucle)
+const SLICE = document.createElement('canvas');
+function glitchTitle(ctx, t, x, y, fs, tw, p, w, h) {
+  const k = Math.floor(p * 24) % 24, r = rng(k * 977 + 3), burst = Math.pow(Math.max(0, Math.sin(TAU * p * 2)), 6);
+  const off = fs * (.025 + burst * .07);
+  ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = fs * .12; ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.fillText(t, x, y + fs * .03); ctx.restore();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.fillStyle = '#ff2e63'; ctx.fillText(t, x - off, y);
+  ctx.fillStyle = '#08d9d6'; ctx.fillText(t, x + off, y);
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.fillStyle = '#ffffff'; ctx.fillText(t, x, y);
+  if (SLICE.width !== w || SLICE.height !== h) { SLICE.width = w; SLICE.height = h; }
+  const sc = SLICE.getContext('2d'); sc.clearRect(0, 0, w, h); sc.drawImage(ctx.canvas, 0, 0);
+  const n = 2 + Math.round(burst * 5);
+  for (let i = 0; i < n; i++) {
+    const by = y - fs * .5 + r() * fs, bh = fs * (.04 + r() * .14), dx = (r() - .5) * fs * (.15 + burst * .6);
+    ctx.clearRect(0, by, w, bh); ctx.drawImage(SLICE, 0, by, w, bh, dx, by, w, bh);
+  }
+  ctx.fillStyle = 'rgba(0,0,0,.25)';
+  for (let ly = Math.floor(y - fs * .6); ly < y + fs * .6; ly += 3) ctx.fillRect(x - tw / 2 - fs * .3, ly, tw + fs * .6, 1);
 }
 function smallText(ctx, w, h, T) {
   if (!T) return;
